@@ -58,7 +58,7 @@
         <p style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
         <h1>SRI DHANUSH CRACKERS</h1>
         <h2>ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
-        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v8</strong></p>
+        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v9</strong></p>
         <p>📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
         <p>📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
     </div>
@@ -134,7 +134,6 @@
     </div>
 
     <script>
-        // REPLACE WITH YOUR NEW SCRIPT URL AFTER DEPLOYING STEP 1 CODE
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMPFWaAUAUGkoPKP18pgsTEqRXUM90sUhFv4zBpn1aAV0JQz5TnP6PpyWrUs29mfHiLQ/exec";
         let currentLang = 'both';
 
@@ -364,63 +363,89 @@
             }
         }
 
+        // Beautiful & Professional PDF Generator
         function triggerDirectPdfDownload(name, mobile, address, custType, paymentType, tableData, total) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
+            // Header Banner (Dark Red)
             doc.setFillColor(140, 29, 29);
-            doc.rect(0, 0, 210, 32, 'F');
+            doc.rect(0, 0, 210, 34, 'F');
             
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(18);
+            doc.setFontSize(20);
             doc.setFont("helvetica", "bold");
-            doc.text("SRI DHANUSH CRACKERS", 105, 12, { align: "center" });
+            doc.text("SRI DHANUSH CRACKERS", 105, 13, { align: "center" });
             
             doc.setFontSize(10);
             doc.setFont("helvetica", "normal");
-            doc.text("Sri Dhanush Crackers - Sivakasi | Digital Order Invoice 2026", 105, 18, { align: "center" });
-            doc.text("Address: 6/360, RCC Building, Anuppankulam, Sattur Road, Sivakasi", 105, 24, { align: "center" });
-            doc.text("Mob: 9080329266 | 9976708194 | 6381699755", 105, 29, { align: "center" });
+            doc.text("Sri Dhanush Crackers - Sivakasi | Official Order Invoice 2026", 105, 20, { align: "center" });
+            doc.setFontSize(9);
+            doc.text("6/360, RCC Building, Anuppankulam, Sattur Road, Sivakasi | Mob: 9080329266, 9976708194", 105, 26, { align: "center" });
 
-            doc.setTextColor(0, 0, 0);
+            // Customer Details Card (Box)
+            doc.setDrawColor(200, 200, 200);
+            doc.setFillColor(248, 249, 250);
+            doc.roundedRect(12, 40, 186, 30, 2, 2, 'FD');
+
+            doc.setTextColor(140, 29, 29);
             doc.setFontSize(11);
             doc.setFont("helvetica", "bold");
-            doc.text("CUSTOMER ORDER DETAILS", 14, 42);
+            doc.text("CUSTOMER & ORDER INFORMATION", 16, 46);
 
-            doc.setFontSize(10);
+            doc.setTextColor(50, 50, 50);
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "bold");
+            doc.text("Customer Name :", 16, 53);
+            doc.text("Mobile Number :", 16, 59);
+            doc.text("Address       :", 16, 65);
+
             doc.setFont("helvetica", "normal");
-            doc.text(`Customer Name : ${name}`, 14, 49);
-            doc.text(`Mobile Number : ${mobile}`, 14, 55);
-            doc.text(`Delivery Address: ${address}`, 14, 61);
-            doc.text(`Customer Type : ${custType}`, 120, 49);
-            doc.text(`Payment Mode  : ${paymentType}`, 120, 55);
+            doc.text(name, 45, 53);
+            doc.text(mobile, 45, 59);
+            doc.text(address, 45, 65);
 
+            doc.setFont("helvetica", "bold");
+            doc.text("Order Type    :", 115, 53);
+            doc.text("Payment Mode  :", 115, 59);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(custType, 142, 53);
+            doc.text(paymentType, 142, 59);
+
+            // Itemized AutoTable
             doc.autoTable({
-                startY: 68,
-                head: [['S.No', 'Item Name', 'Qty', 'Rate (Rs)', 'Total (Rs)']],
+                startY: 75,
+                head: [['S.No', 'Item Name Description', 'Qty', 'Rate (Rs)', 'Total (Rs)']],
                 body: tableData,
-                theme: 'grid',
-                headStyles: { fillColor: [140, 29, 29], textColor: [255, 255, 255], fontStyle: 'bold' },
-                styles: { fontSize: 9, cellPadding: 3 },
+                theme: 'striped',
+                headStyles: { fillColor: [140, 29, 29], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+                styles: { fontSize: 9, cellPadding: 3, textColor: [40, 40, 40] },
                 columnStyles: {
                     0: { halign: 'center', cellWidth: 15 },
                     1: { cellWidth: 95 },
                     2: { halign: 'center', cellWidth: 20 },
-                    3: { halign: 'right', cellWidth: 30 },
-                    4: { halign: 'right', cellWidth: 30 }
+                    3: { halign: 'right', cellWidth: 28 },
+                    4: { halign: 'right', cellWidth: 28 }
                 }
             });
 
-            let finalY = doc.lastAutoTable.finalY + 10;
-            doc.setFontSize(13);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(140, 29, 29);
-            doc.text(`GRAND TOTAL AMOUNT: Rs. ${total.toLocaleString('en-IN')}.00`, 196, finalY, { align: "right" });
+            // Total Amount Box
+            let finalY = doc.lastAutoTable.finalY + 8;
+            doc.setFillColor(254, 235, 200);
+            doc.setDrawColor(221, 107, 32);
+            doc.roundedRect(110, finalY, 88, 12, 1, 1, 'FD');
 
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(116, 42, 42);
+            doc.text(`GRAND TOTAL:  Rs. ${total.toLocaleString('en-IN')}.00`, 194, finalY + 8, { align: "right" });
+
+            // Footer
             doc.setFontSize(9);
             doc.setFont("helvetica", "italic");
             doc.setTextColor(100, 100, 100);
-            doc.text("*** Thank you for ordering with Sri Dhanush Crackers! ***", 105, finalY + 15, { align: "center" });
+            doc.text("*** Thank you for your order! Wish you a happy Diwali! ***", 105, finalY + 22, { align: "center" });
 
             doc.save(`Sri_Dhanush_Crackers_Bill_${name}.pdf`);
         }
@@ -500,14 +525,14 @@
             btnSubmit.innerText = "⏳ 1. Downloading PDF Bill...";
             btnSubmit.disabled = true;
 
-            // 1. Download Customer PDF
+            // 1. Trigger Direct Download
             try {
                 triggerDirectPdfDownload(name, mobile, address, custType, paymentType, tableData, total);
             } catch (e) {
                 console.log("PDF error: ", e);
             }
 
-            // 2. Send Data to Google Sheet via URL-encoded FormData (100% Guaranteed Submission)
+            // 2. Send Data to Google Sheet
             const formData = new URLSearchParams();
             formData.append("name", name);
             formData.append("mobile", mobile);
