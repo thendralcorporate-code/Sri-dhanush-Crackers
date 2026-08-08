@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SRI DHANUSH CRACKERS 2026</title>
-    <!-- jsPDF & AutoTable Libraries for 100% Guaranteed Mobile PDF -->
+    <!-- jsPDF & AutoTable Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
@@ -59,7 +59,7 @@
         <p style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
         <h1>SRI DHANUSH CRACKERS</h1>
         <h2>ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
-        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM</strong></p>
+        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v4</strong></p>
         <p>📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
         <p>📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
     </div>
@@ -133,7 +133,7 @@
                 <span style="font-size: 11px; color: #4a5568;" id="total-lbl">மொத்த தொகை:</span><br>
                 <span id="grand-total" style="font-size: 18px; font-weight: bold; color: #8c1d1d;">₹ 0.00</span>
             </div>
-            <button class="btn-submit" id="btn-send" onclick="processOrder()">📄 PDF Download & WhatsApp</button>
+            <button class="btn-submit" id="btn-send" onclick="processOrder()">📄 Download PDF & Submit</button>
         </div>
     </div>
 
@@ -235,7 +235,7 @@
                 document.getElementById('btn-edit').innerText = '✏️ மாற்று';
                 document.getElementById('summary-header').innerText = '📋 தேர்வு செய்த பொருட்கள்';
                 document.getElementById('total-lbl').innerText = 'மொத்த தொகை:';
-                document.getElementById('btn-send').innerText = '📄 PDF Download & WhatsApp';
+                document.getElementById('btn-send').innerText = '📄 Download PDF & Submit';
             } else if (lang === 'en') {
                 document.getElementById('cust-header').innerText = '👤 Customer Details';
                 document.getElementById('lbl-name').innerText = 'Full Name *';
@@ -248,7 +248,7 @@
                 document.getElementById('btn-edit').innerText = '✏️ Edit Info';
                 document.getElementById('summary-header').innerText = '📋 Selected Items';
                 document.getElementById('total-lbl').innerText = 'Grand Total:';
-                document.getElementById('btn-send').innerText = '📄 PDF Download & WhatsApp';
+                document.getElementById('btn-send').innerText = '📄 Download PDF & Submit';
             } else {
                 document.getElementById('cust-header').innerText = '👤 வாடிக்கையாளர் விவரங்கள்';
                 document.getElementById('lbl-name').innerText = 'உங்கள் பெயர் (Full Name) *';
@@ -261,7 +261,7 @@
                 document.getElementById('btn-edit').innerText = '✏️ Edit Info';
                 document.getElementById('summary-header').innerText = '📋 தேர்வு செய்த பொருட்கள்';
                 document.getElementById('total-lbl').innerText = 'மொத்த தொகை:';
-                document.getElementById('btn-send').innerText = '📄 PDF Download & WhatsApp';
+                document.getElementById('btn-send').innerText = '📄 Download PDF & Submit';
             }
 
             renderProducts();
@@ -367,13 +367,12 @@
             }
         }
 
-        // Pure JS PDF Generation (100% Works on Mobile Browsers)
-        function generatePurePDF(name, mobile, address, custType, paymentType, tableData, total) {
+        // Direct Download PDF via Pure jsPDF
+        function triggerDirectPdfDownload(name, mobile, address, custType, paymentType, tableData, total) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            // Header Section
-            doc.setFillColor(140, 29, 29); // Dark Red Header
+            doc.setFillColor(140, 29, 29);
             doc.rect(0, 0, 210, 32, 'F');
             
             doc.setTextColor(255, 255, 255);
@@ -387,7 +386,6 @@
             doc.text("Address: 6/360, RCC Building, Anuppankulam, Sattur Road, Sivakasi", 105, 24, { align: "center" });
             doc.text("Mob: 9080329266 | 9976708194 | 6381699755", 105, 29, { align: "center" });
 
-            // Customer Details Box
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(11);
             doc.setFont("helvetica", "bold");
@@ -401,7 +399,6 @@
             doc.text(`Customer Type : ${custType}`, 120, 49);
             doc.text(`Payment Mode  : ${paymentType}`, 120, 55);
 
-            // Products Table
             doc.autoTable({
                 startY: 68,
                 head: [['S.No', 'Item Name', 'Qty', 'Rate (Rs)', 'Total (Rs)']],
@@ -418,21 +415,35 @@
                 }
             });
 
-            // Grand Total
             let finalY = doc.lastAutoTable.finalY + 10;
             doc.setFontSize(13);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(140, 29, 29);
             doc.text(`GRAND TOTAL AMOUNT: Rs. ${total.toLocaleString('en-IN')}.00`, 196, finalY, { align: "right" });
 
-            // Footer
             doc.setFontSize(9);
             doc.setFont("helvetica", "italic");
             doc.setTextColor(100, 100, 100);
             doc.text("*** Thank you for ordering with Sri Dhanush Crackers! ***", 105, finalY + 15, { align: "center" });
 
-            // Save PDF File
+            // Triggers Direct Download
             doc.save(`Sri_Dhanush_Crackers_Bill_${name}.pdf`);
+        }
+
+        function openWhatsAppDirectly(orderText) {
+            const whatsappNumber = "919080329266";
+            const encodedText = encodeURIComponent(orderText);
+            
+            // Smart Mobile App vs Web Redirect
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                // Direct Mobile App Launcher
+                window.location.href = `whatsapp://send?phone=${whatsappNumber}&text=${encodedText}`;
+            } else {
+                // Desktop Web Fallback
+                window.open(`https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedText}`, '_blank');
+            }
         }
 
         function processOrder() {
@@ -492,14 +503,14 @@
             btnSubmit.innerText = "⏳ Saving Order & Downloading PDF...";
             btnSubmit.disabled = true;
 
-            // 1. Generate & Download Pure PDF for Customer
+            // 1. Direct PDF Download
             try {
-                generatePurePDF(name, mobile, address, custType, paymentType, tableData, total);
+                triggerDirectPdfDownload(name, mobile, address, custType, paymentType, tableData, total);
             } catch (e) {
-                console.log("PDF Generation Warning: ", e);
+                console.log("PDF error: ", e);
             }
 
-            // 2. Save Data to Google Sheet & Open WhatsApp
+            // 2. Save Data to Google Sheet & Open Direct Mobile WhatsApp App
             const payload = {
                 name: name,
                 mobile: mobile,
@@ -516,15 +527,13 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             }).then(() => {
-                btnSubmit.innerText = "📄 PDF Download & WhatsApp";
+                btnSubmit.innerText = "📄 Download PDF & Submit";
                 btnSubmit.disabled = false;
-                const whatsappNumber = "919080329266";
-                window.location.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderText)}`;
+                openWhatsAppDirectly(orderText);
             }).catch(error => {
-                btnSubmit.innerText = "📄 PDF Download & WhatsApp";
+                btnSubmit.innerText = "📄 Download PDF & Submit";
                 btnSubmit.disabled = false;
-                const whatsappNumber = "919080329266";
-                window.location.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderText)}`;
+                openWhatsAppDirectly(orderText);
             });
         }
 
