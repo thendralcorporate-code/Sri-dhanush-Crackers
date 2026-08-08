@@ -54,7 +54,6 @@
         .summary-table th { background-color: #8c1d1d; color: white; }
 
         .success-box { background: #f0fff4; border: 2px solid #38a169; padding: 15px; border-radius: 8px; text-align: center; margin-top: 15px; }
-        .btn-pdf-dl { background-color: #3182ce; color: white; border: none; padding: 10px 15px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; width: 100%; }
         
         /* Modal Popup for Business Inquiry */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999999; justify-content: center; align-items: center; padding: 15px; }
@@ -76,7 +75,7 @@
         <p id="hdr_god_blessing" style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
         <h1 id="hdr_shop_name">SRI DHANUSH CRACKERS</h1>
         <h2 id="hdr_shop_sub">ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
-        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v22</strong></p>
+        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v23</strong></p>
         <p id="hdr_address">📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
         <p id="hdr_mobiles">📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
     </div>
@@ -128,8 +127,7 @@
         <div id="success-area" style="display: none;">
             <div class="success-box">
                 <h3 style="color: #276749; margin: 0 0 5px 0;">✅ Order Submitted Successfully!</h3>
-                <p style="font-size: 13px; margin: 0 0 10px 0; color: #2f855a;">உங்கள் ஆர்டர் வெற்றிகரமாகப் பதிவு செய்யப்பட்டது! பில் பதிவிறக்கம் ஆகிறது...</p>
-                <button class="btn-pdf-dl" onclick="downloadOrderPdf()">📄 Download PDF Bill Again</button>
+                <p style="font-size: 13px; margin: 0; color: #2f855a;">உங்கள் ஆர்டர் வெற்றிகரமாகப் பதிவு செய்யப்பட்டது! பில் தானாகப் பதிவிறக்கம் ஆகிறது...</p>
             </div>
         </div>
 
@@ -459,7 +457,6 @@
             formData.append("items", itemsSummaryText);
             formData.append("total", total);
 
-            // Send to Google Sheet
             fetch(SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors",
@@ -472,16 +469,15 @@
             });
         }
 
-        // AUTO PDF DOWNLOAD + SHOW FRANCHISE POPUP
         function triggerPostOrderFlow() {
             document.getElementById("success-area").style.display = "block";
             document.getElementById("main-footer").style.display = "none";
             window.scrollTo(0, document.body.scrollHeight);
 
-            // 1. AUTO DOWNLOAD PDF
+            // 1. AUTO PDF DOWNLOAD
             downloadOrderPdf();
 
-            // 2. SHOW FRANCHISE POPUP AFTER 1 SECOND
+            // 2. SHOW FRANCHISE POPUP
             setTimeout(() => {
                 document.getElementById("franchise-modal").style.display = "flex";
             }, 1000);
@@ -490,7 +486,6 @@
         function submitLeadResponse(resp) {
             document.getElementById("franchise-modal").style.display = "none";
             
-            // Save Lead in Google Sheet
             if (lastPdfData) {
                 const formData = new URLSearchParams();
                 formData.append("action", "saveLead");
@@ -506,7 +501,6 @@
                 });
             }
 
-            // Append Franchise Interest Status to WhatsApp Message
             let leadMsgNote = `\n\n🏬 *NEW SHOP BUSINESS INQUIRY:*\nCustomer Interest: *${resp === 'Interested' ? 'YES, INTERESTED 👍' : 'NO ❌'}*`;
             let finalWhatsAppMsg = pendingOrderText + leadMsgNote;
 
