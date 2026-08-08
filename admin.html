@@ -8,17 +8,19 @@
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
         body { background: #f0f2f5; margin: 0; padding: 15px; }
         .header { background: #8c1d1d; color: white; padding: 15px; border-radius: 8px; text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 15px; }
-        .login-box, .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+        .login-box, .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 850px; margin: auto; margin-bottom: 15px; }
         .form-group { margin-bottom: 12px; }
-        label { font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; }
+        label { font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px; color: #2d3748; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; }
         .btn { background: #8c1d1d; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; }
+        .btn-green { background: #38a169; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
         th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
         th { background: #8c1d1d; color: white; }
         .stock-btn { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; border: none; cursor: pointer; }
         .in-stock { background: #c6f6d5; color: #22543d; }
         .out-stock { background: #fed7d7; color: #742a2a; }
+        .section-title { color: #8c1d1d; border-bottom: 2px solid #8c1d1d; padding-bottom: 5px; margin-top: 0; }
     </style>
 </head>
 <body>
@@ -34,11 +36,36 @@
         <button class="btn" onclick="checkLogin()">Login to Dashboard</button>
     </div>
 
-    <div id="admin-panel" class="panel" style="display: none;">
-        <h3>📦 Product Price & Stock Control</h3>
-        <button class="btn" style="background:#2b6cb0; margin-bottom:10px;" onclick="loadProducts()">🔄 Refresh Products</button>
-        <div id="loading" style="display:none; color:#8c1d1d; font-weight:bold;">Loading Data...</div>
-        <div id="product-table-container"></div>
+    <div id="admin-panel" style="display: none;">
+        <!-- STORE SETTINGS FORM -->
+        <div class="panel">
+            <h3 class="section-title">⚙️ Store Info & Header Settings (கடை விவரங்கள்)</h3>
+            <div class="form-group">
+                <label>Shop Main Name (கடையின் பெயர்):</label>
+                <input type="text" id="set_shop_name">
+            </div>
+            <div class="form-group">
+                <label>Sub Header Text (துணைத் தலைப்பு):</label>
+                <input type="text" id="set_shop_sub">
+            </div>
+            <div class="form-group">
+                <label>Address (முகவரி):</label>
+                <textarea id="set_address" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Phone Numbers (போன் எண்கள்):</label>
+                <input type="text" id="set_mobiles">
+            </div>
+            <button class="btn btn-green" onclick="saveSettings()">💾 Save Store Settings</button>
+        </div>
+
+        <!-- PRODUCT CONTROL TABLE -->
+        <div class="panel">
+            <h3 class="section-title">📦 Product Price & Stock Control (பட்டாசு விலை & கையிருப்பு)</h3>
+            <button class="btn" style="background:#2b6cb0; margin-bottom:10px;" onclick="loadProducts()">🔄 Refresh Products</button>
+            <div id="loading" style="display:none; color:#8c1d1d; font-weight:bold;">Loading Data...</div>
+            <div id="product-table-container"></div>
+        </div>
     </div>
 
     <script>
@@ -46,13 +73,44 @@
 
         function checkLogin() {
             const pass = document.getElementById("admin_pass").value;
-            if (pass === "dhanush2026") { // Set your admin password here
+            if (pass === "dhanush2026") {
                 document.getElementById("login-section").style.display = "none";
                 document.getElementById("admin-panel").style.display = "block";
+                loadSettings();
                 loadProducts();
             } else {
                 alert("தவறான கடவுச்சொல் (Incorrect Password)!");
             }
+        }
+
+        function loadSettings() {
+            fetch(SCRIPT_URL + "?action=getSettings")
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success" && data.settings) {
+                    document.getElementById("set_shop_name").value = data.settings.shop_name || "";
+                    document.getElementById("set_shop_sub").value = data.settings.shop_sub || "";
+                    document.getElementById("set_address").value = data.settings.address || "";
+                    document.getElementById("set_mobiles").value = data.settings.mobiles || "";
+                }
+            });
+        }
+
+        function saveSettings() {
+            const formData = new URLSearchParams();
+            formData.append("action", "updateSettings");
+            formData.append("shop_name", document.getElementById("set_shop_name").value);
+            formData.append("shop_sub", document.getElementById("set_shop_sub").value);
+            formData.append("address", document.getElementById("set_address").value);
+            formData.append("mobiles", document.getElementById("set_mobiles").value);
+
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: formData.toString()
+            });
+            alert("Store Settings Updated Successfully!");
         }
 
         function loadProducts() {
@@ -63,8 +121,6 @@
                 document.getElementById("loading").style.display = "none";
                 if (data.status === "success") {
                     renderAdminTable(data.products);
-                } else {
-                    alert("Error loading products: " + data.message);
                 }
             });
         }
