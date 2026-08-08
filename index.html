@@ -12,6 +12,7 @@
         body { background-color: #f4f6f9; color: #2d3748; margin: 0; padding: 10px; padding-bottom: 100px; }
         
         .header { background: linear-gradient(135deg, #8c1d1d, #c53030); color: white; padding: 15px 10px; text-align: center; border-radius: 8px; margin-bottom: 12px; }
+        .header img { max-height: 70px; margin-bottom: 6px; border-radius: 6px; display: none; }
         .header h1 { margin: 2px 0; font-size: 20px; text-transform: uppercase; }
         .header h2 { margin: 2px 0; font-size: 15px; color: #ffeb3b; }
         .header p { margin: 2px 0; font-size: 12px; }
@@ -55,17 +56,27 @@
         .success-box { background: #f0fff4; border: 2px solid #38a169; padding: 15px; border-radius: 8px; text-align: center; margin-top: 15px; }
         .btn-pdf-dl { background-color: #3182ce; color: white; border: none; padding: 10px 15px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; width: 100%; }
         
+        /* Modal Popup for Business Inquiry */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999999; justify-content: center; align-items: center; padding: 15px; }
+        .modal-box { background: white; border-radius: 12px; padding: 20px; max-width: 420px; width: 100%; text-align: center; border: 3px solid #8c1d1d; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .modal-title { color: #8c1d1d; font-weight: bold; font-size: 16px; margin-bottom: 10px; }
+        .modal-desc { font-size: 13px; color: #2d3748; margin-bottom: 15px; line-height: 1.4; }
+        .modal-btn-group { display: flex; gap: 10px; }
+        .btn-yes { background: #38a169; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; flex: 1; cursor: pointer; }
+        .btn-no { background: #e53e3e; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; flex: 1; cursor: pointer; }
+
         #loading-screen { text-align: center; padding: 30px; font-weight: bold; color: #8c1d1d; font-size: 16px; }
     </style>
 </head>
 <body>
 
     <div id="shop-main-header" class="header">
-        <p style="font-size: 10px; margin-bottom: 2px;">ॐ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; உ</p>
-        <p style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
+        <img id="hdr_logo" src="" alt="Logo">
+        <p id="hdr_top_god" style="font-size: 10px; margin-bottom: 2px;">ॐ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; உ</p>
+        <p id="hdr_god_blessing" style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
         <h1 id="hdr_shop_name">SRI DHANUSH CRACKERS</h1>
         <h2 id="hdr_shop_sub">ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
-        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v19</strong></p>
+        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v21</strong></p>
         <p id="hdr_address">📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
         <p id="hdr_mobiles">📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
     </div>
@@ -79,17 +90,17 @@
         </div>
     </div>
 
-    <!-- STEP 1: CUSTOMER FORM -->
+    <!-- STEP 1: CUSTOMER FORM WITH STRICT VALIDATIONS -->
     <div id="step-1" class="form-card">
         <h3 style="margin: 0 0 12px 0; color: #8c1d1d; border-bottom: 2px solid #fee2e2; padding-bottom: 5px;" id="cust-header">👤 வாடிக்கையாளர் விவரங்கள்</h3>
         
         <div class="form-group">
             <label id="lbl-name">உங்கள் பெயர் (Full Name) *</label>
-            <input type="text" id="cust_name" placeholder="எ.கா: சுந்தர்">
+            <input type="text" id="cust_name" placeholder="எ.கா: சுந்தர் / e.g., Sundar">
         </div>
         <div class="form-group">
             <label id="lbl-mobile">மொபைல் எண் (Mobile Number) *</label>
-            <input type="tel" id="cust_mobile" placeholder="எ.கா: 9876543210">
+            <input type="tel" id="cust_mobile" maxlength="10" placeholder="எ.கா: 9876543210">
         </div>
         <div class="form-group">
             <label id="lbl-address">முகவரி (Delivery Address) *</label>
@@ -118,7 +129,7 @@
             <div class="success-box">
                 <h3 style="color: #276749; margin: 0 0 5px 0;">✅ Order Submitted Successfully!</h3>
                 <p style="font-size: 13px; margin: 0; color: #2f855a;">உங்கள் ஆர்டர் வெற்றிகரமாகப் பதிவு செய்யப்பட்டது!</p>
-                <button class="btn-pdf-dl" onclick="downloadOrderPdf()">📄 Click Here to Download PDF Bill</button>
+                <button class="btn-pdf-dl" onclick="promptFranchiseInquiry()">📄 Click Here to Download PDF Bill</button>
             </div>
         </div>
 
@@ -130,6 +141,21 @@
                 <span id="grand-total" style="font-size: 18px; font-weight: bold; color: #8c1d1d;">₹ 0.00</span>
             </div>
             <button class="btn-submit" id="btn-send" onclick="processOrder()">📱 Submit Order via WhatsApp</button>
+        </div>
+    </div>
+
+    <!-- POPUP MODAL FOR FRANCHISE INTEREST -->
+    <div class="modal-overlay" id="franchise-modal">
+        <div class="modal-box">
+            <div class="modal-title" id="m_title">🛍️ பட்டாசு கடை தொடங்க விருப்பமா?</div>
+            <div class="modal-desc" id="m_desc">
+                உங்களுக்குப் புதிய பட்டாசு கடை தொடங்கும் ஆர்வம் உள்ளதா? நாங்கள் உங்களுக்கு வழிகாட்டுகிறோம்!<br><br>
+                <b>Are you interested in starting a Crackers Shop? We will help you!</b>
+            </div>
+            <div class="modal-btn-group">
+                <button class="btn-yes" onclick="submitLeadResponse('Interested')">Yes, Interested 👍</button>
+                <button class="btn-no" onclick="submitLeadResponse('Not Interested')">No, Thanks ❌</button>
+            </div>
         </div>
     </div>
 
@@ -149,6 +175,13 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === "success" && data.settings) {
+                    if(data.settings.logo_url && data.settings.logo_url.trim().length > 5) {
+                        const img = document.getElementById("hdr_logo");
+                        img.src = data.settings.logo_url;
+                        img.style.display = "inline-block";
+                    }
+                    if(data.settings.top_god) document.getElementById("hdr_top_god").innerHTML = data.settings.top_god;
+                    if(data.settings.god_blessing) document.getElementById("hdr_god_blessing").innerText = data.settings.god_blessing;
                     if(data.settings.shop_name) document.getElementById("hdr_shop_name").innerText = data.settings.shop_name;
                     if(data.settings.shop_sub) document.getElementById("hdr_shop_sub").innerText = data.settings.shop_sub;
                     if(data.settings.address) document.getElementById("hdr_address").innerText = data.settings.address;
@@ -176,8 +209,20 @@
             const mobile = document.getElementById("cust_mobile").value.trim();
             const address = document.getElementById("cust_address").value.trim();
 
-            if (!name || !mobile || !address) {
-                alert("தயவுசெய்து உங்கள் பெயர், மொபைல் எண் மற்றும் முகவரியை நிரப்பவும்!");
+            // Strict Validation Check
+            if (!name || name.length < 3) {
+                alert(currentLang === 'en' ? "Please enter a valid full name (minimum 3 letters)!" : "தயவுசெய்து உங்கள் முழுப் பெயரைச் சரியாக உள்ளிடவும் (குறைந்தது 3 எழுத்துகள்)!");
+                return;
+            }
+
+            const mobileClean = mobile.replace(/\D/g, '');
+            if (!mobileClean || mobileClean.length !== 10) {
+                alert(currentLang === 'en' ? "Please enter a valid 10-digit mobile number!" : "தயவுசெய்து சரியான 10 இலக்க மொபைல் எண்ணை உள்ளிடவும்!");
+                return;
+            }
+
+            if (!address || address.length < 5) {
+                alert(currentLang === 'en' ? "Please enter your complete delivery address!" : "தயவுசெய்து உங்கள் தெளிவான முகவரியை உள்ளிடவும்!");
                 return;
             }
 
@@ -207,8 +252,11 @@
             if (lang === 'ta') {
                 document.getElementById('cust-header').innerText = '👤 வாடிக்கையாளர் விவரங்கள்';
                 document.getElementById('lbl-name').innerText = 'உங்கள் பெயர் *';
+                document.getElementById('cust_name').placeholder = 'எ.கா: சுந்தர்';
                 document.getElementById('lbl-mobile').innerText = 'மொபைல் எண் *';
+                document.getElementById('cust_mobile').placeholder = 'எ.கா: 9876543210';
                 document.getElementById('lbl-address').innerText = 'முகவரி *';
+                document.getElementById('cust_address').placeholder = 'வீட்டு எண், தெரு, ஊர்...';
                 document.getElementById('btn-next-step').innerText = 'பட்டாசு பட்டியல் பார்க்க ➔ (Next)';
                 document.getElementById('step2-title').innerText = '🎆 பட்டாசு பட்டியல்';
                 document.getElementById('btn-edit').innerText = '✏️ மாற்று';
@@ -218,8 +266,11 @@
             } else if (lang === 'en') {
                 document.getElementById('cust-header').innerText = '👤 Customer Details';
                 document.getElementById('lbl-name').innerText = 'Full Name *';
+                document.getElementById('cust_name').placeholder = 'e.g., Sundar';
                 document.getElementById('lbl-mobile').innerText = 'Mobile Number *';
+                document.getElementById('cust_mobile').placeholder = 'e.g., 9876543210';
                 document.getElementById('lbl-address').innerText = 'Delivery Address *';
+                document.getElementById('cust_address').placeholder = 'Door No, Street, City...';
                 document.getElementById('btn-next-step').innerText = 'View Crackers List ➔ (Next)';
                 document.getElementById('step2-title').innerText = '🎆 Crackers List';
                 document.getElementById('btn-edit').innerText = '✏️ Edit Info';
@@ -229,8 +280,11 @@
             } else {
                 document.getElementById('cust-header').innerText = '👤 வாடிக்கையாளர் விவரங்கள்';
                 document.getElementById('lbl-name').innerText = 'உங்கள் பெயர் (Full Name) *';
+                document.getElementById('cust_name').placeholder = 'எ.கா: சுந்தர் / e.g., Sundar';
                 document.getElementById('lbl-mobile').innerText = 'மொபைல் எண் (Mobile Number) *';
+                document.getElementById('cust_mobile').placeholder = 'எ.கா: 9876543210';
                 document.getElementById('lbl-address').innerText = 'முகவரி (Delivery Address) *';
+                document.getElementById('cust_address').placeholder = 'வீட்டு எண், தெரு, ஊர்...';
                 document.getElementById('btn-next-step').innerText = 'பட்டாசு பட்டியல் பார்க்க ➔ (Next)';
                 document.getElementById('step2-title').innerText = '🎆 பட்டாசு பட்டியல் (Crackers List)';
                 document.getElementById('btn-edit').innerText = '✏️ Edit Info';
@@ -243,6 +297,7 @@
             calculateTotal();
         }
 
+        // Language specific Product Title Generator
         function getItemTitle(item) {
             if (currentLang === 'ta') return item.tam;
             if (currentLang === 'en') return item.eng;
@@ -330,6 +385,32 @@
             } else {
                 document.getElementById("order-summary").style.display = "none";
             }
+        }
+
+        // Show Business Inquiry Modal
+        function promptFranchiseInquiry() {
+            document.getElementById("franchise-modal").style.display = "flex";
+        }
+
+        function submitLeadResponse(resp) {
+            document.getElementById("franchise-modal").style.display = "none";
+            
+            if (lastPdfData) {
+                const formData = new URLSearchParams();
+                formData.append("action", "saveLead");
+                formData.append("name", lastPdfData.name);
+                formData.append("mobile", lastPdfData.mobile);
+                formData.append("response", resp);
+
+                fetch(SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: formData.toString()
+                });
+            }
+
+            downloadOrderPdf();
         }
 
         function downloadOrderPdf() {
