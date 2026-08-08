@@ -55,7 +55,7 @@
         .success-box { background: #f0fff4; border: 2px solid #38a169; padding: 15px; border-radius: 8px; text-align: center; margin-top: 15px; }
         .btn-pdf-dl { background-color: #3182ce; color: white; border: none; padding: 10px 15px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; width: 100%; }
         
-        #loading-screen { text-align: center; padding: 30px; font-weight: bold; color: #8c1d1d; }
+        #loading-screen { text-align: center; padding: 30px; font-weight: bold; color: #8c1d1d; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -65,7 +65,7 @@
         <p style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
         <h1>SRI DHANUSH CRACKERS</h1>
         <h2>ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
-        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v13</strong></p>
+        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v14</strong></p>
         <p>📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
         <p>📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
     </div>
@@ -122,7 +122,7 @@
             <button class="btn-back" id="btn-edit" onclick="goToStep1()">✏️ Edit Info</button>
         </div>
 
-        <div id="loading-screen">🔄 Loading Live Price & Stock Data...</div>
+        <div id="loading-screen">⏳ நேரடி விலை & கையிருப்பு பட்டியல் பதிவேற்றப்படுகிறது (Loading Products)...</div>
         <div id="items-container"></div>
 
         <div class="form-card" id="order-summary" style="display: none; margin-top: 12px;">
@@ -154,6 +154,26 @@
         let currentLang = 'both';
         let lastPdfData = null;
         let productsData = [];
+
+        // Load Products as soon as webpage loads
+        window.onload = function() {
+            fetchLiveProducts();
+        };
+
+        function fetchLiveProducts() {
+            fetch(SCRIPT_URL + "?action=getProducts")
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("loading-screen").style.display = "none";
+                if (data.status === "success" && data.products && data.products.length > 0) {
+                    productsData = data.products;
+                    renderProducts();
+                }
+            })
+            .catch(err => {
+                document.getElementById("loading-screen").innerText = "⚠️ பட்டியல் பதிவேற்றத்தில் பிழை. பக்கத்தைப் புதுப்பிக்கவும் (Refresh)!";
+            });
+        }
 
         function setLanguage(lang) {
             currentLang = lang;
@@ -208,7 +228,7 @@
         function getItemTitle(item) {
             if (currentLang === 'ta') return item.tam;
             if (currentLang === 'en') return item.eng;
-            return `${item.eng} (${item.tam})`;
+            return `${item.id}. ${item.eng} (${item.tam})`;
         }
 
         function getCategoryTitle(catEn, catTa) {
@@ -230,7 +250,12 @@
             document.getElementById("shop-main-header").style.display = "none";
             document.getElementById("step-1").style.display = "none";
             document.getElementById("step-2").style.display = "block";
-            fetchLiveProducts();
+            
+            if (!productsData || productsData.length === 0) {
+                fetchLiveProducts();
+            } else {
+                renderProducts();
+            }
             window.scrollTo(0, 0);
         }
 
@@ -241,26 +266,6 @@
             window.scrollTo(0, 0);
         }
 
-        // Fetch Live Price & Stock Data from Google Sheet
-        function fetchLiveProducts() {
-            document.getElementById("loading-screen").style.display = "block";
-            document.getElementById("items-container").innerHTML = "";
-
-            fetch(SCRIPT_URL + "?action=getProducts")
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById("loading-screen").style.display = "none";
-                if (data.status === "success") {
-                    productsData = data.products;
-                    renderProducts();
-                } else {
-                    alert("Error loading live price list!");
-                }
-            }).catch(err => {
-                document.getElementById("loading-screen").innerText = "⚠️ Failed to load products. Please refresh!";
-            });
-        }
-
         function renderProducts() {
             const container = document.getElementById("items-container");
             if (!productsData || productsData.length === 0) return;
@@ -269,7 +274,7 @@
             productsData.forEach(i => {
                 const el = document.getElementById(`qty_${i.id}`);
                 if (el) oldQtys[i.id] = el.value;
-            }));
+            });
 
             let html = "";
             let currentCat = "";
@@ -281,7 +286,8 @@
                 }
 
                 const qVal = oldQtys[item.id] || 0;
-                const isOutOfStock = item.status === "Out of Stock";
+                const statusClean = (item.status || "").toString().trim().toLowerCase();
+                const isOutOfStock = statusClean === "out of stock";
 
                 html += `
                     <div class="item-card ${isOutOfStock ? 'disabled-card' : ''}">
@@ -310,7 +316,8 @@
             let hasItems = false;
 
             productsData.forEach(item => {
-                if (item.status !== "Out of Stock") {
+                const statusClean = (item.status || "").toString().trim().toLowerCase();
+                if (statusClean !== "out of stock") {
                     const qtyEl = document.getElementById(`qty_${item.id}`);
                     const qty = qtyEl ? (parseInt(qtyEl.value) || 0) : 0;
                     const itemTotal = qty * item.rate;
@@ -336,7 +343,6 @@
             }
         }
 
-        // PDF Download Function
         function downloadOrderPdf() {
             if (!lastPdfData) return;
 
@@ -453,7 +459,8 @@
             orderText += `🎆 *SELECTED ITEMS:*\n`;
 
             productsData.forEach(item => {
-                if (item.status !== "Out of Stock") {
+                const statusClean = (item.status || "").toString().trim().toLowerCase();
+                if (statusClean !== "out of stock") {
                     const qtyEl = document.getElementById(`qty_${item.id}`);
                     const qty = qtyEl ? (parseInt(qtyEl.value) || 0) : 0;
                     if (qty > 0) {
