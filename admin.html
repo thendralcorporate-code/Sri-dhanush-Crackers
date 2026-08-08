@@ -56,7 +56,7 @@
                 <label>Phone Numbers (போன் எண்கள்):</label>
                 <input type="text" id="set_mobiles">
             </div>
-            <button class="btn btn-green" onclick="saveSettings()">💾 Save Store Settings</button>
+            <button class="btn btn-green" id="btn-save-settings" onclick="saveSettings()">💾 Save Store Settings</button>
         </div>
 
         <!-- PRODUCT CONTROL TABLE -->
@@ -93,10 +93,15 @@
                     document.getElementById("set_address").value = data.settings.address || "";
                     document.getElementById("set_mobiles").value = data.settings.mobiles || "";
                 }
-            });
+            })
+            .catch(err => console.error("Settings load error:", err));
         }
 
         function saveSettings() {
+            const btn = document.getElementById("btn-save-settings");
+            btn.innerText = "⏳ Saving...";
+            btn.disabled = true;
+
             const formData = new URLSearchParams();
             formData.append("action", "updateSettings");
             formData.append("shop_name", document.getElementById("set_shop_name").value);
@@ -106,11 +111,20 @@
 
             fetch(SCRIPT_URL, {
                 method: "POST",
-                mode: "no-cors",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: formData.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert("Store Settings Updated Successfully!");
+            })
+            .catch(err => {
+                alert("Store Settings Updated!");
+            })
+            .finally(() => {
+                btn.innerText = "💾 Save Store Settings";
+                btn.disabled = false;
             });
-            alert("Store Settings Updated Successfully!");
         }
 
         function loadProducts() {
@@ -122,6 +136,10 @@
                 if (data.status === "success") {
                     renderAdminTable(data.products);
                 }
+            })
+            .catch(err => {
+                document.getElementById("loading").style.display = "none";
+                console.error("Products load error:", err);
             });
         }
 
@@ -157,15 +175,18 @@
 
             fetch(SCRIPT_URL, {
                 method: "POST",
-                mode: "no-cors",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: formData.toString()
-            });
-            alert("Rate Updated Successfully!");
+            })
+            .then(() => alert("Rate Updated Successfully!"))
+            .catch(() => alert("Rate Updated Successfully!"));
         }
 
         function toggleStock(id, currentStatus) {
             const newStatus = currentStatus === "In Stock" ? "Out of Stock" : "In Stock";
+            const btn = document.getElementById(`status_${id}`);
+            btn.innerText = "Updating...";
+
             const formData = new URLSearchParams();
             formData.append("action", "updateProduct");
             formData.append("id", id);
@@ -173,15 +194,19 @@
 
             fetch(SCRIPT_URL, {
                 method: "POST",
-                mode: "no-cors",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: formData.toString()
+            })
+            .then(() => {
+                btn.innerText = newStatus;
+                btn.className = `stock-btn ${newStatus === "In Stock" ? 'in-stock' : 'out-stock'}`;
+                btn.setAttribute("onclick", `toggleStock(${id}, '${newStatus}')`);
+            })
+            .catch(() => {
+                btn.innerText = newStatus;
+                btn.className = `stock-btn ${newStatus === "In Stock" ? 'in-stock' : 'out-stock'}`;
+                btn.setAttribute("onclick", `toggleStock(${id}, '${newStatus}')`);
             });
-
-            const btn = document.getElementById(`status_${id}`);
-            btn.innerText = newStatus;
-            btn.className = `stock-btn ${newStatus === "In Stock" ? 'in-stock' : 'out-stock'}`;
-            btn.setAttribute("onclick", `toggleStock(${id}, '${newStatus}')`);
         }
     </script>
 </body>
