@@ -28,6 +28,7 @@
         .form-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #8c1d1d; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
         .form-group { margin-bottom: 12px; }
         .form-group label { font-weight: bold; display: block; margin-bottom: 4px; font-size: 13px; color: #2d3748; }
+        .optional-lbl { font-size: 11px; color: #718096; font-weight: normal; }
         .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; background: white; }
         
         .btn-next { background-color: #8c1d1d; color: white; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px; }
@@ -104,6 +105,14 @@
         <div class="form-group">
             <label id="lbl-address">முகவரி (Delivery Address) *</label>
             <textarea id="cust_address" rows="2" placeholder="வீட்டு எண், தெரு, ஊர்..."></textarea>
+        </div>
+        <div class="form-group">
+            <label id="lbl-district">மாவட்ட பெயர் (District Location) <span class="optional-lbl">(Optional)</span></label>
+            <input type="text" id="cust_district" placeholder="எ.கா: மதுரை / e.g., Madurai">
+        </div>
+        <div class="form-group">
+            <label id="lbl-transport">விருப்பமான டிரான்ஸ்போர்ட் (Preferred Transport) <span class="optional-lbl">(Optional)</span></label>
+            <input type="text" id="cust_transport" placeholder="எ.கா: KPN / VRL / Private Transport">
         </div>
 
         <button type="button" class="btn-next" id="btn-next-step" onclick="goToStep2()">பட்டாசு பட்டியல் பார்க்க ➔ (Next)</button>
@@ -388,6 +397,8 @@
             const name = document.getElementById("cust_name").value.trim();
             const mobile = document.getElementById("cust_mobile").value.trim();
             const address = document.getElementById("cust_address").value.trim();
+            const district = document.getElementById("cust_district").value.trim();
+            const transport = document.getElementById("cust_transport").value.trim();
             
             const custType = "Online / WhatsApp Order";
             const paymentType = "Online Order";
@@ -403,8 +414,10 @@
             orderText += `🆔 *Order ID:* ${orderId}\n`;
             orderText += `👤 *Name:* ${name}\n`;
             orderText += `📞 *Mobile:* ${mobile}\n`;
-            orderText += `📍 *Address:* ${address}\n\n`;
-            orderText += `-----------------------------------\n`;
+            orderText += `📍 *Address:* ${address}\n`;
+            if (district) orderText += `🏙️ *District:* ${district}\n`;
+            if (transport) orderText += `🚚 *Preferred Transport:* ${transport}\n`;
+            orderText += `\n-----------------------------------\n`;
             orderText += `🎆 *SELECTED ITEMS:*\n`;
 
             productsData.forEach(item => {
@@ -440,18 +453,21 @@
             orderText += `💰 *TOTAL AMOUNT: ₹${total.toLocaleString('en-IN')}*\n`;
             orderText += `-----------------------------------\n`;
 
-            lastPdfData = { orderId, name, mobile, address, custType, paymentType, tableData, total };
+            lastPdfData = { orderId, name, mobile, address, district, transport, custType, paymentType, tableData, total };
             pendingOrderText = orderText;
 
             const btnSubmit = document.getElementById("btn-send");
             btnSubmit.innerText = "⏳ Submitting Order...";
             btnSubmit.disabled = true;
 
+            // URLSearchParams format ensures 100% reliable posting to Google Apps Script
             const formData = new URLSearchParams();
             formData.append("orderId", orderId);
             formData.append("name", name);
             formData.append("mobile", mobile);
             formData.append("address", address);
+            formData.append("district", district);
+            formData.append("transport", transport);
             formData.append("custType", custType);
             formData.append("paymentType", paymentType);
             formData.append("items", itemsSummaryText);
@@ -459,12 +475,14 @@
 
             fetch(SCRIPT_URL, {
                 method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: formData.toString()
-            }).then(() => {
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
                 triggerPostOrderFlow();
-            }).catch(() => {
+            })
+            .catch(err => {
+                // Trigger flow even if CORS warning occurs in browser
                 triggerPostOrderFlow();
             });
         }
@@ -495,9 +513,7 @@
 
                 fetch(SCRIPT_URL, {
                     method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: formData.toString()
+                    body: formData
                 });
             }
 
@@ -567,13 +583,15 @@
             doc.setFont("helvetica", "bold");
             doc.text("Order Type    :", 115, 52);
             doc.text("Payment Mode  :", 115, 58);
-            doc.text("Address       :", 115, 64);
+            doc.text("Address        :", 115, 64);
 
             doc.setFont("helvetica", "normal");
             doc.text(lastPdfData.custType, 142, 52);
             doc.text(lastPdfData.paymentType, 142, 58);
             
-            var splitAddress = doc.splitTextToSize(lastPdfData.address, 50);
+            var fullAddrText = lastPdfData.address;
+            if(lastPdfData.district) fullAddrText += " [Dist: " + lastPdfData.district + "]";
+            var splitAddress = doc.splitTextToSize(fullAddrText, 50);
             doc.text(splitAddress, 142, 64);
 
             doc.autoTable({
