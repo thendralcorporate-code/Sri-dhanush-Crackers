@@ -53,18 +53,16 @@
 </head>
 <body>
 
-    <!-- PAGE 1 FULL SHOP HEADER -->
     <div id="shop-main-header" class="header">
         <p style="font-size: 10px; margin-bottom: 2px;">ॐ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; உ</p>
         <p style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
         <h1>SRI DHANUSH CRACKERS</h1>
         <h2>ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
-        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v6</strong></p>
+        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v8</strong></p>
         <p>📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
         <p>📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
     </div>
 
-    <!-- LANGUAGE SWITCHER BAR -->
     <div class="lang-bar" id="lang-bar-container">
         <span class="lang-title" id="lang-label">🌐 மொழி (Language):</span>
         <div class="lang-btn-group">
@@ -74,7 +72,6 @@
         </div>
     </div>
 
-    <!-- STEP 1: CUSTOMER DETAILS -->
     <div id="step-1" class="form-card">
         <h3 style="margin: 0 0 12px 0; color: #8c1d1d; border-bottom: 2px solid #fee2e2; padding-bottom: 5px;" id="cust-header">👤 வாடிக்கையாளர் விவரங்கள்</h3>
         
@@ -112,7 +109,6 @@
         <button class="btn-next" id="btn-next-step" onclick="goToStep2()">பட்டாசு பட்டியல் பார்க்க ➔ (Next)</button>
     </div>
 
-    <!-- STEP 2: ONLY CRACKER LIST PAGE -->
     <div id="step-2" style="display: none;">
         <div class="step2-header">
             <span id="step2-title">🎆 பட்டாசு பட்டியல் (Crackers List)</span>
@@ -138,6 +134,7 @@
     </div>
 
     <script>
+        // REPLACE WITH YOUR NEW SCRIPT URL AFTER DEPLOYING STEP 1 CODE
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMPFWaAUAUGkoPKP18pgsTEqRXUM90sUhFv4zBpn1aAV0JQz5TnP6PpyWrUs29mfHiLQ/exec";
         let currentLang = 'both';
 
@@ -367,7 +364,6 @@
             }
         }
 
-        // Clean PDF Generation & Direct Download
         function triggerDirectPdfDownload(name, mobile, address, custType, paymentType, tableData, total) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -426,7 +422,6 @@
             doc.setTextColor(100, 100, 100);
             doc.text("*** Thank you for ordering with Sri Dhanush Crackers! ***", 105, finalY + 15, { align: "center" });
 
-            // Force Save
             doc.save(`Sri_Dhanush_Crackers_Bill_${name}.pdf`);
         }
 
@@ -435,7 +430,6 @@
             const encodedText = encodeURIComponent(orderText);
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
-            // Delay 2.5 seconds to allow PDF download to complete in background
             setTimeout(function() {
                 const btnSubmit = document.getElementById("btn-send");
                 btnSubmit.innerText = "📄 Download PDF & Submit";
@@ -506,32 +500,31 @@
             btnSubmit.innerText = "⏳ 1. Downloading PDF Bill...";
             btnSubmit.disabled = true;
 
-            // 1. Trigger Immediate PDF Download
+            // 1. Download Customer PDF
             try {
                 triggerDirectPdfDownload(name, mobile, address, custType, paymentType, tableData, total);
             } catch (e) {
                 console.log("PDF error: ", e);
             }
 
-            // 2. Save Data to Google Sheet
-            const payload = {
-                name: name,
-                mobile: mobile,
-                address: address,
-                custType: custType,
-                paymentType: paymentType,
-                items: itemsSummaryText,
-                total: total
-            };
+            // 2. Send Data to Google Sheet via URL-encoded FormData (100% Guaranteed Submission)
+            const formData = new URLSearchParams();
+            formData.append("name", name);
+            formData.append("mobile", mobile);
+            formData.append("address", address);
+            formData.append("custType", custType);
+            formData.append("paymentType", paymentType);
+            formData.append("items", itemsSummaryText);
+            formData.append("total", total);
 
             fetch(SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: formData.toString()
             });
 
-            // 3. Open WhatsApp after 2.5s delay
+            // 3. Open WhatsApp after delay
             setTimeout(function() {
                 btnSubmit.innerText = "⏳ 2. Opening WhatsApp...";
             }, 1000);
