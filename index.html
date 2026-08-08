@@ -178,7 +178,7 @@
         };
 
         function fetchStoreSettings() {
-            fetch(SCRIPT_URL + "?action=getSettings")
+            fetch(SCRIPT_URL + "?action=getSettings&_t=" + new Date().getTime())
             .then(res => res.json())
             .then(data => {
                 if (data.status === "success" && data.settings) {
@@ -197,8 +197,9 @@
             });
         }
 
+        // Live Product Price Fetching (Bypasses Browser Cache for Realtime Rates)
         function fetchLiveProducts() {
-            fetch(SCRIPT_URL + "?action=getProducts")
+            fetch(SCRIPT_URL + "?action=getProducts&_t=" + new Date().getTime())
             .then(res => res.json())
             .then(data => {
                 if (data.status === "success" && data.products && data.products.length > 0) {
@@ -236,6 +237,9 @@
             document.getElementById("step-1").style.display = "none";
             document.getElementById("step-2").style.display = "block";
             
+            // Re-fetch Latest Price whenever Customer goes to Step 2
+            fetchLiveProducts();
+
             if (productsData && productsData.length > 0) {
                 document.getElementById("loading-screen").style.display = "none";
                 renderProducts();
@@ -459,7 +463,6 @@
             btnSubmit.innerText = "⏳ Submitting Order...";
             btnSubmit.disabled = true;
 
-            // Direct URLSearchParams for reliable submission
             const postPayload = new URLSearchParams();
             postPayload.append("action", "saveOrder");
             postPayload.append("orderId", orderId);
