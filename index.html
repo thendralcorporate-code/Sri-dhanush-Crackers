@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SRI DHANUSH CRACKERS 2026</title>
-    <!-- HTML2PDF Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
         body { background-color: #f4f6f9; color: #2d3748; margin: 0; padding: 10px; padding-bottom: 110px; }
@@ -50,14 +48,13 @@
         .summary-table th { background-color: #8c1d1d; color: white; }
 
         /* Printable Receipt Template */
-        #pdf-receipt-wrapper {
-            display: none;
-            background: #ffffff; 
-            padding: 20px; 
-            font-family: Arial, sans-serif; 
-            color: #000; 
-            width: 700px;
-            margin: 0 auto;
+        #pdf-receipt-printable { display: none; }
+
+        /* Mobile Print Styling */
+        @media print {
+            body * { visibility: hidden; }
+            #pdf-receipt-printable, #pdf-receipt-printable * { visibility: visible; }
+            #pdf-receipt-printable { display: block !important; position: absolute; left: 0; top: 0; width: 100%; padding: 10px; background: #fff; color: #000; }
         }
     </style>
 </head>
@@ -143,12 +140,12 @@
                 <span style="font-size: 11px; color: #4a5568;" id="total-lbl">மொத்த தொகை:</span><br>
                 <span id="grand-total" style="font-size: 18px; font-weight: bold; color: #8c1d1d;">₹ 0.00</span>
             </div>
-            <button class="btn-submit" id="btn-send" onclick="processOrder()">📱 PDF Download & Submit</button>
+            <button class="btn-submit" id="btn-send" onclick="processOrder()">📱 PDF Save & Submit</button>
         </div>
     </div>
 
-    <!-- HIDDEN PRINTABLE RECEIPT TEMPLATE -->
-    <div id="pdf-receipt-wrapper">
+    <!-- PRINTABLE RECEIPT TEMPLATE FOR NATIVE PDF -->
+    <div id="pdf-receipt-printable">
         <div style="text-align: center; border-bottom: 2px solid #8c1d1d; padding-bottom: 10px; margin-bottom: 15px;">
             <h2 style="margin:0; color:#8c1d1d; font-size: 22px;">SRI DHANUSH CRACKERS</h2>
             <p style="margin:4px 0; font-size:13px; font-weight:bold;">ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</p>
@@ -268,7 +265,7 @@
                 document.getElementById('btn-edit').innerText = '✏️ மாற்று';
                 document.getElementById('summary-header').innerText = '📋 தேர்வு செய்த பொருட்கள்';
                 document.getElementById('total-lbl').innerText = 'மொத்த தொகை:';
-                document.getElementById('btn-send').innerText = '📱 PDF Download & Submit';
+                document.getElementById('btn-send').innerText = '📱 PDF Save & Submit';
             } else if (lang === 'en') {
                 document.getElementById('cust-header').innerText = '👤 Customer Details';
                 document.getElementById('lbl-name').innerText = 'Full Name *';
@@ -281,7 +278,7 @@
                 document.getElementById('btn-edit').innerText = '✏️ Edit Info';
                 document.getElementById('summary-header').innerText = '📋 Selected Items';
                 document.getElementById('total-lbl').innerText = 'Grand Total:';
-                document.getElementById('btn-send').innerText = '📱 PDF Download & Submit';
+                document.getElementById('btn-send').innerText = '📱 PDF Save & Submit';
             } else {
                 document.getElementById('cust-header').innerText = '👤 வாடிக்கையாளர் விவரங்கள்';
                 document.getElementById('lbl-name').innerText = 'உங்கள் பெயர் (Full Name) *';
@@ -294,7 +291,7 @@
                 document.getElementById('btn-edit').innerText = '✏️ Edit Info';
                 document.getElementById('summary-header').innerText = '📋 தேர்வு செய்த பொருட்கள்';
                 document.getElementById('total-lbl').innerText = 'மொத்த தொகை:';
-                document.getElementById('btn-send').innerText = '📱 PDF Download & Submit';
+                document.getElementById('btn-send').innerText = '📱 PDF Save & Submit';
             }
 
             renderProducts();
@@ -400,33 +397,6 @@
             }
         }
 
-        function generateAndDownloadPDF(name, orderText) {
-            const element = document.getElementById("pdf-receipt-wrapper");
-            element.style.display = "block"; // Make visible temporarily for capture
-
-            const opt = {
-                margin:       [10, 10, 10, 10],
-                filename:     `Sri_Dhanush_Crackers_Bill_${name}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, logging: false },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().set(opt).from(element).save().then(function() {
-                element.style.display = "none"; // Hide back after download
-                const btnSubmit = document.getElementById("btn-send");
-                btnSubmit.innerText = "📱 PDF Download & Submit";
-                btnSubmit.disabled = false;
-
-                const whatsappNumber = "919080329266";
-                window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderText)}`, '_blank');
-            }).catch(function(err) {
-                element.style.display = "none";
-                const whatsappNumber = "919080329266";
-                window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderText)}`, '_blank');
-            });
-        }
-
         function processOrder() {
             const name = document.getElementById("cust_name").value.trim();
             const mobile = document.getElementById("cust_mobile").value.trim();
@@ -483,10 +453,6 @@
             orderText += `💰 *TOTAL AMOUNT: ₹${total.toLocaleString('en-IN')}*\n`;
             orderText += `-----------------------------------\n`;
 
-            const btnSubmit = document.getElementById("btn-send");
-            btnSubmit.innerText = "⏳ Saving Order & Generating PDF...";
-            btnSubmit.disabled = true;
-
             // Prepare PDF Structure
             document.getElementById("pdf_name").innerText = name;
             document.getElementById("pdf_mobile").innerText = mobile;
@@ -495,6 +461,7 @@
             document.getElementById("pdf_table_container").innerHTML = tableHtml;
             document.getElementById("pdf_total").innerText = "₹ " + total.toLocaleString('en-IN') + ".00";
 
+            // Save Data to Google Sheet
             const payload = {
                 name: name,
                 mobile: mobile,
@@ -505,17 +472,21 @@
                 total: total
             };
 
-            // Save Data to Google Sheet & Generate PDF
             fetch(SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
-            }).then(() => {
-                generateAndDownloadPDF(name, orderText);
-            }).catch(error => {
-                generateAndDownloadPDF(name, orderText);
             });
+
+            // Trigger Native Mobile Print/PDF Dialog immediately
+            window.print();
+
+            // Then Redirect to WhatsApp
+            setTimeout(function() {
+                const whatsappNumber = "919080329266";
+                window.location.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderText)}`;
+            }, 1500);
         }
 
         renderProducts();
