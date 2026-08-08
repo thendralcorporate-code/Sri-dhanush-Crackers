@@ -116,7 +116,7 @@
       </select>
     </div>
 
-    <!-- Hidden Fields for Order Items & Total -->
+    <!-- Dynamic Hidden Fields for Order Items & Total Amount -->
     <input type="hidden" id="items" name="items" value="">
     <input type="hidden" id="total" name="total" value="0">
 
@@ -125,8 +125,8 @@
 </div>
 
 <script>
-  // ⚠️ Replace with your Web App URL from Apps Script Deployment
-  const SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+  // Your Live Apps Script Deployment Web App URL
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMPFWaAUAUGkoPKP18pgsTEqRXUM90sUhFv4zBpn1aAV0JQz5TnP6PpyWrUs29mfHiLQ/exec";
 
   document.getElementById("orderForm").addEventListener("submit", function(e) {
     e.preventDefault();
@@ -135,11 +135,13 @@
     submitBtn.innerText = "Submitting Order...";
     submitBtn.disabled = true;
 
+    // Convert Form Data to URLSearchParams to prevent Google Script CORS/HTML Errors
     const formData = new FormData(this);
-    
+    const payload = new URLSearchParams(formData);
+
     fetch(SCRIPT_URL, {
       method: "POST",
-      body: formData
+      body: payload
     })
     .then(response => response.json())
     .then(data => {
@@ -147,7 +149,7 @@
         alert("Order Placed Successfully! Your Order ID: " + data.orderId);
         document.getElementById("orderForm").reset();
       } else {
-        alert("Error placing order: " + data.error);
+        alert("Error placing order: " + (data.error || "Unknown Error"));
       }
     })
     .catch(error => {
