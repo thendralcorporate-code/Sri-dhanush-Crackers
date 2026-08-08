@@ -49,8 +49,17 @@
         .summary-table th, .summary-table td { border: 1px solid #e2e8f0; padding: 6px; text-align: left; }
         .summary-table th { background-color: #8c1d1d; color: white; }
 
-        /* Hidden Printable Receipt Template */
-        #pdf-receipt { display: none; background: #ffffff; padding: 20px; font-family: Arial, sans-serif; color: #000; }
+        /* Mobile Responsive Printable Template */
+        #pdf-receipt { 
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            width: 750px;
+            background: #ffffff; 
+            padding: 25px; 
+            font-family: Arial, sans-serif; 
+            color: #000; 
+        }
     </style>
 </head>
 <body>
@@ -139,25 +148,25 @@
         </div>
     </div>
 
-    <!-- HIDDEN PDF TEMPLATE FOR DOWNLOAD -->
+    <!-- HIDDEN PDF TEMPLATE FOR MOBILE DOWNLOAD -->
     <div id="pdf-receipt">
         <div style="text-align: center; border-bottom: 2px solid #8c1d1d; padding-bottom: 10px; margin-bottom: 15px;">
-            <h2 style="margin:0; color:#8c1d1d;">SRI DHANUSH CRACKERS</h2>
-            <p style="margin:2px 0; font-size:12px;">ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</p>
+            <h2 style="margin:0; color:#8c1d1d; font-size: 22px;">SRI DHANUSH CRACKERS</h2>
+            <p style="margin:4px 0; font-size:13px; font-weight:bold;">ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</p>
             <p style="margin:2px 0; font-size:11px;">📍 அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி | 📞 9080329266</p>
         </div>
-        <div style="margin-bottom: 15px; font-size:12px; line-height: 1.5;">
-            <strong>Order Invoice / ரசீது</strong><br>
+        <div style="margin-bottom: 15px; font-size:13px; line-height: 1.6;">
+            <strong style="color:#8c1d1d; font-size:14px;">Order Invoice / ஆர்டர் ரசீது</strong><br>
             <b>பெயர்:</b> <span id="pdf_name"></span><br>
             <b>மொபைல்:</b> <span id="pdf_mobile"></span><br>
             <b>முகவரி:</b> <span id="pdf_address"></span><br>
             <b>வகை:</b> <span id="pdf_cust_type"></span>
         </div>
         <div id="pdf_table_container"></div>
-        <div style="margin-top: 20px; text-align: right; font-size: 16px; font-weight: bold; color: #8c1d1d;">
+        <div style="margin-top: 20px; text-align: right; font-size: 18px; font-weight: bold; color: #8c1d1d;">
             மொத்த தொகை (Total): <span id="pdf_total"></span>
         </div>
-        <div style="margin-top: 30px; text-align: center; font-size: 11px; color: #666;">
+        <div style="margin-top: 30px; text-align: center; font-size: 11px; color: #555; border-top: 1px dashed #ccc; padding-top: 10px;">
             *** நன்றி! உங்கள் ஆர்டர் வெற்றிகரமாகப் பதிவு செய்யப்பட்டது. ***
         </div>
     </div>
@@ -392,6 +401,35 @@
             }
         }
 
+        function downloadPDFAndWhatsApp(name, orderText) {
+            const element = document.getElementById("pdf-receipt");
+            
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Sri_Dhanush_Crackers_Bill_${name}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Mobile Browser Friendly PDF Trigger
+            html2pdf().set(opt).from(element).output('blob').then(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Sri_Dhanush_Crackers_Bill_${name}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                setTimeout(function() {
+                    const whatsappNumber = "919080329266";
+                    window.location.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderText)}`;
+                }, 1000);
+            });
+        }
+
         function processOrder() {
             const name = document.getElementById("cust_name").value.trim();
             const mobile = document.getElementById("cust_mobile").value.trim();
@@ -412,7 +450,7 @@
             orderText += `-----------------------------------\n`;
             orderText += `🎆 *SELECTED ITEMS:*\n`;
 
-            let tableHtml = "<table style='width:100%; border-collapse:collapse; font-size:12px;' border='1'><tr><th style='padding:5px;'>S.No</th><th style='padding:5px;'>பொருள்</th><th style='padding:5px;'>Qty</th><th style='padding:5px;'>விலை</th><th style='padding:5px;'>மொத்தம்</th></tr>";
+            let tableHtml = "<table style='width:100%; border-collapse:collapse; font-size:12px;' border='1'><tr><th style='padding:6px; background:#8c1d1d; color:white;'>S.No</th><th style='padding:6px; background:#8c1d1d; color:white;'>பொருள்</th><th style='padding:6px; background:#8c1d1d; color:white;'>Qty</th><th style='padding:6px; background:#8c1d1d; color:white;'>விலை</th><th style='padding:6px; background:#8c1d1d; color:white;'>மொத்தம்</th></tr>";
 
             products.forEach(group => {
                 group.items.forEach(item => {
@@ -427,11 +465,11 @@
                         orderText += `${count}. ${item.eng} (${item.tam})\n   └ Qty: ${qty} x ₹${item.rate} = *₹${itemTotal}*\n`;
 
                         tableHtml += `<tr>
-                            <td style='padding:5px; text-align:center;'>${count}</td>
-                            <td style='padding:5px;'>${item.eng} (${item.tam})</td>
-                            <td style='padding:5px; text-align:center;'>${qty}</td>
-                            <td style='padding:5px; text-align:right;'>₹${item.rate}</td>
-                            <td style='padding:5px; text-align:right;'>₹${itemTotal}</td>
+                            <td style='padding:6px; text-align:center;'>${count}</td>
+                            <td style='padding:6px;'>${item.eng} (${item.tam})</td>
+                            <td style='padding:6px; text-align:center;'>${qty}</td>
+                            <td style='padding:6px; text-align:right;'>₹${item.rate}</td>
+                            <td style='padding:6px; text-align:right;'>₹${itemTotal}</td>
                         </tr>`;
                     }
                 });
@@ -460,18 +498,6 @@
             document.getElementById("pdf_table_container").innerHTML = tableHtml;
             document.getElementById("pdf_total").innerText = "₹ " + total.toLocaleString('en-IN') + ".00";
 
-            const element = document.getElementById("pdf-receipt");
-            element.style.display = "block";
-
-            const opt = {
-                margin:       10,
-                filename:     `Sri_Dhanush_Crackers_Bill_${name}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            // Save Data to Google Sheet & Generate PDF simultaneously
             const payload = {
                 name: name,
                 mobile: mobile,
@@ -482,27 +508,16 @@
                 total: total
             };
 
+            // Save Data to Google Sheet & Generate PDF
             fetch(SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             }).then(() => {
-                html2pdf().set(opt).from(element).save().then(() => {
-                    element.style.display = "none";
-                    btnSubmit.innerText = "📱 PDF Download & Submit";
-                    btnSubmit.disabled = false;
-                    const whatsappNumber = "919080329266";
-                    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderText)}`, '_blank');
-                });
+                downloadPDFAndWhatsApp(name, orderText);
             }).catch(error => {
-                html2pdf().set(opt).from(element).save().then(() => {
-                    element.style.display = "none";
-                    btnSubmit.innerText = "📱 PDF Download & Submit";
-                    btnSubmit.disabled = false;
-                    const whatsappNumber = "919080329266";
-                    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderText)}`, '_blank');
-                });
+                downloadPDFAndWhatsApp(name, orderText);
             });
         }
 
