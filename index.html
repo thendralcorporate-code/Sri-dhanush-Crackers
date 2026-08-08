@@ -63,11 +63,11 @@
     <div id="shop-main-header" class="header">
         <p style="font-size: 10px; margin-bottom: 2px;">ॐ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; உ</p>
         <p style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
-        <h1>SRI DHANUSH CRACKERS</h1>
-        <h2>ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
-        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v18</strong></p>
-        <p>📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
-        <p>📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
+        <h1 id="hdr_shop_name">SRI DHANUSH CRACKERS</h1>
+        <h2 id="hdr_shop_sub">ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
+        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v19</strong></p>
+        <p id="hdr_address">📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
+        <p id="hdr_mobiles">📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
     </div>
 
     <div class="lang-bar" id="lang-bar-container">
@@ -79,7 +79,7 @@
         </div>
     </div>
 
-    <!-- STEP 1: ONLY 3 FIELDS (Name, Mobile, Address) -->
+    <!-- STEP 1: CUSTOMER FORM -->
     <div id="step-1" class="form-card">
         <h3 style="margin: 0 0 12px 0; color: #8c1d1d; border-bottom: 2px solid #fee2e2; padding-bottom: 5px;" id="cust-header">👤 வாடிக்கையாளர் விவரங்கள்</h3>
         
@@ -140,8 +140,22 @@
         let productsData = [];
 
         window.onload = function() {
+            fetchStoreSettings();
             fetchLiveProducts();
         };
+
+        function fetchStoreSettings() {
+            fetch(SCRIPT_URL + "?action=getSettings")
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success" && data.settings) {
+                    if(data.settings.shop_name) document.getElementById("hdr_shop_name").innerText = data.settings.shop_name;
+                    if(data.settings.shop_sub) document.getElementById("hdr_shop_sub").innerText = data.settings.shop_sub;
+                    if(data.settings.address) document.getElementById("hdr_address").innerText = data.settings.address;
+                    if(data.settings.mobiles) document.getElementById("hdr_mobiles").innerText = data.settings.mobiles;
+                }
+            });
+        }
 
         function fetchLiveProducts() {
             fetch(SCRIPT_URL + "?action=getProducts")
@@ -154,9 +168,6 @@
                         renderProducts();
                     }
                 }
-            })
-            .catch(err => {
-                console.log("Fetch error:", err);
             });
         }
 
