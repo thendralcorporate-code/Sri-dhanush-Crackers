@@ -61,7 +61,7 @@
         <p style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
         <h1>SRI DHANUSH CRACKERS</h1>
         <h2>ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
-        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v10</strong></p>
+        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v11</strong></p>
         <p>📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
         <p>📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
     </div>
@@ -145,7 +145,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx7uWQfSdg9-v3nHTbTlBieitmYwUVZ7G0LEITsPQfhsoX7iLw-wPGR5aUhsKBH74x8gA/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMPFWaAUAUGkoPKP18pgsTEqRXUM90sUhFv4zBpn1aAV0JQz5TnP6PpyWrUs29mfHiLQ/exec";
         let currentLang = 'both';
         let lastPdfData = null;
 
@@ -375,7 +375,7 @@
             }
         }
 
-        // Beautiful & Professional PDF Generator
+        // Beautiful & Professional PDF Generator with Order ID
         function downloadOrderPdf() {
             if (!lastPdfData) return;
 
@@ -397,7 +397,7 @@
             doc.setFontSize(9);
             doc.text("6/360, RCC Building, Anuppankulam, Sattur Road, Sivakasi | Mob: 9080329266, 9976708194", 105, 26, { align: "center" });
 
-            // Customer Details Card (Box)
+            // Customer Details Card (Box) with Order ID
             doc.setDrawColor(200, 200, 200);
             doc.setFillColor(248, 249, 250);
             doc.roundedRect(12, 40, 186, 30, 2, 2, 'FD');
@@ -410,22 +410,28 @@
             doc.setTextColor(50, 50, 50);
             doc.setFontSize(9);
             doc.setFont("helvetica", "bold");
-            doc.text("Customer Name :", 16, 53);
-            doc.text("Mobile Number :", 16, 59);
-            doc.text("Address       :", 16, 65);
+            doc.text("Order ID      :", 16, 53);
+            doc.text("Customer Name :", 16, 59);
+            doc.text("Mobile Number :", 16, 65);
 
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(140, 29, 29);
+            doc.text(lastPdfData.orderId, 45, 53); // Displays Order ID clearly
+
+            doc.setTextColor(50, 50, 50);
             doc.setFont("helvetica", "normal");
-            doc.text(lastPdfData.name, 45, 53);
-            doc.text(lastPdfData.mobile, 45, 59);
-            doc.text(lastPdfData.address, 45, 65);
+            doc.text(lastPdfData.name, 45, 59);
+            doc.text(lastPdfData.mobile, 45, 65);
 
             doc.setFont("helvetica", "bold");
             doc.text("Order Type    :", 115, 53);
             doc.text("Payment Mode  :", 115, 59);
+            doc.text("Address       :", 115, 65);
 
             doc.setFont("helvetica", "normal");
             doc.text(lastPdfData.custType, 142, 53);
             doc.text(lastPdfData.paymentType, 142, 59);
+            doc.text(lastPdfData.address, 142, 65);
 
             // Itemized AutoTable
             doc.autoTable({
@@ -461,7 +467,7 @@
             doc.setTextColor(100, 100, 100);
             doc.text("*** Thank you for your order! Wish you a happy Diwali! ***", 105, finalY + 22, { align: "center" });
 
-            doc.save(`Sri_Dhanush_Crackers_Bill_${lastPdfData.name}.pdf`);
+            doc.save(`Sri_Dhanush_Crackers_Bill_${lastPdfData.orderId}_${lastPdfData.name}.pdf`);
         }
 
         function processOrder() {
@@ -471,12 +477,16 @@
             const custType = document.getElementById("cust_type").value;
             const paymentType = document.getElementById("pay_type").value;
 
+            // Generate Order ID in Frontend so both Customer PDF & Google Sheet have the EXACT SAME ID
+            const orderId = "SDC-" + Math.floor(1000 + Math.random() * 9000);
+
             let total = 0;
             let count = 0;
             let itemsSummaryText = "";
             let tableData = [];
 
             let orderText = `*SRI DHANUSH CRACKERS - OFFICIAL ORDER 2026*\n\n`;
+            orderText += `🆔 *Order ID:* ${orderId}\n`;
             orderText += `👤 *Name:* ${name}\n`;
             orderText += `📞 *Mobile:* ${mobile}\n`;
             orderText += `📍 *Address:* ${address}\n`;
@@ -517,15 +527,16 @@
             orderText += `💰 *TOTAL AMOUNT: ₹${total.toLocaleString('en-IN')}*\n`;
             orderText += `-----------------------------------\n`;
 
-            // Cache data for PDF button click
-            lastPdfData = { name, mobile, address, custType, paymentType, tableData, total };
+            // Cache data including Order ID
+            lastPdfData = { orderId, name, mobile, address, custType, paymentType, tableData, total };
 
             const btnSubmit = document.getElementById("btn-send");
             btnSubmit.innerText = "⏳ Submitting Order...";
             btnSubmit.disabled = true;
 
-            // Send Data to Google Sheet (100% Guaranteed Submission)
+            // Send Data to Google Sheet
             const formData = new URLSearchParams();
+            formData.append("orderId", orderId);
             formData.append("name", name);
             formData.append("mobile", mobile);
             formData.append("address", address);
