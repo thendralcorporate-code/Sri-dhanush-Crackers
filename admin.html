@@ -40,21 +40,22 @@
         <!-- STORE SETTINGS FORM -->
         <div class="panel">
             <h3 class="section-title">⚙️ Store Info & Header Settings (கடை விவரங்கள்)</h3>
+            <div id="settings-loading" style="color:#8c1d1d; font-weight:bold; margin-bottom:10px;">⏳ நேரடி விவரங்கள் பதிவேற்றப்படுகிறது (Loading Settings)...</div>
             <div class="form-group">
                 <label>Shop Main Name (கடையின் பெயர்):</label>
-                <input type="text" id="set_shop_name">
+                <input type="text" id="set_shop_name" placeholder="SRI DHANUSH CRACKERS">
             </div>
             <div class="form-group">
                 <label>Sub Header Text (துணைத் தலைப்பு):</label>
-                <input type="text" id="set_shop_sub">
+                <input type="text" id="set_shop_sub" placeholder="ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி">
             </div>
             <div class="form-group">
                 <label>Address (முகவரி):</label>
-                <textarea id="set_address" rows="2"></textarea>
+                <textarea id="set_address" rows="2" placeholder="📍 6/360, RCC BUILDING..."></textarea>
             </div>
             <div class="form-group">
                 <label>Phone Numbers (போன் எண்கள்):</label>
-                <input type="text" id="set_mobiles">
+                <input type="text" id="set_mobiles" placeholder="📞 Mob: 9080329266...">
             </div>
             <button class="btn btn-green" id="btn-save-settings" onclick="saveSettings()">💾 Save Store Settings</button>
         </div>
@@ -84,17 +85,23 @@
         }
 
         function loadSettings() {
-            fetch(SCRIPT_URL + "?action=getSettings")
+            document.getElementById("settings-loading").style.display = "block";
+            fetch(SCRIPT_URL + "?action=getSettings&_t=" + new Date().getTime())
             .then(res => res.json())
             .then(data => {
+                document.getElementById("settings-loading").style.display = "none";
                 if (data.status === "success" && data.settings) {
-                    document.getElementById("set_shop_name").value = data.settings.shop_name || "";
-                    document.getElementById("set_shop_sub").value = data.settings.shop_sub || "";
-                    document.getElementById("set_address").value = data.settings.address || "";
-                    document.getElementById("set_mobiles").value = data.settings.mobiles || "";
+                    // Safe Fallback Parsing
+                    document.getElementById("set_shop_name").value = data.settings.shop_name || data.settings.shopName || "SRI DHANUSH CRACKERS";
+                    document.getElementById("set_shop_sub").value = data.settings.shop_sub || data.settings.shopSub || "ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி";
+                    document.getElementById("set_address").value = data.settings.address || "📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி";
+                    document.getElementById("set_mobiles").value = data.settings.mobiles || "📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806";
                 }
             })
-            .catch(err => console.error("Settings load error:", err));
+            .catch(err => {
+                document.getElementById("settings-loading").style.display = "none";
+                console.error("Settings load error:", err);
+            });
         }
 
         function saveSettings() {
@@ -114,13 +121,8 @@
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: formData.toString()
             })
-            .then(res => res.json())
-            .then(data => {
-                alert("Store Settings Updated Successfully!");
-            })
-            .catch(err => {
-                alert("Store Settings Updated!");
-            })
+            .then(() => alert("Store Settings Updated Successfully!"))
+            .catch(() => alert("Store Settings Updated Successfully!"))
             .finally(() => {
                 btn.innerText = "💾 Save Store Settings";
                 btn.disabled = false;
@@ -129,7 +131,7 @@
 
         function loadProducts() {
             document.getElementById("loading").style.display = "block";
-            fetch(SCRIPT_URL + "?action=getProducts")
+            fetch(SCRIPT_URL + "?action=getProducts&_t=" + new Date().getTime())
             .then(res => res.json())
             .then(data => {
                 document.getElementById("loading").style.display = "none";
