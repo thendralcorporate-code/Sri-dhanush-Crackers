@@ -49,16 +49,15 @@
         .summary-table th, .summary-table td { border: 1px solid #e2e8f0; padding: 6px; text-align: left; }
         .summary-table th { background-color: #8c1d1d; color: white; }
 
-        /* Mobile Responsive Printable Template */
-        #pdf-receipt { 
-            position: absolute;
-            left: -9999px;
-            top: -9999px;
-            width: 750px;
+        /* Printable Receipt Template */
+        #pdf-receipt-wrapper {
+            display: none;
             background: #ffffff; 
-            padding: 25px; 
+            padding: 20px; 
             font-family: Arial, sans-serif; 
             color: #000; 
+            width: 700px;
+            margin: 0 auto;
         }
     </style>
 </head>
@@ -148,8 +147,8 @@
         </div>
     </div>
 
-    <!-- HIDDEN PDF TEMPLATE FOR MOBILE DOWNLOAD -->
-    <div id="pdf-receipt">
+    <!-- HIDDEN PRINTABLE RECEIPT TEMPLATE -->
+    <div id="pdf-receipt-wrapper">
         <div style="text-align: center; border-bottom: 2px solid #8c1d1d; padding-bottom: 10px; margin-bottom: 15px;">
             <h2 style="margin:0; color:#8c1d1d; font-size: 22px;">SRI DHANUSH CRACKERS</h2>
             <p style="margin:4px 0; font-size:13px; font-weight:bold;">ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</p>
@@ -401,9 +400,10 @@
             }
         }
 
-        function downloadPDFAndWhatsApp(name, orderText) {
-            const element = document.getElementById("pdf-receipt");
-            
+        function generateAndDownloadPDF(name, orderText) {
+            const element = document.getElementById("pdf-receipt-wrapper");
+            element.style.display = "block"; // Make visible temporarily for capture
+
             const opt = {
                 margin:       [10, 10, 10, 10],
                 filename:     `Sri_Dhanush_Crackers_Bill_${name}.pdf`,
@@ -412,21 +412,18 @@
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // Mobile Browser Friendly PDF Trigger
-            html2pdf().set(opt).from(element).output('blob').then(function(blob) {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `Sri_Dhanush_Crackers_Bill_${name}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+            html2pdf().set(opt).from(element).save().then(function() {
+                element.style.display = "none"; // Hide back after download
+                const btnSubmit = document.getElementById("btn-send");
+                btnSubmit.innerText = "📱 PDF Download & Submit";
+                btnSubmit.disabled = false;
 
-                setTimeout(function() {
-                    const whatsappNumber = "919080329266";
-                    window.location.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderText)}`;
-                }, 1000);
+                const whatsappNumber = "919080329266";
+                window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderText)}`, '_blank');
+            }).catch(function(err) {
+                element.style.display = "none";
+                const whatsappNumber = "919080329266";
+                window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderText)}`, '_blank');
             });
         }
 
@@ -515,9 +512,9 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             }).then(() => {
-                downloadPDFAndWhatsApp(name, orderText);
+                generateAndDownloadPDF(name, orderText);
             }).catch(error => {
-                downloadPDFAndWhatsApp(name, orderText);
+                generateAndDownloadPDF(name, orderText);
             });
         }
 
