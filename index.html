@@ -27,7 +27,7 @@
         .form-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #8c1d1d; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
         .form-group { margin-bottom: 12px; }
         .form-group label { font-weight: bold; display: block; margin-bottom: 4px; font-size: 13px; color: #2d3748; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; background: white; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; background: white; }
         
         .btn-next { background-color: #8c1d1d; color: white; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px; }
         .btn-back { background-color: #ffffff; color: #8c1d1d; border: 1px solid #ffffff; padding: 4px 10px; font-size: 12px; font-weight: bold; border-radius: 4px; cursor: pointer; }
@@ -65,7 +65,7 @@
         <p style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
         <h1>SRI DHANUSH CRACKERS</h1>
         <h2>ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
-        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v16</strong></p>
+        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v18</strong></p>
         <p>📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
         <p>📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
     </div>
@@ -79,7 +79,7 @@
         </div>
     </div>
 
-    <!-- STEP 1: CUSTOMER FORM -->
+    <!-- STEP 1: ONLY 3 FIELDS (Name, Mobile, Address) -->
     <div id="step-1" class="form-card">
         <h3 style="margin: 0 0 12px 0; color: #8c1d1d; border-bottom: 2px solid #fee2e2; padding-bottom: 5px;" id="cust-header">👤 வாடிக்கையாளர் விவரங்கள்</h3>
         
@@ -96,7 +96,7 @@
             <textarea id="cust_address" rows="2" placeholder="வீட்டு எண், தெரு, ஊர்..."></textarea>
         </div>
 
-        <button class="btn-next" id="btn-next-step" onclick="goToStep2()">பட்டாசு பட்டியல் பார்க்க ➔ (Next)</button>
+        <button type="button" class="btn-next" id="btn-next-step" onclick="goToStep2()">பட்டாசு பட்டியல் பார்க்க ➔ (Next)</button>
     </div>
 
     <!-- STEP 2: PRODUCTS LIST -->
@@ -147,19 +147,16 @@
             fetch(SCRIPT_URL + "?action=getProducts")
             .then(res => res.json())
             .then(data => {
-                const loader = document.getElementById("loading-screen");
-                if (loader) loader.style.display = "none";
-                
                 if (data.status === "success" && data.products && data.products.length > 0) {
                     productsData = data.products;
                     if (document.getElementById("step-2").style.display === "block") {
+                        document.getElementById("loading-screen").style.display = "none";
                         renderProducts();
                     }
                 }
             })
             .catch(err => {
-                const loader = document.getElementById("loading-screen");
-                if (loader) loader.innerText = "⚠️ பட்டியல் பதிவேற்றத்தில் பிழை. பக்கத்தைப் புதுப்பிக்கவும் (Refresh)!";
+                console.log("Fetch error:", err);
             });
         }
 
@@ -178,8 +175,7 @@
             document.getElementById("step-2").style.display = "block";
             
             if (productsData && productsData.length > 0) {
-                const loader = document.getElementById("loading-screen");
-                if (loader) loader.style.display = "none";
+                document.getElementById("loading-screen").style.display = "none";
                 renderProducts();
             }
             window.scrollTo(0, 0);
@@ -421,7 +417,6 @@
             const mobile = document.getElementById("cust_mobile").value.trim();
             const address = document.getElementById("cust_address").value.trim();
             
-            // Fixed default values since form inputs are removed
             const custType = "Online / WhatsApp Order";
             const paymentType = "Online Order";
 
