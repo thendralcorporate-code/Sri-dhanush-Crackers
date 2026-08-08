@@ -65,7 +65,7 @@
         <p style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
         <h1>SRI DHANUSH CRACKERS</h1>
         <h2>ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
-        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v15</strong></p>
+        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v16</strong></p>
         <p>📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
         <p>📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
     </div>
@@ -94,24 +94,6 @@
         <div class="form-group">
             <label id="lbl-address">முகவரி (Delivery Address) *</label>
             <textarea id="cust_address" rows="2" placeholder="வீட்டு எண், தெரு, ஊர்..."></textarea>
-        </div>
-
-        <div class="form-group">
-            <label id="lbl-cust-type">வாடிக்கையாளர் வகை (Customer Type) *</label>
-            <select id="cust_type">
-                <option value="Online / WhatsApp Order">Online / WhatsApp Order</option>
-                <option value="Chit Customer">Chit Customer (சீட்டு வாடிக்கையாளர்)</option>
-                <option value="Walk-in Customer">Walk-in Customer (நேரடி வாடிக்கையாளர்)</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label id="lbl-pay-type">பணம் செலுத்தும் முறை (Payment Type) *</label>
-            <select id="pay_type">
-                <option value="Full Payment Received">Full Payment (முழுத் தொகை)</option>
-                <option value="Advance Payment">Advance Payment (அட்வான்ஸ்)</option>
-                <option value="Cash on Delivery / Walk-in Cash">Cash (ரொக்கம்)</option>
-            </select>
         </div>
 
         <button class="btn-next" id="btn-next-step" onclick="goToStep2()">பட்டாசு பட்டியல் பார்க்க ➔ (Next)</button>
@@ -157,7 +139,6 @@
         let lastPdfData = null;
         let productsData = [];
 
-        // Start fetching data in background
         window.onload = function() {
             fetchLiveProducts();
         };
@@ -192,7 +173,6 @@
                 return;
             }
 
-            // Hide Step 1, Show Step 2
             document.getElementById("shop-main-header").style.display = "none";
             document.getElementById("step-1").style.display = "none";
             document.getElementById("step-2").style.display = "block";
@@ -222,8 +202,6 @@
                 document.getElementById('lbl-name').innerText = 'உங்கள் பெயர் *';
                 document.getElementById('lbl-mobile').innerText = 'மொபைல் எண் *';
                 document.getElementById('lbl-address').innerText = 'முகவரி *';
-                document.getElementById('lbl-cust-type').innerText = 'வாடிக்கையாளர் வகை *';
-                document.getElementById('lbl-pay-type').innerText = 'பணம் செலுத்தும் முறை *';
                 document.getElementById('btn-next-step').innerText = 'பட்டாசு பட்டியல் பார்க்க ➔ (Next)';
                 document.getElementById('step2-title').innerText = '🎆 பட்டாசு பட்டியல்';
                 document.getElementById('btn-edit').innerText = '✏️ மாற்று';
@@ -235,8 +213,6 @@
                 document.getElementById('lbl-name').innerText = 'Full Name *';
                 document.getElementById('lbl-mobile').innerText = 'Mobile Number *';
                 document.getElementById('lbl-address').innerText = 'Delivery Address *';
-                document.getElementById('lbl-cust-type').innerText = 'Customer Type *';
-                document.getElementById('lbl-pay-type').innerText = 'Payment Type *';
                 document.getElementById('btn-next-step').innerText = 'View Crackers List ➔ (Next)';
                 document.getElementById('step2-title').innerText = '🎆 Crackers List';
                 document.getElementById('btn-edit').innerText = '✏️ Edit Info';
@@ -248,8 +224,6 @@
                 document.getElementById('lbl-name').innerText = 'உங்கள் பெயர் (Full Name) *';
                 document.getElementById('lbl-mobile').innerText = 'மொபைல் எண் (Mobile Number) *';
                 document.getElementById('lbl-address').innerText = 'முகவரி (Delivery Address) *';
-                document.getElementById('lbl-cust-type').innerText = 'வாடிக்கையாளர் வகை (Customer Type) *';
-                document.getElementById('lbl-pay-type').innerText = 'பணம் செலுத்தும் முறை (Payment Type) *';
                 document.getElementById('btn-next-step').innerText = 'பட்டாசு பட்டியல் பார்க்க ➔ (Next)';
                 document.getElementById('step2-title').innerText = '🎆 பட்டாசு பட்டியல் (Crackers List)';
                 document.getElementById('btn-edit').innerText = '✏️ Edit Info';
@@ -446,8 +420,10 @@
             const name = document.getElementById("cust_name").value.trim();
             const mobile = document.getElementById("cust_mobile").value.trim();
             const address = document.getElementById("cust_address").value.trim();
-            const custType = document.getElementById("cust_type").value;
-            const paymentType = document.getElementById("pay_type").value;
+            
+            // Fixed default values since form inputs are removed
+            const custType = "Online / WhatsApp Order";
+            const paymentType = "Online Order";
 
             const orderId = "SDC-" + Math.floor(1000 + Math.random() * 9000);
 
@@ -460,9 +436,7 @@
             orderText += `🆔 *Order ID:* ${orderId}\n`;
             orderText += `👤 *Name:* ${name}\n`;
             orderText += `📞 *Mobile:* ${mobile}\n`;
-            orderText += `📍 *Address:* ${address}\n`;
-            orderText += `🏷️ *Customer Type:* ${custType}\n`;
-            orderText += `💳 *Payment Mode:* ${paymentType}\n\n`;
+            orderText += `📍 *Address:* ${address}\n\n`;
             orderText += `-----------------------------------\n`;
             orderText += `🎆 *SELECTED ITEMS:*\n`;
 
