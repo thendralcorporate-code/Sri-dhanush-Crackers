@@ -34,6 +34,7 @@
 
         .cat-title { background-color: #feebc8; color: #742a2a; padding: 8px 10px; font-weight: bold; font-size: 14px; border-radius: 6px; margin: 12px 0 6px 0; border-left: 4px solid #dd6b20; text-transform: uppercase; }
         .item-card { background: white; border: 1px solid #cbd5e0; padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .item-card.disabled-card { opacity: 0.6; background: #edf2f7; }
         .item-info { flex: 1; padding-right: 8px; }
         .item-name { font-weight: bold; font-size: 14px; color: #1a202c; }
         .item-subname { font-size: 12px; color: #4a5568; }
@@ -42,7 +43,8 @@
         .item-action { display: flex; align-items: center; gap: 6px; }
         .item-total-badge { font-size: 12px; font-weight: bold; color: #2b6cb0; background: #ebf8ff; padding: 4px 8px; border-radius: 4px; border: 1px solid #bee3f8; white-space: nowrap; }
         .qty-input { width: 55px; text-align: center; padding: 6px; border: 2px solid #3182ce; border-radius: 5px; font-size: 15px; font-weight: bold; background: #fff; }
-        
+        .out-badge { background: #e53e3e; color: white; font-size: 11px; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+
         .sticky-footer { position: fixed; bottom: 0px; left: 0; right: 0; background: #ffffff; padding: 12px 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.2); border-top: 3px solid #8c1d1d; display: flex; justify-content: space-between; align-items: center; z-index: 99999; }
         .btn-submit { background-color: #25d366; color: white; border: none; padding: 12px 18px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; max-width: 270px; }
         
@@ -52,6 +54,8 @@
 
         .success-box { background: #f0fff4; border: 2px solid #38a169; padding: 15px; border-radius: 8px; text-align: center; margin-top: 15px; }
         .btn-pdf-dl { background-color: #3182ce; color: white; border: none; padding: 10px 15px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; width: 100%; }
+        
+        #loading-screen { text-align: center; padding: 30px; font-weight: bold; color: #8c1d1d; }
     </style>
 </head>
 <body>
@@ -61,7 +65,7 @@
         <p style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
         <h1>SRI DHANUSH CRACKERS</h1>
         <h2>ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
-        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v11</strong></p>
+        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v13</strong></p>
         <p>📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
         <p>📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
     </div>
@@ -118,6 +122,7 @@
             <button class="btn-back" id="btn-edit" onclick="goToStep1()">✏️ Edit Info</button>
         </div>
 
+        <div id="loading-screen">🔄 Loading Live Price & Stock Data...</div>
         <div id="items-container"></div>
 
         <div class="form-card" id="order-summary" style="display: none; margin-top: 12px;">
@@ -148,83 +153,7 @@
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMPFWaAUAUGkoPKP18pgsTEqRXUM90sUhFv4zBpn1aAV0JQz5TnP6PpyWrUs29mfHiLQ/exec";
         let currentLang = 'both';
         let lastPdfData = null;
-
-        const products = [
-            { catTa: "ஒரு சவுண்ட் பட்டாசுகள் (ECONOMY)", catEn: "ONE SOUND CRACKERS (ECONOMY)", items: [
-                { id: 1, eng: "3 1/2\" LAKSHMI", tam: "3½ லட்சுமி", per: "10 Pkt", rate: 150 },
-                { id: 2, eng: "2 3/4\" KURUVI", tam: "2¾ குருவி", per: "10 Pkt", rate: 100 },
-                { id: 3, eng: "4\" LAKSHMI", tam: "4\" லட்சுமி", per: "10 Pkt", rate: 180 },
-                { id: 4, eng: "4\" DELUXE LAKSHMI", tam: "4\" டீலக்ஸ் லட்சுமி", per: "10 Pkt", rate: 210 },
-                { id: 5, eng: "4\" GOLD LAKSHMI", tam: "4\" கோல்டு லட்சுமி", per: "10 Pkt", rate: 300 },
-                { id: 6, eng: "TWO SOUND", tam: "டூ சவுண்டு", per: "10 Pkt", rate: 280 },
-                { id: 7, eng: "ADIYAAL", tam: "அடியாள்", per: "1 Pkt", rate: 50 }
-            ]},
-            { catTa: "ஒரு சவுண்ட் பட்டாசுகள் (BRANDED)", catEn: "ONE SOUND CRACKERS (BRANDED)", items: [
-                { id: 8, eng: "3 1/2\" LAKSHMI", tam: "3½ லட்சுமி", per: "10 Pkt", rate: 250 },
-                { id: 9, eng: "2 3/4\" KURUVI", tam: "2¾ குருவி", per: "10 Pkt", rate: 120 },
-                { id: 10, eng: "4\" DELUXE LAKSHMI", tam: "4\" டீலக்ஸ் லட்சுமி", per: "10 Pkt", rate: 350 },
-                { id: 11, eng: "6\" MEGA LAKSHMI", tam: "6\" மெகா லட்சுமி", per: "5 Pkt", rate: 350 },
-                { id: 12, eng: "4\" GOLD LAKSHMI", tam: "4\" கோல்டு லட்சுமி", per: "5 Pkt", rate: 250 },
-                { id: 13, eng: "TWO SOUND", tam: "டூ சவுண்டு", per: "10 Pkt", rate: 350 }
-            ]},
-            { catTa: "சக்கரம் வகைகள்", catEn: "GROUND CHAKKARS", items: [
-                { id: 14, eng: "GROUND CHAKKAR BIG", tam: "சக்கரம் பெரியது", per: "5 Box", rate: 200 },
-                { id: 15, eng: "GROUND CHAKKAR SPECIAL", tam: "சக்கரம் ஸ்பெஷல்", per: "5 Box", rate: 450 },
-                { id: 16, eng: "GROUND CHAKKAR DELUXE", tam: "சக்கரம் டீலக்ஸ்", per: "1 Box", rate: 130 },
-                { id: 17, eng: "CHAKKAR BIG (BRANDED)", tam: "சக்கரம் பெரியது (பிராண்டட்)", per: "5 Box", rate: 250 },
-                { id: 18, eng: "CHAKKAR SPECIAL (BRANDED)", tam: "சக்கரம் ஸ்பெஷல் (பிராண்டட்)", per: "5 Box", rate: 550 },
-                { id: 19, eng: "CHAKKAR DELUXE (BRANDED)", tam: "சக்கரம் டீலக்ஸ் (பிராண்டட்)", per: "1 Box", rate: 180 },
-                { id: 20, eng: "SPINNER DELUXE", tam: "சக்கரம் ஸ்பின்னர்", per: "1 Box", rate: 250 },
-                { id: 21, eng: "WIRE CHAKKAR", tam: "வயர் சக்கரம்", per: "1 Box", rate: 180 },
-                { id: 22, eng: "DISCO WHEEL (5 Pcs)", tam: "டிஸ்கோ வீல்", per: "1 Box", rate: 150 }
-            ]},
-            { catTa: "பூச்சட்டி வகைகள்", catEn: "FLOWER POTS", items: [
-                { id: 23, eng: "FLOWER POTS BIG (ECO)", tam: "பூச்சட்டி பெரியது", per: "5 Box", rate: 250 },
-                { id: 24, eng: "FLOWER POTS SPECIAL (ECO)", tam: "பூச்சட்டி ஸ்பெஷல்", per: "5 Box", rate: 400 },
-                { id: 25, eng: "FLOWER POTS ASHOKA (ECO)", tam: "பூச்சட்டி அசோகா", per: "5 Box", rate: 500 },
-                { id: 29, eng: "FLOWER POTS BIG (BRAND)", tam: "பூச்சட்டி பெரியது (பிராண்டட்)", per: "1 Box", rate: 70 },
-                { id: 30, eng: "FLOWER POTS SPECIAL (BRAND)", tam: "பூச்சட்டி ஸ்பெஷல் (பிராண்டட்)", per: "1 Box", rate: 100 },
-                { id: 31, eng: "FLOWER POTS ASHOKA (BRAND)", tam: "பூச்சட்டி அசோகா (பிராண்டட்)", per: "1 Box", rate: 150 },
-                { id: 32, eng: "SUPER DELUXE (5 Pcs)", tam: "சூப்பர் டீலக்ஸ்", per: "1 Box", rate: 200 },
-                { id: 33, eng: "COLOUR KOTI (10 Pcs)", tam: "கலர் கோட்டி", per: "1 Box", rate: 250 },
-                { id: 35, eng: "MEGA DELUXE KOTI", tam: "கலர் கோட்டி மெகா", per: "1 Box", rate: 450 }
-            ]},
-            { catTa: "சரவெடி வகைகள்", catEn: "GARLAND CRACKERS", items: [
-                { id: 44, eng: "100 WK", tam: "100 வாலா", per: "1 Box", rate: 50 },
-                { id: 45, eng: "200 WK", tam: "200 வாலா", per: "1 Box", rate: 100 },
-                { id: 46, eng: "1ZK (1000 Wala)", tam: "1000 வாலா", per: "1 Box", rate: 300 },
-                { id: 47, eng: "2ZK (2000 Wala)", tam: "2000 வாலா", per: "1 Box", rate: 600 },
-                { id: 50, eng: "5ZK (5000 Wala)", tam: "5000 வாலா", per: "1 Box", rate: 1500 },
-                { id: 52, eng: "10ZK (10000 Wala)", tam: "10000 வாலா", per: "1 Box", rate: 2800 }
-            ]},
-            { catTa: "வெடி & ராக்கெட் வகைகள்", catEn: "ATOM BOMBS & ROCKETS", items: [
-                { id: 53, eng: "BULLET DELUXE", tam: "புல்லட் டீலக்ஸ்", per: "10 Box", rate: 300 },
-                { id: 54, eng: "HYDRO BOMB", tam: "ஹைட்ரோ பாம்", per: "10 Box", rate: 550 },
-                { id: 55, eng: "CLASSIC BOMB", tam: "கிளாசிக் பாம்", per: "1 Box", rate: 120 },
-                { id: 58, eng: "BABY ROCKET", tam: "பேபி ராக்கெட்", per: "1 Box", rate: 30 },
-                { id: 60, eng: "LUNIK ROCKET", tam: "லூனிக் ராக்கெட்", per: "1 Box", rate: 120 },
-                { id: 61, eng: "WHISTLING ROCKET", tam: "விசிலிங் ராக்கெட்", per: "1 Box", rate: 160 }
-            ]},
-            { catTa: "கம்பி மத்தாப்பு", catEn: "SPARKLERS", items: [
-                { id: 102, eng: "7 CM ELECTRIC", tam: "7 செ.மீ சாதா", per: "10 Box", rate: 90 },
-                { id: 103, eng: "7 CM COLOUR", tam: "7 செ.மீ கலர்", per: "10 Box", rate: 110 },
-                { id: 106, eng: "10 CM ELECTRIC", tam: "10 செ.மீ சாதா", per: "10 Box", rate: 175 },
-                { id: 107, eng: "10 CM COLOUR", tam: "10 செ.மீ கலர்", per: "10 Box", rate: 195 },
-                { id: 110, eng: "15 CM ELECTRIC", tam: "15 செ.மீ சாதா", per: "10 Box", rate: 450 },
-                { id: 111, eng: "15 CM COLOUR", tam: "15 செ.மீ கலர்", per: "10 Box", rate: 470 },
-                { id: 114, eng: "30 CM ELECTRIC", tam: "30 செ.மீ சாதா", per: "10 Box", rate: 450 },
-                { id: 115, eng: "30 CM COLOUR", tam: "30 செ.மீ கலர்", per: "10 Box", rate: 470 }
-            ]},
-            { catTa: "பேன்சி ஷாட் & கிஃப்ட் பாக்ஸ்", catEn: "NIGHT AERIAL & GIFT BOX", items: [
-                { id: 86, eng: "2\" FANCY (3 Pcs)", tam: "2\" பேன்சி 3 பீஸ்", per: "1 Box", rate: 250 },
-                { id: 91, eng: "4\" FANCY BIG (2 Pcs)", tam: "4\" பேன்சி பெரியது", per: "1 Box", rate: 850 },
-                { id: 92, eng: "12 SHOT MULTI", tam: "12 ஷாட் மல்டி", per: "1 Box", rate: 128 },
-                { id: 93, eng: "30 SHOT MULTI", tam: "30 ஷாட் மல்டி", per: "1 Box", rate: 350 },
-                { id: 95, eng: "120 SHOT MULTI", tam: "120 SHOT MULTI", per: "1 Box", rate: 1400 },
-                { id: 125, eng: "20 ITEMS GIFT BOX", tam: "20 ஐட்டம் கிஃப்ட் பாக்ஸ்", per: "1 Box", rate: 300 },
-                { id: 128, eng: "50 ITEMS GIFT BOX", tam: "50 ஐட்டம் கிஃப்ட் பாக்ஸ்", per: "1 Box", rate: 850 }
-            ]}
-        ];
+        let productsData = [];
 
         function setLanguage(lang) {
             currentLang = lang;
@@ -282,10 +211,10 @@
             return `${item.eng} (${item.tam})`;
         }
 
-        function getCategoryTitle(group) {
-            if (currentLang === 'ta') return group.catTa;
-            if (currentLang === 'en') return group.catEn;
-            return `${group.catEn} / ${group.catTa}`;
+        function getCategoryTitle(catEn, catTa) {
+            if (currentLang === 'ta') return catTa;
+            if (currentLang === 'en') return catEn;
+            return `${catEn} / ${catTa}`;
         }
 
         function goToStep2() {
@@ -301,7 +230,7 @@
             document.getElementById("shop-main-header").style.display = "none";
             document.getElementById("step-1").style.display = "none";
             document.getElementById("step-2").style.display = "block";
-            renderProducts();
+            fetchLiveProducts();
             window.scrollTo(0, 0);
         }
 
@@ -312,34 +241,66 @@
             window.scrollTo(0, 0);
         }
 
+        // Fetch Live Price & Stock Data from Google Sheet
+        function fetchLiveProducts() {
+            document.getElementById("loading-screen").style.display = "block";
+            document.getElementById("items-container").innerHTML = "";
+
+            fetch(SCRIPT_URL + "?action=getProducts")
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("loading-screen").style.display = "none";
+                if (data.status === "success") {
+                    productsData = data.products;
+                    renderProducts();
+                } else {
+                    alert("Error loading live price list!");
+                }
+            }).catch(err => {
+                document.getElementById("loading-screen").innerText = "⚠️ Failed to load products. Please refresh!";
+            });
+        }
+
         function renderProducts() {
             const container = document.getElementById("items-container");
+            if (!productsData || productsData.length === 0) return;
+
             const oldQtys = {};
-            products.forEach(g => g.items.forEach(i => {
+            productsData.forEach(i => {
                 const el = document.getElementById(`qty_${i.id}`);
                 if (el) oldQtys[i.id] = el.value;
             }));
 
             let html = "";
-            products.forEach(group => {
-                html += `<div class="cat-title">${getCategoryTitle(group)}</div>`;
-                group.items.forEach(item => {
-                    const qVal = oldQtys[item.id] || 0;
-                    html += `
-                        <div class="item-card">
-                            <div class="item-info">
-                                <div class="item-name">${getItemTitle(item)}</div>
-                                <div class="item-subname">Per: ${item.per}</div>
-                                <div class="item-rate">₹ ${item.rate}.00</div>
-                            </div>
-                            <div class="item-action">
-                                <span class="item-total-badge" id="item_tot_${item.id}">₹ 0</span>
-                                <input type="number" min="0" value="${qVal}" class="qty-input" id="qty_${item.id}" oninput="calculateTotal()">
-                            </div>
+            let currentCat = "";
+
+            productsData.forEach(item => {
+                if (item.catEn !== currentCat) {
+                    currentCat = item.catEn;
+                    html += `<div class="cat-title">${getCategoryTitle(item.catEn, item.catTa)}</div>`;
+                }
+
+                const qVal = oldQtys[item.id] || 0;
+                const isOutOfStock = item.status === "Out of Stock";
+
+                html += `
+                    <div class="item-card ${isOutOfStock ? 'disabled-card' : ''}">
+                        <div class="item-info">
+                            <div class="item-name">${getItemTitle(item)}</div>
+                            <div class="item-subname">Per: ${item.per}</div>
+                            <div class="item-rate">₹ ${item.rate}.00</div>
                         </div>
-                    `;
-                });
+                        <div class="item-action">
+                            ${isOutOfStock ? 
+                                `<span class="out-badge">Out of Stock</span>` : 
+                                `<span class="item-total-badge" id="item_tot_${item.id}">₹ 0</span>
+                                 <input type="number" min="0" value="${qVal}" class="qty-input" id="qty_${item.id}" oninput="calculateTotal()">`
+                            }
+                        </div>
+                    </div>
+                `;
             });
+
             container.innerHTML = html;
         }
 
@@ -348,8 +309,8 @@
             let summaryHtml = "<table class='summary-table'><tr><th>பொருள்</th><th>Qty</th><th>தொகை</th></tr>";
             let hasItems = false;
 
-            products.forEach(group => {
-                group.items.forEach(item => {
+            productsData.forEach(item => {
+                if (item.status !== "Out of Stock") {
                     const qtyEl = document.getElementById(`qty_${item.id}`);
                     const qty = qtyEl ? (parseInt(qtyEl.value) || 0) : 0;
                     const itemTotal = qty * item.rate;
@@ -362,7 +323,7 @@
                         total += itemTotal;
                         summaryHtml += `<tr><td>${getItemTitle(item)}</td><td style='text-align:center;'>${qty}</td><td style='text-align:right;'>₹${itemTotal}</td></tr>`;
                     }
-                });
+                }
             });
             summaryHtml += "</table>";
 
@@ -375,14 +336,13 @@
             }
         }
 
-        // Beautiful & Professional PDF Generator with Order ID
+        // PDF Download Function
         function downloadOrderPdf() {
             if (!lastPdfData) return;
 
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            // Header Banner (Dark Red)
             doc.setFillColor(140, 29, 29);
             doc.rect(0, 0, 210, 34, 'F');
             
@@ -397,10 +357,9 @@
             doc.setFontSize(9);
             doc.text("6/360, RCC Building, Anuppankulam, Sattur Road, Sivakasi | Mob: 9080329266, 9976708194", 105, 26, { align: "center" });
 
-            // Customer Details Card (Box) with Order ID
             doc.setDrawColor(200, 200, 200);
             doc.setFillColor(248, 249, 250);
-            doc.roundedRect(12, 40, 186, 30, 2, 2, 'FD');
+            doc.roundedRect(12, 40, 186, 32, 2, 2, 'FD');
 
             doc.setTextColor(140, 29, 29);
             doc.setFontSize(11);
@@ -410,32 +369,33 @@
             doc.setTextColor(50, 50, 50);
             doc.setFontSize(9);
             doc.setFont("helvetica", "bold");
-            doc.text("Order ID      :", 16, 53);
-            doc.text("Customer Name :", 16, 59);
-            doc.text("Mobile Number :", 16, 65);
+            doc.text("Order ID      :", 16, 52);
+            doc.text("Customer Name :", 16, 58);
+            doc.text("Mobile Number :", 16, 64);
 
             doc.setFont("helvetica", "bold");
             doc.setTextColor(140, 29, 29);
-            doc.text(lastPdfData.orderId, 45, 53); // Displays Order ID clearly
+            doc.text(lastPdfData.orderId, 45, 52);
 
             doc.setTextColor(50, 50, 50);
             doc.setFont("helvetica", "normal");
-            doc.text(lastPdfData.name, 45, 59);
-            doc.text(lastPdfData.mobile, 45, 65);
+            doc.text(lastPdfData.name, 45, 58);
+            doc.text(lastPdfData.mobile, 45, 64);
 
             doc.setFont("helvetica", "bold");
-            doc.text("Order Type    :", 115, 53);
-            doc.text("Payment Mode  :", 115, 59);
-            doc.text("Address       :", 115, 65);
+            doc.text("Order Type    :", 115, 52);
+            doc.text("Payment Mode  :", 115, 58);
+            doc.text("Address       :", 115, 64);
 
             doc.setFont("helvetica", "normal");
-            doc.text(lastPdfData.custType, 142, 53);
-            doc.text(lastPdfData.paymentType, 142, 59);
-            doc.text(lastPdfData.address, 142, 65);
+            doc.text(lastPdfData.custType, 142, 52);
+            doc.text(lastPdfData.paymentType, 142, 58);
+            
+            var splitAddress = doc.splitTextToSize(lastPdfData.address, 50);
+            doc.text(splitAddress, 142, 64);
 
-            // Itemized AutoTable
             doc.autoTable({
-                startY: 75,
+                startY: 76,
                 head: [['S.No', 'Item Name Description', 'Qty', 'Rate (Rs)', 'Total (Rs)']],
                 body: lastPdfData.tableData,
                 theme: 'striped',
@@ -450,7 +410,6 @@
                 }
             });
 
-            // Total Amount Box
             let finalY = doc.lastAutoTable.finalY + 8;
             doc.setFillColor(254, 235, 200);
             doc.setDrawColor(221, 107, 32);
@@ -461,7 +420,6 @@
             doc.setTextColor(116, 42, 42);
             doc.text(`GRAND TOTAL:  Rs. ${lastPdfData.total.toLocaleString('en-IN')}.00`, 194, finalY + 8, { align: "right" });
 
-            // Footer
             doc.setFontSize(9);
             doc.setFont("helvetica", "italic");
             doc.setTextColor(100, 100, 100);
@@ -477,7 +435,6 @@
             const custType = document.getElementById("cust_type").value;
             const paymentType = document.getElementById("pay_type").value;
 
-            // Generate Order ID in Frontend so both Customer PDF & Google Sheet have the EXACT SAME ID
             const orderId = "SDC-" + Math.floor(1000 + Math.random() * 9000);
 
             let total = 0;
@@ -495,8 +452,8 @@
             orderText += `-----------------------------------\n`;
             orderText += `🎆 *SELECTED ITEMS:*\n`;
 
-            products.forEach(group => {
-                group.items.forEach(item => {
+            productsData.forEach(item => {
+                if (item.status !== "Out of Stock") {
                     const qtyEl = document.getElementById(`qty_${item.id}`);
                     const qty = qtyEl ? (parseInt(qtyEl.value) || 0) : 0;
                     if (qty > 0) {
@@ -515,7 +472,7 @@
                             `Rs. ${itemTotal}`
                         ]);
                     }
-                });
+                }
             });
 
             if (count === 0) {
@@ -527,14 +484,12 @@
             orderText += `💰 *TOTAL AMOUNT: ₹${total.toLocaleString('en-IN')}*\n`;
             orderText += `-----------------------------------\n`;
 
-            // Cache data including Order ID
             lastPdfData = { orderId, name, mobile, address, custType, paymentType, tableData, total };
 
             const btnSubmit = document.getElementById("btn-send");
             btnSubmit.innerText = "⏳ Submitting Order...";
             btnSubmit.disabled = true;
 
-            // Send Data to Google Sheet
             const formData = new URLSearchParams();
             formData.append("orderId", orderId);
             formData.append("name", name);
@@ -574,8 +529,6 @@
                 }
             }, 800);
         }
-
-        renderProducts();
     </script>
 </body>
 </html>
