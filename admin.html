@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRI DHANUSH CRACKERS - ADMIN DASHBOARD</title>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+        body { background: #f0f2f5; margin: 0; padding: 15px; }
+        .header { background: #8c1d1d; color: white; padding: 15px; border-radius: 8px; text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+        .login-box, .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+        .form-group { margin-bottom: 12px; }
+        label { font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; }
+        .btn { background: #8c1d1d; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
+        th { background: #8c1d1d; color: white; }
+        .stock-btn { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; border: none; cursor: pointer; }
+        .in-stock { background: #c6f6d5; color: #22543d; }
+        .out-stock { background: #fed7d7; color: #742a2a; }
+    </style>
+</head>
+<body>
+
+    <div class="header">🛠️ SRI DHANUSH CRACKERS - ADMIN CONTROL PANEL</div>
+
+    <div id="login-section" class="login-box">
+        <h3>🔒 Admin Login</h3>
+        <div class="form-group">
+            <label>Enter Admin Password:</label>
+            <input type="password" id="admin_pass" placeholder="Password...">
+        </div>
+        <button class="btn" onclick="checkLogin()">Login to Dashboard</button>
+    </div>
+
+    <div id="admin-panel" class="panel" style="display: none;">
+        <h3>📦 Product Price & Stock Control</h3>
+        <button class="btn" style="background:#2b6cb0; margin-bottom:10px;" onclick="loadProducts()">🔄 Refresh Products</button>
+        <div id="loading" style="display:none; color:#8c1d1d; font-weight:bold;">Loading Data...</div>
+        <div id="product-table-container"></div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMPFWaAUAUGkoPKP18pgsTEqRXUM90sUhFv4zBpn1aAV0JQz5TnP6PpyWrUs29mfHiLQ/exec";
+
+        function checkLogin() {
+            const pass = document.getElementById("admin_pass").value;
+            if (pass === "dhanush2026") { // Set your admin password here
+                document.getElementById("login-section").style.display = "none";
+                document.getElementById("admin-panel").style.display = "block";
+                loadProducts();
+            } else {
+                alert("தவறான கடவுச்சொல் (Incorrect Password)!");
+            }
+        }
+
+        function loadProducts() {
+            document.getElementById("loading").style.display = "block";
+            fetch(SCRIPT_URL + "?action=getProducts")
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("loading").style.display = "none";
+                if (data.status === "success") {
+                    renderAdminTable(data.products);
+                } else {
+                    alert("Error loading products: " + data.message);
+                }
+            });
+        }
+
+        function renderAdminTable(products) {
+            let html = "<table><tr><th>ID</th><th>Product Name</th><th>Per</th><th>Rate (₹)</th><th>Status</th><th>Action</th></tr>";
+            products.forEach(p => {
+                const isInstock = p.status === "In Stock";
+                html += `
+                    <tr>
+                        <td>${p.id}</td>
+                        <td><b>${p.eng}</b><br><small>${p.tam}</small></td>
+                        <td>${p.per}</td>
+                        <td><input type="number" id="rate_${p.id}" value="${p.rate}" style="width:70px; padding:4px;"></td>
+                        <td>
+                            <button class="stock-btn ${isInstock ? 'in-stock' : 'out-stock'}" id="status_${p.id}" onclick="toggleStock(${p.id}, '${p.status}')">
+                                ${p.status}
+                            </button>
+                        </td>
+                        <td><button style="background:#38a169; color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer;" onclick="saveRate(${p.id})">Save Rate</button></td>
+                    </tr>
+                `;
+            });
+            html += "</table>";
+            document.getElementById("product-table-container").innerHTML = html;
+        }
+
+        function saveRate(id) {
+            const newRate = document.getElementById(`rate_${id}`).value;
+            const formData = new URLSearchParams();
+            formData.append("action", "updateProduct");
+            formData.append("id", id);
+            formData.append("rate", newRate);
+
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: formData.toString()
+            });
+            alert("Rate Updated Successfully!");
+        }
+
+        function toggleStock(id, currentStatus) {
+            const newStatus = currentStatus === "In Stock" ? "Out of Stock" : "In Stock";
+            const formData = new URLSearchParams();
+            formData.append("action", "updateProduct");
+            formData.append("id", id);
+            formData.append("status", newStatus);
+
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: formData.toString()
+            });
+
+            const btn = document.getElementById(`status_${id}`);
+            btn.innerText = newStatus;
+            btn.className = `stock-btn ${newStatus === "In Stock" ? 'in-stock' : 'out-stock'}`;
+            btn.setAttribute("onclick", `toggleStock(${id}, '${newStatus}')`);
+        }
+    </script>
+</body>
+</html>
