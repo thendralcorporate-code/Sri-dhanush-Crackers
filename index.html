@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SRI DHANUSH CRACKERS 2026</title>
+    <!-- jsPDF & AutoTable Libraries for 100% Guaranteed Mobile PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-        body { background-color: #f4f6f9; color: #2d3748; margin: 0; padding: 10px; padding-bottom: 110px; }
+        body { background-color: #f4f6f9; color: #2d3748; margin: 0; padding: 10px; padding-bottom: 100px; }
         
         .header { background: linear-gradient(135deg, #8c1d1d, #c53030); color: white; padding: 15px 10px; text-align: center; border-radius: 8px; margin-bottom: 12px; }
         .header h1 { margin: 2px 0; font-size: 20px; text-transform: uppercase; }
@@ -41,21 +44,11 @@
         .qty-input { width: 55px; text-align: center; padding: 6px; border: 2px solid #3182ce; border-radius: 5px; font-size: 15px; font-weight: bold; background: #fff; }
         
         .sticky-footer { position: fixed; bottom: 0px; left: 0; right: 0; background: #ffffff; padding: 12px 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.2); border-top: 3px solid #8c1d1d; display: flex; justify-content: space-between; align-items: center; z-index: 99999; }
-        .btn-submit { background-color: #25d366; color: white; border: none; padding: 12px 18px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .btn-submit { background-color: #25d366; color: white; border: none; padding: 12px 18px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; max-width: 260px; }
         
         .summary-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px; }
         .summary-table th, .summary-table td { border: 1px solid #e2e8f0; padding: 6px; text-align: left; }
         .summary-table th { background-color: #8c1d1d; color: white; }
-
-        /* Printable Receipt Template */
-        #pdf-receipt-printable { display: none; }
-
-        /* Mobile Print Styling */
-        @media print {
-            body * { visibility: hidden; }
-            #pdf-receipt-printable, #pdf-receipt-printable * { visibility: visible; }
-            #pdf-receipt-printable { display: block !important; position: absolute; left: 0; top: 0; width: 100%; padding: 10px; background: #fff; color: #000; }
-        }
     </style>
 </head>
 <body>
@@ -140,30 +133,7 @@
                 <span style="font-size: 11px; color: #4a5568;" id="total-lbl">மொத்த தொகை:</span><br>
                 <span id="grand-total" style="font-size: 18px; font-weight: bold; color: #8c1d1d;">₹ 0.00</span>
             </div>
-            <button class="btn-submit" id="btn-send" onclick="processOrder()">📱 PDF Save & Submit</button>
-        </div>
-    </div>
-
-    <!-- PRINTABLE RECEIPT TEMPLATE FOR NATIVE PDF -->
-    <div id="pdf-receipt-printable">
-        <div style="text-align: center; border-bottom: 2px solid #8c1d1d; padding-bottom: 10px; margin-bottom: 15px;">
-            <h2 style="margin:0; color:#8c1d1d; font-size: 22px;">SRI DHANUSH CRACKERS</h2>
-            <p style="margin:4px 0; font-size:13px; font-weight:bold;">ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</p>
-            <p style="margin:2px 0; font-size:11px;">📍 அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி | 📞 9080329266</p>
-        </div>
-        <div style="margin-bottom: 15px; font-size:13px; line-height: 1.6;">
-            <strong style="color:#8c1d1d; font-size:14px;">Order Invoice / ஆர்டர் ரசீது</strong><br>
-            <b>பெயர்:</b> <span id="pdf_name"></span><br>
-            <b>மொபைல்:</b> <span id="pdf_mobile"></span><br>
-            <b>முகவரி:</b> <span id="pdf_address"></span><br>
-            <b>வகை:</b> <span id="pdf_cust_type"></span>
-        </div>
-        <div id="pdf_table_container"></div>
-        <div style="margin-top: 20px; text-align: right; font-size: 18px; font-weight: bold; color: #8c1d1d;">
-            மொத்த தொகை (Total): <span id="pdf_total"></span>
-        </div>
-        <div style="margin-top: 30px; text-align: center; font-size: 11px; color: #555; border-top: 1px dashed #ccc; padding-top: 10px;">
-            *** நன்றி! உங்கள் ஆர்டர் வெற்றிகரமாகப் பதிவு செய்யப்பட்டது. ***
+            <button class="btn-submit" id="btn-send" onclick="processOrder()">📄 PDF Download & WhatsApp</button>
         </div>
     </div>
 
@@ -265,7 +235,7 @@
                 document.getElementById('btn-edit').innerText = '✏️ மாற்று';
                 document.getElementById('summary-header').innerText = '📋 தேர்வு செய்த பொருட்கள்';
                 document.getElementById('total-lbl').innerText = 'மொத்த தொகை:';
-                document.getElementById('btn-send').innerText = '📱 PDF Save & Submit';
+                document.getElementById('btn-send').innerText = '📄 PDF Download & WhatsApp';
             } else if (lang === 'en') {
                 document.getElementById('cust-header').innerText = '👤 Customer Details';
                 document.getElementById('lbl-name').innerText = 'Full Name *';
@@ -278,7 +248,7 @@
                 document.getElementById('btn-edit').innerText = '✏️ Edit Info';
                 document.getElementById('summary-header').innerText = '📋 Selected Items';
                 document.getElementById('total-lbl').innerText = 'Grand Total:';
-                document.getElementById('btn-send').innerText = '📱 PDF Save & Submit';
+                document.getElementById('btn-send').innerText = '📄 PDF Download & WhatsApp';
             } else {
                 document.getElementById('cust-header').innerText = '👤 வாடிக்கையாளர் விவரங்கள்';
                 document.getElementById('lbl-name').innerText = 'உங்கள் பெயர் (Full Name) *';
@@ -291,7 +261,7 @@
                 document.getElementById('btn-edit').innerText = '✏️ Edit Info';
                 document.getElementById('summary-header').innerText = '📋 தேர்வு செய்த பொருட்கள்';
                 document.getElementById('total-lbl').innerText = 'மொத்த தொகை:';
-                document.getElementById('btn-send').innerText = '📱 PDF Save & Submit';
+                document.getElementById('btn-send').innerText = '📄 PDF Download & WhatsApp';
             }
 
             renderProducts();
@@ -397,6 +367,74 @@
             }
         }
 
+        // Pure JS PDF Generation (100% Works on Mobile Browsers)
+        function generatePurePDF(name, mobile, address, custType, paymentType, tableData, total) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header Section
+            doc.setFillColor(140, 29, 29); // Dark Red Header
+            doc.rect(0, 0, 210, 32, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(18);
+            doc.setFont("helvetica", "bold");
+            doc.text("SRI DHANUSH CRACKERS", 105, 12, { align: "center" });
+            
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text("Sri Dhanush Crackers - Sivakasi | Digital Order Invoice 2026", 105, 18, { align: "center" });
+            doc.text("Address: 6/360, RCC Building, Anuppankulam, Sattur Road, Sivakasi", 105, 24, { align: "center" });
+            doc.text("Mob: 9080329266 | 9976708194 | 6381699755", 105, 29, { align: "center" });
+
+            // Customer Details Box
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.text("CUSTOMER ORDER DETAILS / RASEETHU", 14, 42);
+
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Customer Name : ${name}`, 14, 49);
+            doc.text(`Mobile Number : ${mobile}`, 14, 55);
+            doc.text(`Delivery Address: ${address}`, 14, 61);
+            doc.text(`Customer Type : ${custType}`, 120, 49);
+            doc.text(`Payment Mode  : ${paymentType}`, 120, 55);
+
+            // Products Table
+            doc.autoTable({
+                startY: 68,
+                head: [['S.No', 'Item Name', 'Qty', 'Rate (Rs)', 'Total (Rs)']],
+                body: tableData,
+                theme: 'grid',
+                headStyles: { fillColor: [140, 29, 29], textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { fontSize: 9, cellPadding: 3 },
+                columnStyles: {
+                    0: { halign: 'center', cellWidth: 15 },
+                    1: { cellWidth: 95 },
+                    2: { halign: 'center', cellWidth: 20 },
+                    3: { halign: 'right', cellWidth: 30 },
+                    4: { halign: 'right', cellWidth: 30 }
+                }
+            });
+
+            // Grand Total
+            let finalY = doc.lastAutoTable.finalY + 10;
+            doc.setFontSize(13);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(140, 29, 29);
+            doc.text(`GRAND TOTAL AMOUNT: Rs. ${total.toLocaleString('en-IN')}.00`, 196, finalY, { align: "right" });
+
+            // Footer
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "italic");
+            doc.setTextColor(100, 100, 100);
+            doc.text("*** Thank you for ordering with Sri Dhanush Crackers! ***", 105, finalY + 15, { align: "center" });
+
+            // Save PDF File
+            doc.save(`Sri_Dhanush_Crackers_Bill_${name}.pdf`);
+        }
+
         function processOrder() {
             const name = document.getElementById("cust_name").value.trim();
             const mobile = document.getElementById("cust_mobile").value.trim();
@@ -407,6 +445,7 @@
             let total = 0;
             let count = 0;
             let itemsSummaryText = "";
+            let tableData = [];
 
             let orderText = `*SRI DHANUSH CRACKERS - OFFICIAL ORDER 2026*\n\n`;
             orderText += `👤 *Name:* ${name}\n`;
@@ -416,8 +455,6 @@
             orderText += `💳 *Payment Mode:* ${paymentType}\n\n`;
             orderText += `-----------------------------------\n`;
             orderText += `🎆 *SELECTED ITEMS:*\n`;
-
-            let tableHtml = "<table style='width:100%; border-collapse:collapse; font-size:12px;' border='1'><tr><th style='padding:6px; background:#8c1d1d; color:white;'>S.No</th><th style='padding:6px; background:#8c1d1d; color:white;'>பொருள்</th><th style='padding:6px; background:#8c1d1d; color:white;'>Qty</th><th style='padding:6px; background:#8c1d1d; color:white;'>விலை</th><th style='padding:6px; background:#8c1d1d; color:white;'>மொத்தம்</th></tr>";
 
             products.forEach(group => {
                 group.items.forEach(item => {
@@ -431,18 +468,16 @@
                         itemsSummaryText += `${count}. ${item.eng} (${item.tam}) - Qty: ${qty} x ₹${item.rate} = ₹${itemTotal}\n`;
                         orderText += `${count}. ${item.eng} (${item.tam})\n   └ Qty: ${qty} x ₹${item.rate} = *₹${itemTotal}*\n`;
 
-                        tableHtml += `<tr>
-                            <td style='padding:6px; text-align:center;'>${count}</td>
-                            <td style='padding:6px;'>${item.eng} (${item.tam})</td>
-                            <td style='padding:6px; text-align:center;'>${qty}</td>
-                            <td style='padding:6px; text-align:right;'>₹${item.rate}</td>
-                            <td style='padding:6px; text-align:right;'>₹${itemTotal}</td>
-                        </tr>`;
+                        tableData.push([
+                            count,
+                            `${item.eng} (${item.tam})`,
+                            qty,
+                            `Rs. ${item.rate}`,
+                            `Rs. ${itemTotal}`
+                        ]);
                     }
                 });
             });
-
-            tableHtml += "</table>";
 
             if (count === 0) {
                 alert("தயவுசெய்து குறைந்தது ஒரு பட்டாசையாவது தேர்வு செய்யவும்!");
@@ -453,15 +488,18 @@
             orderText += `💰 *TOTAL AMOUNT: ₹${total.toLocaleString('en-IN')}*\n`;
             orderText += `-----------------------------------\n`;
 
-            // Prepare PDF Structure
-            document.getElementById("pdf_name").innerText = name;
-            document.getElementById("pdf_mobile").innerText = mobile;
-            document.getElementById("pdf_address").innerText = address;
-            document.getElementById("pdf_cust_type").innerText = custType;
-            document.getElementById("pdf_table_container").innerHTML = tableHtml;
-            document.getElementById("pdf_total").innerText = "₹ " + total.toLocaleString('en-IN') + ".00";
+            const btnSubmit = document.getElementById("btn-send");
+            btnSubmit.innerText = "⏳ Saving Order & Downloading PDF...";
+            btnSubmit.disabled = true;
 
-            // Save Data to Google Sheet
+            // 1. Generate & Download Pure PDF for Customer
+            try {
+                generatePurePDF(name, mobile, address, custType, paymentType, tableData, total);
+            } catch (e) {
+                console.log("PDF Generation Warning: ", e);
+            }
+
+            // 2. Save Data to Google Sheet & Open WhatsApp
             const payload = {
                 name: name,
                 mobile: mobile,
@@ -477,16 +515,17 @@
                 mode: "no-cors",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
-            });
-
-            // Trigger Native Mobile Print/PDF Dialog immediately
-            window.print();
-
-            // Then Redirect to WhatsApp
-            setTimeout(function() {
+            }).then(() => {
+                btnSubmit.innerText = "📄 PDF Download & WhatsApp";
+                btnSubmit.disabled = false;
                 const whatsappNumber = "919080329266";
                 window.location.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderText)}`;
-            }, 1500);
+            }).catch(error => {
+                btnSubmit.innerText = "📄 PDF Download & WhatsApp";
+                btnSubmit.disabled = false;
+                const whatsappNumber = "919080329266";
+                window.location.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderText)}`;
+            });
         }
 
         renderProducts();
