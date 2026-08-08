@@ -59,7 +59,7 @@
         <p style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
         <h1>SRI DHANUSH CRACKERS</h1>
         <h2>ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
-        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v4</strong></p>
+        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v5</strong></p>
         <p>📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
         <p>📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
     </div>
@@ -367,11 +367,12 @@
             }
         }
 
-        // Direct Download PDF via Pure jsPDF
+        // Clean English PDF Generator
         function triggerDirectPdfDownload(name, mobile, address, custType, paymentType, tableData, total) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
+            // Header Banner
             doc.setFillColor(140, 29, 29);
             doc.rect(0, 0, 210, 32, 'F');
             
@@ -386,10 +387,11 @@
             doc.text("Address: 6/360, RCC Building, Anuppankulam, Sattur Road, Sivakasi", 105, 24, { align: "center" });
             doc.text("Mob: 9080329266 | 9976708194 | 6381699755", 105, 29, { align: "center" });
 
+            // Info Section
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(11);
             doc.setFont("helvetica", "bold");
-            doc.text("CUSTOMER ORDER DETAILS / RASEETHU", 14, 42);
+            doc.text("CUSTOMER ORDER DETAILS", 14, 42);
 
             doc.setFontSize(10);
             doc.setFont("helvetica", "normal");
@@ -399,6 +401,7 @@
             doc.text(`Customer Type : ${custType}`, 120, 49);
             doc.text(`Payment Mode  : ${paymentType}`, 120, 55);
 
+            // Itemized Table (Pure English Strings for 100% PDF compatibility)
             doc.autoTable({
                 startY: 68,
                 head: [['S.No', 'Item Name', 'Qty', 'Rate (Rs)', 'Total (Rs)']],
@@ -426,22 +429,17 @@
             doc.setTextColor(100, 100, 100);
             doc.text("*** Thank you for ordering with Sri Dhanush Crackers! ***", 105, finalY + 15, { align: "center" });
 
-            // Triggers Direct Download
             doc.save(`Sri_Dhanush_Crackers_Bill_${name}.pdf`);
         }
 
         function openWhatsAppDirectly(orderText) {
             const whatsappNumber = "919080329266";
             const encodedText = encodeURIComponent(orderText);
-            
-            // Smart Mobile App vs Web Redirect
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
             if (isMobile) {
-                // Direct Mobile App Launcher
                 window.location.href = `whatsapp://send?phone=${whatsappNumber}&text=${encodedText}`;
             } else {
-                // Desktop Web Fallback
                 window.open(`https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedText}`, '_blank');
             }
         }
@@ -479,9 +477,10 @@
                         itemsSummaryText += `${count}. ${item.eng} (${item.tam}) - Qty: ${qty} x ₹${item.rate} = ₹${itemTotal}\n`;
                         orderText += `${count}. ${item.eng} (${item.tam})\n   └ Qty: ${qty} x ₹${item.rate} = *₹${itemTotal}*\n`;
 
+                        // Passing pure English item names to PDF table to prevent blank page bug
                         tableData.push([
                             count,
-                            `${item.eng} (${item.tam})`,
+                            item.eng,
                             qty,
                             `Rs. ${item.rate}`,
                             `Rs. ${itemTotal}`
@@ -503,14 +502,14 @@
             btnSubmit.innerText = "⏳ Saving Order & Downloading PDF...";
             btnSubmit.disabled = true;
 
-            // 1. Direct PDF Download
+            // 1. Download PDF (English Table, 100% Reliable)
             try {
                 triggerDirectPdfDownload(name, mobile, address, custType, paymentType, tableData, total);
             } catch (e) {
                 console.log("PDF error: ", e);
             }
 
-            // 2. Save Data to Google Sheet & Open Direct Mobile WhatsApp App
+            // 2. Save Data to Google Sheet & Open Direct Mobile WhatsApp
             const payload = {
                 name: name,
                 mobile: mobile,
