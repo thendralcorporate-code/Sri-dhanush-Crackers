@@ -1,164 +1,544 @@
-<!DOCTYPE html>
-<html lang="ta">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sri Dhanush Crackers - Checkout Form</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f6f9;
-      margin: 0;
-      padding: 20px;
-    }
-    .form-container {
-      max-width: 600px;
-      margin: 0 auto;
-      background: #ffffff;
-      padding: 25px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    h2 {
-      color: #8c1d1d;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 5px;
-      color: #333;
-    }
-    .optional-text {
-      color: #777;
-      font-weight: normal;
-      font-size: 13px;
-    }
-    input[type="text"],
-    input[type="tel"],
-    textarea,
-    select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-sizing: border-box;
-      font-size: 14px;
-    }
-    textarea {
-      resize: vertical;
-      height: 80px;
-    }
-    .btn-submit {
-      width: 100%;
-      background-color: #8c1d1d;
-      color: white;
-      padding: 12px;
-      border: none;
-      border-radius: 5px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    .btn-submit:hover {
-      background-color: #6b1414;
-    }
-  </style>
-</head>
-<body>
+// ==========================================
+// SRI DHANUSH CRACKERS - FULL COMBINED SCRIPT 2026
+// ==========================================
 
-<div class="form-container">
-  <h2>Sri Dhanush Crackers - Order Form</h2>
+// 1. Google Form ID
+var GOOGLE_FORM_ID = "1mE5J0x0yP9VfKIUujLUZV7zPJ8_EGaQd7kSbM0p4wlA";
+
+function doGet(e) {
+  var action = e.parameter ? e.parameter.action : "";
   
-  <form id="orderForm">
-    <!-- Customer Name (Mandatory) -->
-    <div class="form-group">
-      <label for="name">Customer Name / பெயர் <span style="color:red;">*</span></label>
-      <input type="text" id="name" name="name" required placeholder="Enter your full name">
-    </div>
-
-    <!-- Mobile Number (Mandatory) -->
-    <div class="form-group">
-      <label for="mobile">Mobile Number / போன் எண் <span style="color:red;">*</span></label>
-      <input type="tel" id="mobile" name="mobile" required placeholder="10-digit mobile number">
-    </div>
-
-    <!-- Delivery Address (Mandatory) -->
-    <div class="form-group">
-      <label for="address">Delivery Address / முகவரி <span style="color:red;">*</span></label>
-      <textarea id="address" name="address" required placeholder="Door No, Street Name, Town/Village"></textarea>
-    </div>
-
-    <!-- District / Location (Optional) -->
-    <div class="form-group">
-      <label for="district">District Location / மாவட்டம் <span class="optional-text">(Optional)</span></label>
-      <input type="text" id="district" name="district" placeholder="E.g. Madurai, Coimbatore, Chennai">
-    </div>
-
-    <!-- Preferred Transport (Optional) -->
-    <div class="form-group">
-      <label for="transport">Preferred Transport / விருப்பமான டிரான்ஸ்போர்ட் <span class="optional-text">(Optional)</span></label>
-      <input type="text" id="transport" name="transport" placeholder="E.g. KPN, VRL, Any Private Transport">
-    </div>
-
-    <!-- Payment Type -->
-    <div class="form-group">
-      <label for="paymentType">Payment Type / பணம் செலுத்தும் முறை</label>
-      <select id="paymentType" name="paymentType">
-        <option value="Online Payment">Online Payment (GPay/PhonePe)</option>
-        <option value="Bank Transfer">Bank Transfer</option>
-        <option value="Cash on Delivery">Cash on Delivery</option>
-      </select>
-    </div>
-
-    <!-- Hidden Fields for Order Items & Total (Set dynamically by JavaScript) -->
-    <input type="hidden" id="items" name="items" value="1. Sparklers - Qty: 2 x ₹50 = ₹100\n2. Flower Pots - Qty: 1 x ₹50 = ₹50">
-    <input type="hidden" id="total" name="total" value="150">
-
-    <button type="submit" class="btn-submit">Submit Order / ஆர்டர் செய்</button>
-  </form>
-</div>
-
-<script>
-  // Replace with your Web App URL from Apps Script Deployment
-  const SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
-
-  document.getElementById("orderForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    
-    const submitBtn = document.querySelector(".btn-submit");
-    submitBtn.innerText = "Submitting Order...";
-    submitBtn.disabled = true;
-
-    const formData = new FormData(this);
-    
-    fetch(SCRIPT_URL, {
-      method: "POST",
-      body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-      if(data.result === "success") {
-        alert("Order Placed Successfully! Your Order ID: " + data.orderId);
-        document.getElementById("orderForm").reset();
-      } else {
-        alert("Error placing order: " + data.error);
+  // Fetch Store Settings
+  if (action === "getSettings") {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sSheet = ss.getSheetByName("Store_Settings");
+    var settings = {};
+    if (sSheet) {
+      var data = sSheet.getDataRange().getValues();
+      for (var i = 1; i < data.length; i++) {
+        if (data[i][0] !== "") { settings[data[i][0]] = data[i][1]; }
       }
-    })
-    .catch(error => {
-      alert("Submission Error: " + error.message);
-    })
-    .finally(() => {
-      submitBtn.innerText = "Submit Order / ஆர்டர் செய்";
-      submitBtn.disabled = false;
-    });
-  });
-</script>
+    }
+    return ContentService.createTextOutput(JSON.stringify({ status: "success", settings: settings }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 
-</body>
-</html>
+  // Fetch Live Products List
+  if (action === "getProducts") {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var pSheet = ss.getSheetByName("Products");
+    if (!pSheet) {
+      return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Products sheet not found!" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    var data = pSheet.getDataRange().getValues();
+    var products = [];
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][0] !== "") {
+        products.push({
+          id: data[i][0],
+          catEn: data[i][1],
+          catTa: data[i][2],
+          eng: data[i][3],
+          tam: data[i][4],
+          per: data[i][5],
+          rate: data[i][6],
+          status: data[i][7] || "In Stock"
+        });
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({ status: "success", products: products }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  return handleRequest(e);
+}
+
+function doPost(e) {
+  var p = e.parameter;
+  var data = {};
+  if (e.postData && e.postData.contents) {
+    try { data = JSON.parse(e.postData.contents); } catch(err) { data = p; }
+  } else { data = p; }
+
+  // Save Business Inquiry Leads
+  if (data.action === "saveLead") {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var lSheet = ss.getSheetByName("Leads") || ss.insertSheet("Leads");
+    if (lSheet.getLastRow() === 0) {
+      lSheet.appendRow(["Timestamp", "Customer Name", "Mobile Number", "Interest Response"]);
+    }
+    lSheet.appendRow([new Date(), data.name, data.mobile, data.response]);
+    return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // Admin Update Header & Logo Settings
+  if (data.action === "updateSettings") {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sSheet = ss.getSheetByName("Store_Settings");
+    if (sSheet) {
+      var values = sSheet.getDataRange().getValues();
+      for (var i = 1; i < values.length; i++) {
+        if (values[i][0] === "logo_url" && data.logo_url !== undefined) sSheet.getRange(i + 1, 2).setValue(data.logo_url);
+        if (values[i][0] === "top_god" && data.top_god !== undefined) sSheet.getRange(i + 1, 2).setValue(data.top_god);
+        if (values[i][0] === "god_blessing" && data.god_blessing !== undefined) sSheet.getRange(i + 1, 2).setValue(data.god_blessing);
+        if (values[i][0] === "shop_name" && data.shop_name !== undefined) sSheet.getRange(i + 1, 2).setValue(data.shop_name);
+        if (values[i][0] === "shop_sub" && data.shop_sub !== undefined) sSheet.getRange(i + 1, 2).setValue(data.shop_sub);
+        if (values[i][0] === "address" && data.address !== undefined) sSheet.getRange(i + 1, 2).setValue(data.address);
+        if (values[i][0] === "mobiles" && data.mobiles !== undefined) sSheet.getRange(i + 1, 2).setValue(data.mobiles);
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // Admin Update Product Price or Stock Status
+  if (data.action === "updateProduct") {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var pSheet = ss.getSheetByName("Products");
+    var values = pSheet.getDataRange().getValues();
+    for (var i = 1; i < values.length; i++) {
+      if (values[i][0].toString() === data.id.toString()) {
+        if (data.rate !== undefined) pSheet.getRange(i + 1, 7).setValue(data.rate);
+        if (data.status !== undefined) pSheet.getRange(i + 1, 8).setValue(data.status);
+        break;
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  return handleRequest(e);
+}
+
+// Handle New Customer Order Submission
+function handleRequest(e) {
+  var lock = LockService.getScriptLock();
+  lock.tryLock(10000);
+
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Orders") || ss.getSheets()[0];
+    var p = e.parameter;
+    
+    var data = {};
+    if (e.postData && e.postData.contents) {
+      try { data = JSON.parse(e.postData.contents); } catch(err) { data = p; }
+    } else { data = p; }
+
+    var orderId = data.orderId || ("SDC-" + Math.floor(1000 + Math.random() * 9000));
+    var timestamp = new Date();
+    var pdfUrl = "";
+
+    // Combine Full Address with District if provided
+    var fullAddress = (data.address || "");
+    if (data.district) {
+      fullAddress += " [District: " + data.district + "]";
+    }
+
+    var preferredTransport = data.transport || "General Transport";
+
+    try {
+      var itemsArray = (data.items || "").split("\n").filter(function(i) { return i.trim().length > 0; });
+      var itemsTableRows = "";
+      
+      itemsArray.forEach(function(itemStr) {
+        var sno = "", itemName = itemStr, qty = "", rate = "", total = "";
+        try {
+          var parts = itemStr.split("- Qty:");
+          if (parts.length > 1) {
+            var leftPart = parts[0].trim(), rightPart = parts[1].trim();
+            var snoMatch = leftPart.match(/^(\d+)\.\s*(.*)/);
+            if (snoMatch) { sno = snoMatch[1]; itemName = snoMatch[2]; } else { itemName = leftPart; }
+            var mathParts = rightPart.split("=");
+            if (mathParts.length > 1) {
+              total = mathParts[1].replace("₹", "").trim();
+              var qtyRateParts = mathParts[0].split("x");
+              if (qtyRateParts.length > 1) {
+                qty = qtyRateParts[0].trim();
+                rate = qtyRateParts[1].replace("₹", "").trim();
+              }
+            }
+          }
+        } catch(e) {}
+
+        itemsTableRows += "<tr>" +
+          "<td style='padding:8px; text-align:center; border-bottom:1px solid #cbd5e0;'>" + (sno || "-") + "</td>" +
+          "<td style='padding:8px; border-bottom:1px solid #cbd5e0; font-weight:bold;'>" + itemName + "</td>" +
+          "<td style='padding:8px; text-align:center; border-bottom:1px solid #cbd5e0;'>" + (qty || "-") + "</td>" +
+          "<td style='padding:8px; text-align:right; border-bottom:1px solid #cbd5e0;'>Rs. " + (rate || "-") + "</td>" +
+          "<td style='padding:8px; text-align:right; border-bottom:1px solid #cbd5e0; font-weight:bold;'>Rs. " + (total || "-") + "</td>" +
+          "</tr>";
+      });
+
+      var htmlTemplate = "<html><head><style>" +
+        "body { font-family: Arial, sans-serif; margin: 15px; color: #2d3748; }" +
+        ".header { background: #8c1d1d; color: white; padding: 18px; text-align: center; border-radius: 6px; }" +
+        ".header h1 { margin: 0; font-size: 22px; font-weight: bold; text-transform: uppercase; }" +
+        ".header p { margin: 3px 0 0 0; font-size: 11px; }" +
+        ".card { background: #f8f9fa; border: 1px solid #cbd5e0; padding: 12px; border-radius: 6px; margin-top: 12px; }" +
+        ".card-title { color: #8c1d1d; font-weight: bold; font-size: 13px; margin-bottom: 8px; border-bottom: 2px solid #8c1d1d; padding-bottom: 4px; text-transform: uppercase; }" +
+        ".info-table { width: 100%; font-size: 12px; border-collapse: collapse; }" +
+        ".info-table td { padding: 4px 0; }" +
+        ".grid-table { width: 100%; margin-top: 15px; border-collapse: collapse; border: 1px solid #cbd5e0; font-size: 12px; }" +
+        ".grid-table th { background: #8c1d1d; color: white; padding: 8px; text-align: left; font-size: 12px; text-transform: uppercase; }" +
+        ".total-box { margin-top: 15px; background: #feebc8; border: 2px solid #dd6b20; padding: 10px 15px; text-align: right; border-radius: 6px; font-size: 15px; font-weight: bold; color: #742a2a; }" +
+        "</style></head><body>" +
+        "<div class='header'>" +
+        "<h1>SRI DHANUSH CRACKERS</h1>" +
+        "<p>6/360, RCC Building, Anuppankulam, Sattur Road, Sivakasi | Mob: 9080329266, 9976708194</p>" +
+        "<p style='color:#ffeb3b; font-weight:bold; margin-top:5px;'>OFFICE / SHOP COPY INVOICE 2026</p>" +
+        "</div>" +
+        "<div class='card'>" +
+        "<div class='card-title'>Customer & Order Details</div>" +
+        "<table class='info-table'>" +
+        "<tr><td><strong>Order ID:</strong> " + orderId + "</td><td><strong>Date & Time:</strong> " + timestamp.toLocaleString() + "</td></tr>" +
+        "<tr><td><strong>Customer Name:</strong> " + (data.name || "") + "</td><td><strong>Mobile No:</strong> " + (data.mobile || "") + "</td></tr>" +
+        "<tr><td colspan='2'><strong>Delivery Address:</strong> " + fullAddress + "</td></tr>" +
+        "<tr><td colspan='2'><strong>Preferred Transport:</strong> " + preferredTransport + "</td></tr>" +
+        "</table>" +
+        "</div>" +
+        "<table class='grid-table'>" +
+        "<thead><tr>" +
+        "<th style='width:8%; text-align:center;'>S.No</th>" +
+        "<th style='width:48%;'>Item Name Description</th>" +
+        "<th style='width:12%; text-align:center;'>Qty</th>" +
+        "<th style='width:16%; text-align:right;'>Rate</th>" +
+        "<th style='width:16%; text-align:right;'>Total</th>" +
+        "</tr></thead>" +
+        "<tbody>" + itemsTableRows + "</tbody>" +
+        "</table>" +
+        "<div class='total-box'>GRAND TOTAL AMOUNT: Rs. " + (data.total || "0") + ".00</div>" +
+        "</body></html>";
+
+      var blob = Utilities.newBlob(htmlTemplate, "text/html", "temp.html").getAs("application/pdf");
+      blob.setName("Office_Bill_" + orderId + "_" + (data.name || "Customer") + ".pdf");
+
+      var folderName = "Sri Dhanush Orders 2026";
+      var folders = DriveApp.getFoldersByName(folderName);
+      var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+      var file = folder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      pdfUrl = file.getUrl();
+
+    } catch(driveErr) {
+      pdfUrl = "Drive Error: " + driveErr.toString();
+    }
+
+    var initialMsg = "Dear " + (data.name || "Customer") + ", Your Sri Dhanush Crackers Order (" + orderId + ") Status: *Order Received*. Total Amount: Rs." + (data.total || "0") + ". Thank You!";
+    var rawWaLink = "https://api.whatsapp.com/send?phone=91" + (data.mobile || "") + "&text=" + encodeURIComponent(initialMsg);
+
+    var waButtonFormula = '=HYPERLINK("' + rawWaLink + '", "📱 Send WhatsApp")';
+    var pdfButtonFormula = pdfUrl.indexOf("http") === 0 ? '=HYPERLINK("' + pdfUrl + '", "📄 View PDF")' : pdfUrl;
+
+    sheet.appendRow([
+      orderId,                            // A: Order ID
+      timestamp,                          // B: Date & Time
+      data.name || "",                    // C: Customer Name
+      data.mobile || "",                  // D: Mobile Number
+      fullAddress,                        // E: Delivery Address (+ District)
+      data.custType || "Online",          // F: Customer Type
+      data.items || "",                   // G: Selected Items & Quantity
+      data.total || "",                   // H: Total Amount (₹)
+      data.paymentType || "Online",       // I: Payment Type
+      "Pending",                          // J: Payment Status
+      "Order Received",                   // K: Order Status
+      preferredTransport,                 // L: Preferred Transport Name
+      waButtonFormula,                    // M: Single WhatsApp Button
+      pdfButtonFormula,                   // N: Office PDF Link
+      "Unassigned",                       // O: Handled By
+      "",                                 // P: Transport Receipt Link
+      false                               // Q: Checkbox Status
+    ]);
+
+    // Highlight RED for Pending WhatsApp Status
+    var newRow = sheet.getLastRow();
+    sheet.getRange(newRow, 13).setBackground("#f8d7da").setFontColor("#721c24");
+    sheet.getRange(newRow, 17).insertCheckboxes();
+
+    generateAnalytics();
+    updateFormDropdown();
+
+    return ContentService.createTextOutput(JSON.stringify({"result": "success", "orderId": orderId}))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({"result": "error", "error": error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// Automatic Trigger when Status changes OR Checkbox is Checked
+function onEdit(e) {
+  var sheet = e.source.getActiveSheet();
+  if (sheet.getName() !== "Orders") return;
+  
+  var range = e.range;
+  var row = range.getRow();
+  var col = range.getColumn();
+  if (row <= 1) return;
+
+  // 1. When Order Status (Col K) / Transport / Slip Link is modified
+  if (col === 11 || col === 12 || col === 16) {
+    updateSingleWhatsAppButton(sheet, row);
+    sheet.getRange(row, 13).setBackground("#f8d7da").setFontColor("#721c24");
+    sheet.getRange(row, 17).setValue(false);
+  }
+
+  // 2. When Checkbox (Col Q / Col 17) is toggled
+  if (col === 17) {
+    var isChecked = sheet.getRange(row, 17).getValue();
+    if (isChecked === true) {
+      sheet.getRange(row, 13).setBackground("#d4edda").setFontColor("#155724");
+    } else {
+      sheet.getRange(row, 13).setBackground("#f8d7da").setFontColor("#721c24");
+    }
+  }
+
+  updateFormDropdown();
+}
+
+// Update Column M WhatsApp Link Formula
+function updateSingleWhatsAppButton(sheet, row) {
+  var orderId = sheet.getRange(row, 1).getValue();
+  var custName = sheet.getRange(row, 3).getValue();
+  var mobile = sheet.getRange(row, 4).getValue();
+  var total = sheet.getRange(row, 8).getValue();
+  var status = sheet.getRange(row, 11).getValue(); // Column K
+  var transportDetails = sheet.getRange(row, 12).getValue(); // Column L
+  var receiptLink = sheet.getRange(row, 16).getValue(); // Column P
+
+  if (!mobile) return;
+
+  var msg = "";
+
+  if (status === "Order Received") {
+    msg = "Dear " + custName + ", Your Sri Dhanush Crackers Order (" + orderId + ") Status: *Order Received*. Total Amount: Rs." + total + ". Thank You!";
+  } else if (status === "Billed") {
+    msg = "Dear " + custName + ", Your Sri Dhanush Crackers Order (" + orderId + ") Invoice/Bill is *Generated (Billed)*. Total Amount: Rs." + total + ". Thank You!";
+  } else if (status === "Packed") {
+    msg = "Dear " + custName + ", Great news! Your Crackers Order (" + orderId + ") has been *Safely Packed* 📦 and is ready for dispatch!";
+  } else if (status === "Sent to Transport") {
+    msg = "Dear " + custName + ", Your Crackers Order (" + orderId + ") has been *Sent to Transport* 🚚.\n";
+    if (transportDetails) msg += "Transport Details: " + transportDetails + "\n";
+    if (receiptLink) msg += "Transport LR/Receipt Photo: " + receiptLink + "\n";
+    msg += "Thank you for shopping with Sri Dhanush Crackers!";
+  } else {
+    msg = "Dear " + custName + ", Your Sri Dhanush Crackers Order (" + orderId + ") Status: *" + status + "*. Thank You!";
+  }
+
+  var rawWaLink = "https://api.whatsapp.com/send?phone=91" + mobile + "&text=" + encodeURIComponent(msg);
+  var waButtonFormula = '=HYPERLINK("' + rawWaLink + '", "📱 Send WhatsApp")';
+  
+  sheet.getRange(row, 13).setValue(waButtonFormula);
+}
+
+// Update Google Form Dropdown with Formatted Order Labels
+function updateFormDropdown() {
+  if (!GOOGLE_FORM_ID || GOOGLE_FORM_ID === "YOUR_GOOGLE_FORM_ID_HERE") return;
+  
+  try {
+    var form = FormApp.openById(GOOGLE_FORM_ID);
+    var items = form.getItems();
+    
+    var orderIdDropdown = null;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].getType() === FormApp.ItemType.LIST) {
+        orderIdDropdown = items[i].asListItem();
+        break;
+      }
+    }
+
+    if (!orderIdDropdown) return;
+
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var ordersSheet = ss.getSheetByName("Orders");
+    if (!ordersSheet) return;
+
+    var data = ordersSheet.getDataRange().getValues();
+    var pendingOrders = [];
+
+    for (var k = 1; k < data.length; k++) {
+      var orderId = data[k][0];       // Column A: Order ID
+      var custName = data[k][2];      // Column C: Customer Name
+      var mobile = data[k][3];        // Column D: Mobile Number
+      var address = data[k][4];       // Column E: Address
+      var status = data[k][10];       // Column K: Status
+      var transport = data[k][11] || "General Transport"; // Column L: Transport Name
+
+      if (orderId && status !== "Sent to Transport") {
+        var cleanAddr = address ? address.toString().replace(/\n/g, " ") : "";
+        var label = orderId + " | Name: " + custName + " | Mob: " + mobile + " | Addr: " + cleanAddr + " | Transport: " + transport;
+        pendingOrders.push(label);
+      }
+    }
+
+    if (pendingOrders.length > 0) {
+      orderIdDropdown.setChoiceValues(pendingOrders);
+    } else {
+      orderIdDropdown.setChoiceValues(["No Pending Orders"]);
+    }
+  } catch(err) {
+    Logger.log("Safe Handled Error: " + err.toString());
+  }
+}
+
+// Automatic Trigger when Transport Person Submits Google Form
+function onFormSubmit(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ordersSheet = ss.getSheetByName("Orders");
+  
+  if (!ordersSheet) return;
+
+  var responses = e ? e.values : null; 
+  if (!responses && e && e.response) {
+    var itemResponses = e.response.getItemResponses();
+    responses = [new Date(), itemResponses[0].getResponse(), itemResponses[1].getResponse()];
+  }
+
+  if (!responses) return;
+
+  var rawSelectedOrder = responses[1];
+  var fileUrl = responses[2];
+
+  if (!rawSelectedOrder || !fileUrl) return;
+
+  var idMatch = rawSelectedOrder.match(/SDC-\d+/i);
+  var formOrderId = idMatch ? idMatch[0].toUpperCase() : rawSelectedOrder.trim().toUpperCase();
+
+  var ordersData = ordersSheet.getDataRange().getValues();
+
+  for (var i = 1; i < ordersData.length; i++) {
+    var sheetOrderId = ordersData[i][0].toString().trim().toUpperCase();
+    
+    if (sheetOrderId === formOrderId || rawSelectedOrder.toUpperCase().indexOf(sheetOrderId) !== -1) {
+      var row = i + 1;
+      
+      ordersSheet.getRange(row, 11).setValue("Sent to Transport");
+      ordersSheet.getRange(row, 16).setValue(fileUrl);
+      
+      updateSingleWhatsAppButton(ordersSheet, row);
+      
+      ordersSheet.getRange(row, 13).setBackground("#f8d7da").setFontColor("#721c24");
+      ordersSheet.getRange(row, 17).setValue(false);
+      break;
+    }
+  }
+
+  updateFormDropdown();
+}
+
+// Automatic Sales Analytics Calculation
+function generateAnalytics() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ordersSheet = ss.getSheetByName("Orders");
+  var productsSheet = ss.getSheetByName("Products");
+  var analyticsSheet = ss.getSheetByName("Analytics") || ss.insertSheet("Analytics");
+  
+  if (!ordersSheet || !productsSheet) return;
+  
+  var productsData = productsSheet.getDataRange().getValues();
+  var productMap = {}; 
+
+  for (var p = 1; p < productsData.length; p++) {
+    var catEn = productsData[p][1] || "GENERAL";
+    var nameEn = productsData[p][3] || "";
+    var nameTa = productsData[p][4] || "";
+
+    var brandClass = "Standard";
+    if (catEn.toUpperCase().includes("ECONOMY")) {
+      brandClass = "Economy";
+    } else if (catEn.toUpperCase().includes("BRANDED")) {
+      brandClass = "Branded";
+    }
+
+    var cleanCat = catEn.replace(/\(ECONOMY\)|\(BRANDED\)/gi, "").trim();
+
+    var itemObj = {
+      engName: nameEn,
+      category: cleanCat,
+      brandClass: brandClass
+    };
+
+    if (nameEn) productMap[nameEn.toLowerCase()] = itemObj;
+    if (nameTa) productMap[nameTa.toLowerCase()] = itemObj;
+  }
+  
+  var ordersData = ordersSheet.getDataRange().getValues();
+  var itemTotals = {}; 
+
+  for (var i = 1; i < ordersData.length; i++) {
+    var itemsText = ordersData[i][6];
+    if (itemsText) {
+      var lines = itemsText.toString().split("\n");
+      lines.forEach(function(line) {
+        if (line.includes("- Qty:")) {
+          try {
+            var parts = line.split("- Qty:");
+            var rawName = parts[0].replace(/^\d+\.\s*/, "").trim(); 
+            var mathPart = parts[1].trim(); 
+            
+            var qtyMatch = mathPart.match(/^(\d+)\s*x/);
+            var costMatch = mathPart.match(/=\s*₹?(\d+)/);
+
+            var qty = qtyMatch ? parseInt(qtyMatch[1]) : 0;
+            var cost = costMatch ? parseInt(costMatch[1]) : 0;
+
+            var searchKey = rawName.split("(")[0].trim().toLowerCase();
+
+            var matchedProd = productMap[searchKey] || {
+              engName: rawName.split("(")[0].trim(),
+              category: "OTHER CRACKERS",
+              brandClass: "Standard"
+            };
+
+            var key = matchedProd.engName;
+
+            if (!itemTotals[key]) {
+              itemTotals[key] = {
+                category: matchedProd.category,
+                brandClass: matchedProd.brandClass,
+                engName: matchedProd.engName,
+                qty: 0,
+                cost: 0
+              };
+            }
+            itemTotals[key].qty += qty;
+            itemTotals[key].cost += cost;
+
+          } catch(e) {}
+        }
+      });
+    }
+  }
+
+  analyticsSheet.clear();
+  analyticsSheet.appendRow([
+    "Category", 
+    "Brand / Class", 
+    "Item Name", 
+    "Total Quantity Sold", 
+    "Total Revenue (Rs.)"
+  ]);
+  
+  analyticsSheet.getRange("A1:E1").setFontWeight("bold").setBackground("#8c1d1d").setFontColor("#ffffff");
+
+  var resultRows = [];
+  for (var k in itemTotals) {
+    resultRows.push([
+      itemTotals[k].category,
+      itemTotals[k].brandClass,
+      itemTotals[k].engName,
+      itemTotals[k].qty,
+      itemTotals[k].cost
+    ]);
+  }
+
+  if (resultRows.length > 0) {
+    analyticsSheet.getRange(2, 1, resultRows.length, 5).setValues(resultRows);
+    analyticsSheet.autoResizeColumns(1, 5);
+  }
+}
