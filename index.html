@@ -75,7 +75,7 @@
         <p id="hdr_god_blessing" style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
         <h1 id="hdr_shop_name">SRI DHANUSH CRACKERS</h1>
         <h2 id="hdr_shop_sub">ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
-        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v29</strong></p>
+        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM</strong></p>
         <p id="hdr_address">📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
         <p id="hdr_mobiles">📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
     </div>
@@ -135,7 +135,7 @@
         <div id="success-area" style="display: none;">
             <div class="success-box">
                 <h3 style="color: #276749; margin: 0 0 5px 0;">✅ Order Submitted Successfully!</h3>
-                <p style="font-size: 13px; margin: 0; color: #2f855a;">உங்கள் ஆர்டர் வெற்றிகரமாகப் பதிவு செய்யப்பட்டது! பில் தானாகப் பதிவிறக்கம் ஆகிறது...</p>
+                <p style="font-size: 13px; margin: 0; color: #2f855a;">உங்கள் ஆர்டர் வெற்றிகரமாகப் பதிவு செய்யப்பட்டது!</p>
             </div>
         </div>
 
@@ -401,8 +401,8 @@
             const district = document.getElementById("cust_district").value.trim();
             const transport = document.getElementById("cust_transport").value.trim();
             
-            const custType = "Online / WhatsApp Order";
-            const paymentType = "Online Order";
+            const custType = "Online Order";
+            const paymentType = "Direct Payment";
 
             const orderId = "SDC-" + Math.floor(1000 + Math.random() * 9000);
 
@@ -411,7 +411,7 @@
             let itemsSummaryText = "";
             let tableData = [];
 
-            let orderText = `*SRI DHANUSH CRACKERS - OFFICIAL ORDER 2026*\n\n`;
+            let orderText = `*SRI DHANUSH CRACKERS - ORDER ESTIMATE 2026*\n\n`;
             orderText += `🆔 *Order ID:* ${orderId}\n`;
             orderText += `👤 *Name:* ${name}\n`;
             orderText += `📞 *Mobile:* ${mobile}\n`;
@@ -547,7 +547,7 @@
             
             doc.setFontSize(10);
             doc.setFont("helvetica", "normal");
-            doc.text("Sri Dhanush Crackers - Sivakasi | Official Order Invoice 2026", 105, 20, { align: "center" });
+            doc.text("Sri Dhanush Crackers - Sivakasi | Customer Order Estimate 2026", 105, 20, { align: "center" });
             doc.setFontSize(9);
             doc.text("6/360, RCC Building, Anuppankulam, Sattur Road, Sivakasi | Mob: 9080329266, 9976708194", 105, 26, { align: "center" });
 
@@ -559,7 +559,7 @@
             doc.setTextColor(140, 29, 29);
             doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
-            doc.text("CUSTOMER & ORDER INFORMATION", 16, 44);
+            doc.text("CUSTOMER & ORDER DETAILS", 16, 44);
 
             doc.setTextColor(50, 50, 50);
             doc.setFontSize(8.5);
@@ -584,16 +584,16 @@
 
             // Right Column Alignments
             doc.setFont("helvetica", "bold");
-            doc.text("Order Type", 110, 50);
+            doc.text("Order Mode", 110, 50);
             doc.text(":", 135, 50);
-            doc.text("Payment Mode", 110, 56);
+            doc.text("Payment Status", 110, 56);
             doc.text(":", 135, 56);
             doc.text("Address", 110, 62);
             doc.text(":", 135, 62);
 
             doc.setFont("helvetica", "normal");
             doc.text(lastPdfData.custType, 138, 50);
-            doc.text(lastPdfData.paymentType, 138, 56);
+            doc.text("Pending", 138, 56);
 
             // Safe Wrapped Multiline Address Box Alignment
             var fullAddrText = lastPdfData.address;
@@ -642,15 +642,15 @@
             doc.setFontSize(11);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(116, 42, 42);
-            doc.text(`GRAND TOTAL:  Rs. ${lastPdfData.total.toLocaleString('en-IN')}.00`, 194, finalY + 8, { align: "right" });
+            doc.text(`ESTIMATE TOTAL:  Rs. ${lastPdfData.total.toLocaleString('en-IN')}.00`, 194, finalY + 8, { align: "right" });
 
             doc.setFontSize(9);
             doc.setFont("helvetica", "italic");
             doc.setTextColor(100, 100, 100);
             doc.text("*** Thank you for your order! Wish you a happy Diwali! ***", 105, finalY + 22, { align: "center" });
 
-            // Download Invoice PDF
-            doc.save(`Sri_Dhanush_Crackers_Bill_${lastPdfData.orderId}_${lastPdfData.name}.pdf`);
+            // Download Order Estimate Document
+            doc.save(`Sri_Dhanush_Crackers_Estimate_${lastPdfData.orderId}_${lastPdfData.name}.pdf`);
         }
     </script>
 </body>
