@@ -75,7 +75,7 @@
         <p id="hdr_god_blessing" style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
         <h1 id="hdr_shop_name">SRI DHANUSH CRACKERS</h1>
         <h2 id="hdr_shop_sub">ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
-        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v27</strong></p>
+        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v29</strong></p>
         <p id="hdr_address">📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
         <p id="hdr_mobiles">📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
     </div>
@@ -438,8 +438,8 @@
                             count,
                             item.eng,
                             qty,
-                            `Rs. ${item.rate}`,
-                            `Rs. ${itemTotal}`
+                            `${item.rate}`,
+                            `${itemTotal}`
                         ]);
                     }
                 }
@@ -536,6 +536,7 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
+            // 1. Header Background
             doc.setFillColor(140, 29, 29);
             doc.rect(0, 0, 210, 34, 'F');
             
@@ -550,52 +551,73 @@
             doc.setFontSize(9);
             doc.text("6/360, RCC Building, Anuppankulam, Sattur Road, Sivakasi | Mob: 9080329266, 9976708194", 105, 26, { align: "center" });
 
+            // 2. Customer Information Box with Perfect Alignments
             doc.setDrawColor(200, 200, 200);
             doc.setFillColor(248, 249, 250);
-            doc.roundedRect(12, 40, 186, 32, 2, 2, 'FD');
+            doc.roundedRect(12, 38, 186, 36, 2, 2, 'FD');
 
             doc.setTextColor(140, 29, 29);
-            doc.setFontSize(11);
+            doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
-            doc.text("CUSTOMER & ORDER INFORMATION", 16, 46);
+            doc.text("CUSTOMER & ORDER INFORMATION", 16, 44);
 
             doc.setTextColor(50, 50, 50);
-            doc.setFontSize(9);
-            doc.setFont("helvetica", "bold");
-            doc.text("Order ID      :", 16, 52);
-            doc.text("Customer Name :", 16, 58);
-            doc.text("Mobile Number :", 16, 64);
+            doc.setFontSize(8.5);
 
+            // Left Column Alignments
             doc.setFont("helvetica", "bold");
+            doc.text("Order ID", 16, 50);
+            doc.text(":", 42, 50);
+            doc.text("Customer Name", 16, 56);
+            doc.text(":", 42, 56);
+            doc.text("Mobile Number", 16, 62);
+            doc.text(":", 42, 62);
+
             doc.setTextColor(140, 29, 29);
-            doc.text(lastPdfData.orderId, 45, 52);
+            doc.setFont("helvetica", "bold");
+            doc.text(lastPdfData.orderId, 45, 50);
 
             doc.setTextColor(50, 50, 50);
             doc.setFont("helvetica", "normal");
-            doc.text(lastPdfData.name, 45, 58);
-            doc.text(lastPdfData.mobile, 45, 64);
+            doc.text(lastPdfData.name, 45, 56);
+            doc.text(lastPdfData.mobile, 45, 62);
 
+            // Right Column Alignments
             doc.setFont("helvetica", "bold");
-            doc.text("Order Type    :", 115, 52);
-            doc.text("Payment Mode  :", 115, 58);
-            doc.text("Address        :", 115, 64);
+            doc.text("Order Type", 110, 50);
+            doc.text(":", 135, 50);
+            doc.text("Payment Mode", 110, 56);
+            doc.text(":", 135, 56);
+            doc.text("Address", 110, 62);
+            doc.text(":", 135, 62);
 
             doc.setFont("helvetica", "normal");
-            doc.text(lastPdfData.custType, 142, 52);
-            doc.text(lastPdfData.paymentType, 142, 58);
-            
+            doc.text(lastPdfData.custType, 138, 50);
+            doc.text(lastPdfData.paymentType, 138, 56);
+
+            // Safe Wrapped Multiline Address Box Alignment
             var fullAddrText = lastPdfData.address;
-            if(lastPdfData.district) fullAddrText += " [Dist: " + lastPdfData.district + "]";
-            var splitAddress = doc.splitTextToSize(fullAddrText, 50);
-            doc.text(splitAddress, 142, 64);
+            if (lastPdfData.district) fullAddrText += " [Dist: " + lastPdfData.district + "]";
+            
+            var splitAddress = doc.splitTextToSize(fullAddrText, 58);
+            doc.text(splitAddress, 138, 62);
+
+            // 3. Clean Table Data without Symbols
+            const cleanTableData = lastPdfData.tableData.map(row => [
+                row[0],
+                row[1],
+                row[2],
+                row[3].toString().replace(/[^\d.]/g, ''),
+                row[4].toString().replace(/[^\d.]/g, '')
+            ]);
 
             doc.autoTable({
-                startY: 76,
+                startY: 78,
                 head: [['S.No', 'Item Name Description', 'Qty', 'Rate (Rs)', 'Total (Rs)']],
-                body: lastPdfData.tableData,
+                body: cleanTableData,
                 theme: 'striped',
                 headStyles: { fillColor: [140, 29, 29], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
-                styles: { fontSize: 9, cellPadding: 3, textColor: [40, 40, 40] },
+                styles: { fontSize: 8.5, cellPadding: 2.5, textColor: [40, 40, 40] },
                 columnStyles: {
                     0: { halign: 'center', cellWidth: 15 },
                     1: { cellWidth: 95 },
@@ -605,12 +627,19 @@
                 }
             });
 
+            // 4. Grand Total & Footer Calculation
             let finalY = doc.lastAutoTable.finalY + 8;
+            
+            if (finalY > 260) {
+                doc.addPage();
+                finalY = 20;
+            }
+
             doc.setFillColor(254, 235, 200);
             doc.setDrawColor(221, 107, 32);
             doc.roundedRect(110, finalY, 88, 12, 1, 1, 'FD');
 
-            doc.setFontSize(12);
+            doc.setFontSize(11);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(116, 42, 42);
             doc.text(`GRAND TOTAL:  Rs. ${lastPdfData.total.toLocaleString('en-IN')}.00`, 194, finalY + 8, { align: "right" });
@@ -620,6 +649,7 @@
             doc.setTextColor(100, 100, 100);
             doc.text("*** Thank you for your order! Wish you a happy Diwali! ***", 105, finalY + 22, { align: "center" });
 
+            // Download Invoice PDF
             doc.save(`Sri_Dhanush_Crackers_Bill_${lastPdfData.orderId}_${lastPdfData.name}.pdf`);
         }
     </script>
