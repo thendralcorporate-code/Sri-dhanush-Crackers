@@ -35,18 +35,16 @@
         .btn-back { background-color: #ffffff; color: #8c1d1d; border: 1px solid #ffffff; padding: 4px 10px; font-size: 12px; font-weight: bold; border-radius: 4px; cursor: pointer; }
 
         .cat-title { background-color: #feebc8; color: #742a2a; padding: 8px 10px; font-weight: bold; font-size: 14px; border-radius: 6px; margin: 12px 0 6px 0; border-left: 4px solid #dd6b20; text-transform: uppercase; }
-        .item-card { background: white; border: 1px solid #cbd5e0; padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); flex-wrap: wrap; gap: 8px; }
+        .item-card { background: white; border: 1px solid #cbd5e0; padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
         .item-card.disabled-card { opacity: 0.6; background: #edf2f7; }
-        .item-info { flex: 1; min-width: 160px; }
+        .item-info { flex: 1; padding-right: 8px; }
         .item-name { font-weight: bold; font-size: 14px; color: #1a202c; }
         .item-subname { font-size: 12px; color: #4a5568; }
         .item-rate { color: #8c1d1d; font-weight: bold; font-size: 13px; margin-top: 2px; }
         
-        .item-action { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-        .qty-box-group { display: flex; flex-direction: column; align-items: center; }
-        .qty-box-lbl { font-size: 10px; font-weight: bold; color: #4a5568; margin-bottom: 2px; }
-        .item-total-badge { font-size: 12px; font-weight: bold; color: #2b6cb0; background: #ebf8ff; padding: 6px 8px; border-radius: 4px; border: 1px solid #bee3f8; white-space: nowrap; }
-        .qty-input { width: 50px; text-align: center; padding: 5px; border: 2px solid #3182ce; border-radius: 5px; font-size: 14px; font-weight: bold; background: #fff; }
+        .item-action { display: flex; align-items: center; gap: 6px; }
+        .item-total-badge { font-size: 12px; font-weight: bold; color: #2b6cb0; background: #ebf8ff; padding: 4px 8px; border-radius: 4px; border: 1px solid #bee3f8; white-space: nowrap; }
+        .qty-input { width: 55px; text-align: center; padding: 6px; border: 2px solid #3182ce; border-radius: 5px; font-size: 15px; font-weight: bold; background: #fff; }
         .out-badge { background: #e53e3e; color: white; font-size: 11px; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
 
         .sticky-footer { position: fixed; bottom: 0px; left: 0; right: 0; background: #ffffff; padding: 12px 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.2); border-top: 3px solid #8c1d1d; display: flex; justify-content: space-between; align-items: center; z-index: 99999; }
@@ -77,7 +75,7 @@
         <p id="hdr_god_blessing" style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
         <h1 id="hdr_shop_name">SRI DHANUSH CRACKERS</h1>
         <h2 id="hdr_shop_sub">ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
-        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v26</strong></p>
+        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v27</strong></p>
         <p id="hdr_address">📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
         <p id="hdr_mobiles">📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
     </div>
@@ -213,17 +211,6 @@
             });
         }
 
-        // Helper to extracts packet count dynamically from "Per" column text (e.g. "5 Pkt" -> 5, "10 Pkt" -> 10)
-        function getPacketCount(perStr) {
-            if (!perStr) return 1;
-            const match = perStr.toString().match(/(\d+)/);
-            if (match && match[1]) {
-                const num = parseInt(match[1]);
-                return num > 1 ? num : 1;
-            }
-            return 1;
-        }
-
         function goToStep2() {
             const name = document.getElementById("cust_name").value.trim();
             const mobile = document.getElementById("cust_mobile").value.trim();
@@ -334,13 +321,10 @@
             const container = document.getElementById("items-container");
             if (!productsData || productsData.length === 0) return;
 
-            const oldBundleQtys = {};
-            const oldLooseQtys = {};
+            const oldQtys = {};
             productsData.forEach(i => {
-                const elB = document.getElementById(`qty_b_${i.id}`);
-                const elL = document.getElementById(`qty_l_${i.id}`);
-                if (elB) oldBundleQtys[i.id] = elB.value;
-                if (elL) oldLooseQtys[i.id] = elL.value;
+                const el = document.getElementById(`qty_${i.id}`);
+                if (el) oldQtys[i.id] = el.value;
             });
 
             let html = "";
@@ -352,55 +336,23 @@
                     html += `<div class="cat-title">${getCategoryTitle(item.catEn, item.catTa)}</div>`;
                 }
 
-                const qBVal = oldBundleQtys[item.id] || 0;
-                const qLVal = oldLooseQtys[item.id] || 0;
+                const qVal = oldQtys[item.id] || 0;
                 const statusClean = (item.status || "").toString().trim().toLowerCase();
                 const isOutOfStock = statusClean === "out of stock";
-
-                // Automatically extract count from "Per" column (e.g., "5 Pkt" -> 5, "10 Pkt" -> 10, "1 Pkt" -> 1)
-                const pktCount = getPacketCount(item.per);
-                const isBundle = pktCount > 1;
-
-                let actionHtml = "";
-
-                if (isOutOfStock) {
-                    actionHtml = `<span class="out-badge">Out of Stock</span>`;
-                } else if (isBundle) {
-                    // Automatically divides Rate by exact Packet Count (e.g. 350 / 5 = 70)
-                    const looseRate = Math.round(item.rate / pktCount);
-                    actionHtml = `
-                        <div class="qty-box-group">
-                            <span class="qty-box-lbl">Box / Bundle</span>
-                            <input type="number" min="0" value="${qBVal}" class="qty-input" id="qty_b_${item.id}" oninput="calculateTotal()">
-                        </div>
-                        <div class="qty-box-group">
-                            <span class="qty-box-lbl">Loose Pkt</span>
-                            <input type="number" min="0" value="${qLVal}" class="qty-input" id="qty_l_${item.id}" oninput="calculateTotal()">
-                        </div>
-                        <span class="item-total-badge" id="item_tot_${item.id}">₹ 0</span>
-                    `;
-                } else {
-                    // Single Items (Only 1 Input Box)
-                    actionHtml = `
-                        <div class="qty-box-group">
-                            <span class="qty-box-lbl">Qty</span>
-                            <input type="number" min="0" value="${qBVal}" class="qty-input" id="qty_b_${item.id}" oninput="calculateTotal()">
-                        </div>
-                        <span class="item-total-badge" id="item_tot_${item.id}">₹ 0</span>
-                    `;
-                }
-
-                const looseRateCalc = isBundle ? Math.round(item.rate / pktCount) : 0;
 
                 html += `
                     <div class="item-card ${isOutOfStock ? 'disabled-card' : ''}">
                         <div class="item-info">
                             <div class="item-name">${getItemTitle(item)}</div>
                             <div class="item-subname">Per: ${item.per}</div>
-                            <div class="item-rate">Rate: ₹${item.rate}${isBundle ? ' | Loose Pkt: ₹' + looseRateCalc : ''}</div>
+                            <div class="item-rate">₹ ${item.rate}.00</div>
                         </div>
                         <div class="item-action">
-                            ${actionHtml}
+                            ${isOutOfStock ? 
+                                `<span class="out-badge">Out of Stock</span>` : 
+                                `<span class="item-total-badge" id="item_tot_${item.id}">₹ 0</span>
+                                 <input type="number" min="0" value="${qVal}" class="qty-input" id="qty_${item.id}" oninput="calculateTotal()">`
+                            }
                         </div>
                     </div>
                 `;
@@ -411,39 +363,23 @@
 
         function calculateTotal() {
             let total = 0;
-            let summaryHtml = "<table class='summary-table'><tr><th>பொருள்</th><th>அளவு (Qty)</th><th>தொகை</th></tr>";
+            let summaryHtml = "<table class='summary-table'><tr><th>பொருள்</th><th>Qty</th><th>தொகை</th></tr>";
             let hasItems = false;
 
             productsData.forEach(item => {
                 const statusClean = (item.status || "").toString().trim().toLowerCase();
                 if (statusClean !== "out of stock") {
-                    const qBEl = document.getElementById(`qty_b_${item.id}`);
-                    const qLEl = document.getElementById(`qty_l_${item.id}`);
-                    const qtyB = qBEl ? (parseInt(qBEl.value) || 0) : 0;
-                    const qtyL = qLEl ? (parseInt(qLEl.value) || 0) : 0;
-
-                    const pktCount = getPacketCount(item.per);
-                    const isBundle = pktCount > 1;
-
-                    const looseRate = isBundle ? Math.round(item.rate / pktCount) : 0;
-                    const itemTotal = (qtyB * item.rate) + (qtyL * looseRate);
+                    const qtyEl = document.getElementById(`qty_${item.id}`);
+                    const qty = qtyEl ? (parseInt(qtyEl.value) || 0) : 0;
+                    const itemTotal = qty * item.rate;
                     
                     const totBadge = document.getElementById(`item_tot_${item.id}`);
                     if (totBadge) totBadge.innerText = "₹ " + itemTotal;
 
-                    if (qtyB > 0 || qtyL > 0) {
+                    if (qty > 0) {
                         hasItems = true;
                         total += itemTotal;
-
-                        let qtyDesc = [];
-                        if (isBundle) {
-                            if (qtyB > 0) qtyDesc.push(`${qtyB} Box`);
-                            if (qtyL > 0) qtyDesc.push(`${qtyL} Pkt`);
-                        } else {
-                            if (qtyB > 0) qtyDesc.push(`${qtyB}`);
-                        }
-
-                        summaryHtml += `<tr><td>${getItemTitle(item)}</td><td style='text-align:center;'>${qtyDesc.join(" + ")}</td><td style='text-align:right;'>₹${itemTotal}</td></tr>`;
+                        summaryHtml += `<tr><td>${getItemTitle(item)}</td><td style='text-align:center;'>${qty}</td><td style='text-align:right;'>₹${itemTotal}</td></tr>`;
                     }
                 }
             });
@@ -488,39 +424,22 @@
             productsData.forEach(item => {
                 const statusClean = (item.status || "").toString().trim().toLowerCase();
                 if (statusClean !== "out of stock") {
-                    const qBEl = document.getElementById(`qty_b_${item.id}`);
-                    const qLEl = document.getElementById(`qty_l_${item.id}`);
-                    const qtyB = qBEl ? (parseInt(qBEl.value) || 0) : 0;
-                    const qtyL = qLEl ? (parseInt(qLEl.value) || 0) : 0;
-
-                    const pktCount = getPacketCount(item.per);
-                    const isBundle = pktCount > 1;
-
-                    if (qtyB > 0 || qtyL > 0) {
+                    const qtyEl = document.getElementById(`qty_${item.id}`);
+                    const qty = qtyEl ? (parseInt(qtyEl.value) || 0) : 0;
+                    if (qty > 0) {
                         count++;
-                        const looseRate = isBundle ? Math.round(item.rate / pktCount) : 0;
-                        const itemTotal = (qtyB * item.rate) + (qtyL * looseRate);
+                        const itemTotal = qty * item.rate;
                         total += itemTotal;
                         
-                        let qtyLabels = [];
-                        if (isBundle) {
-                            if (qtyB > 0) qtyLabels.push(`${qtyB} Box (x₹${item.rate})`);
-                            if (qtyL > 0) qtyLabels.push(`${qtyL} Pkt (x₹${looseRate})`);
-                        } else {
-                            qtyLabels.push(`${qtyB} Qty (x₹${item.rate})`);
-                        }
-                        
-                        const fullQtyStr = qtyLabels.join(" + ");
-
-                        itemsSummaryText += `${count}. ${item.eng} (${item.tam}) - Qty: ${fullQtyStr} = ₹${itemTotal}\n`;
-                        orderText += `${count}. ${item.eng} (${item.tam})\n   └ Qty: ${fullQtyStr} = *₹${itemTotal}*\n`;
+                        itemsSummaryText += `${count}. ${item.eng} (${item.tam}) - Qty: ${qty} x ₹${item.rate} = ₹${itemTotal}\n`;
+                        orderText += `${count}. ${item.eng} (${item.tam})\n   └ Qty: ${qty} x ₹${item.rate} = *₹${itemTotal}*\n`;
 
                         tableData.push([
                             count,
                             item.eng,
-                            qtyLabels.join(" + "),
-                            `₹${itemTotal}`,
-                            `₹${itemTotal}`
+                            qty,
+                            `Rs. ${item.rate}`,
+                            `Rs. ${itemTotal}`
                         ]);
                     }
                 }
@@ -672,17 +591,17 @@
 
             doc.autoTable({
                 startY: 76,
-                head: [['S.No', 'Item Name Description', 'Qty Details', 'Price', 'Total (Rs)']],
+                head: [['S.No', 'Item Name Description', 'Qty', 'Rate (Rs)', 'Total (Rs)']],
                 body: lastPdfData.tableData,
                 theme: 'striped',
                 headStyles: { fillColor: [140, 29, 29], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
                 styles: { fontSize: 9, cellPadding: 3, textColor: [40, 40, 40] },
                 columnStyles: {
                     0: { halign: 'center', cellWidth: 15 },
-                    1: { cellWidth: 85 },
-                    2: { halign: 'center', cellWidth: 35 },
-                    3: { halign: 'right', cellWidth: 25 },
-                    4: { halign: 'right', cellWidth: 25 }
+                    1: { cellWidth: 95 },
+                    2: { halign: 'center', cellWidth: 20 },
+                    3: { halign: 'right', cellWidth: 28 },
+                    4: { halign: 'right', cellWidth: 28 }
                 }
             });
 
