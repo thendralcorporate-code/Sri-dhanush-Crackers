@@ -77,7 +77,7 @@
         <p id="hdr_god_blessing" style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
         <h1 id="hdr_shop_name">SRI DHANUSH CRACKERS</h1>
         <h2 id="hdr_shop_sub">ஸ்ரீ தனுஷ் பட்டாசு கடை — சிவகாசி</h2>
-        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v25</strong></p>
+        <p><strong>PRICE LIST 2026 — DIGITAL ORDER FORM v26</strong></p>
         <p id="hdr_address">📍 6/360, RCC BUILDING, அனுப்பன்குளம், சாத்தூர் ரோடு, சிவகாசி</p>
         <p id="hdr_mobiles">📞 Mob: 9080329266 | 9976708194 | 6381699755 | 8072244806</p>
     </div>
@@ -213,6 +213,17 @@
             });
         }
 
+        // Helper to extracts packet count dynamically from "Per" column text (e.g. "5 Pkt" -> 5, "10 Pkt" -> 10)
+        function getPacketCount(perStr) {
+            if (!perStr) return 1;
+            const match = perStr.toString().match(/(\d+)/);
+            if (match && match[1]) {
+                const num = parseInt(match[1]);
+                return num > 1 ? num : 1;
+            }
+            return 1;
+        }
+
         function goToStep2() {
             const name = document.getElementById("cust_name").value.trim();
             const mobile = document.getElementById("cust_mobile").value.trim();
@@ -346,17 +357,17 @@
                 const statusClean = (item.status || "").toString().trim().toLowerCase();
                 const isOutOfStock = statusClean === "out of stock";
 
-                // Check if item supports Loose Packet option (Only items with 10 Pkt or Bundle in Per column)
-                const perText = (item.per || "").toString().toLowerCase();
-                const isBundle = perText.includes("10") || perText.includes("bundle") || (perText.includes("box") && !perText.includes("1 pkt") && !perText.includes("1pc"));
+                // Automatically extract count from "Per" column (e.g., "5 Pkt" -> 5, "10 Pkt" -> 10, "1 Pkt" -> 1)
+                const pktCount = getPacketCount(item.per);
+                const isBundle = pktCount > 1;
 
                 let actionHtml = "";
 
                 if (isOutOfStock) {
                     actionHtml = `<span class="out-badge">Out of Stock</span>`;
                 } else if (isBundle) {
-                    // Bundle Items (Show Both Box & Loose Option)
-                    const looseRate = Math.round(item.rate / 10);
+                    // Automatically divides Rate by exact Packet Count (e.g. 350 / 5 = 70)
+                    const looseRate = Math.round(item.rate / pktCount);
                     actionHtml = `
                         <div class="qty-box-group">
                             <span class="qty-box-lbl">Box / Bundle</span>
@@ -369,7 +380,7 @@
                         <span class="item-total-badge" id="item_tot_${item.id}">₹ 0</span>
                     `;
                 } else {
-                    // Single Packet / Piece Items (Show Only 1 Input Box)
+                    // Single Items (Only 1 Input Box)
                     actionHtml = `
                         <div class="qty-box-group">
                             <span class="qty-box-lbl">Qty</span>
@@ -379,12 +390,14 @@
                     `;
                 }
 
+                const looseRateCalc = isBundle ? Math.round(item.rate / pktCount) : 0;
+
                 html += `
                     <div class="item-card ${isOutOfStock ? 'disabled-card' : ''}">
                         <div class="item-info">
                             <div class="item-name">${getItemTitle(item)}</div>
                             <div class="item-subname">Per: ${item.per}</div>
-                            <div class="item-rate">Rate: ₹${item.rate}${isBundle ? ' | Loose Pkt: ₹' + Math.round(item.rate / 10) : ''}</div>
+                            <div class="item-rate">Rate: ₹${item.rate}${isBundle ? ' | Loose Pkt: ₹' + looseRateCalc : ''}</div>
                         </div>
                         <div class="item-action">
                             ${actionHtml}
@@ -409,10 +422,10 @@
                     const qtyB = qBEl ? (parseInt(qBEl.value) || 0) : 0;
                     const qtyL = qLEl ? (parseInt(qLEl.value) || 0) : 0;
 
-                    const perText = (item.per || "").toString().toLowerCase();
-                    const isBundle = perText.includes("10") || perText.includes("bundle") || (perText.includes("box") && !perText.includes("1 pkt") && !perText.includes("1pc"));
+                    const pktCount = getPacketCount(item.per);
+                    const isBundle = pktCount > 1;
 
-                    const looseRate = isBundle ? Math.round(item.rate / 10) : 0;
+                    const looseRate = isBundle ? Math.round(item.rate / pktCount) : 0;
                     const itemTotal = (qtyB * item.rate) + (qtyL * looseRate);
                     
                     const totBadge = document.getElementById(`item_tot_${item.id}`);
@@ -480,12 +493,12 @@
                     const qtyB = qBEl ? (parseInt(qBEl.value) || 0) : 0;
                     const qtyL = qLEl ? (parseInt(qLEl.value) || 0) : 0;
 
-                    const perText = (item.per || "").toString().toLowerCase();
-                    const isBundle = perText.includes("10") || perText.includes("bundle") || (perText.includes("box") && !perText.includes("1 pkt") && !perText.includes("1pc"));
+                    const pktCount = getPacketCount(item.per);
+                    const isBundle = pktCount > 1;
 
                     if (qtyB > 0 || qtyL > 0) {
                         count++;
-                        const looseRate = isBundle ? Math.round(item.rate / 10) : 0;
+                        const looseRate = isBundle ? Math.round(item.rate / pktCount) : 0;
                         const itemTotal = (qtyB * item.rate) + (qtyL * looseRate);
                         total += itemTotal;
                         
