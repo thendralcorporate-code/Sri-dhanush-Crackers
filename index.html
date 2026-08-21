@@ -135,7 +135,7 @@
         <div id="posBillingToggleBar" class="pos-toggle-bar" style="display: none;">
             <span class="fw-bold text-dark" style="font-size: 13px;"><i class="fas fa-cash-register me-1 text-danger"></i> Billing Mode:</span>
             <div class="btn-group btn-group-sm">
-                <button class="btn btn-outline-primary active fw-bold" id="modeWalkinBtn" onclick="setBillingMode('WALKIN')">🏪 Counter / Walk-in Bill</button>
+                <button class="btn btn-primary active fw-bold" id="modeWalkinBtn" onclick="setBillingMode('WALKIN')">🏪 Counter / Walk-in Bill</button>
                 <button class="btn btn-outline-primary fw-bold" id="modeOnlineBtn" onclick="setBillingMode('ONLINE')">🌐 Online Order Mode</button>
             </div>
         </div>
@@ -440,7 +440,7 @@
         <div class="d-flex justify-content-between align-items-center mb-2">
             <h5 class="m-0 fw-bold text-dark"><i class="fas fa-chart-line text-primary me-2"></i>SaaS Control Panel <span id="loggedUserBadge" class="badge bg-danger ms-2" style="font-size: 11px;"></span></h5>
             <div>
-                <button class="btn btn-sm btn-success me-1 fw-bold" id="posAdminTabBtn" onclick="switchToPosBillingView()"><i class="fas fa-cash-register me-1"></i> Counter POS Bill</button>
+                <button class="btn btn-sm btn-success me-1 fw-bold" id="posAdminTabBtn" onclick="switchToPosBillingView()"><i class="fas fa-cash-register me-1"></i> 🏪 Counter POS Bill</button>
                 <button class="btn btn-sm btn-primary" onclick="loadDashboardOrders()"><i class="fas fa-sync-alt me-1"></i> Refresh</button>
             </div>
         </div>
@@ -632,8 +632,8 @@
         let isAdminLoggedIn = false;
         let loggedInUserRole = "ADMIN";
         let loggedInUserType = "TELECALLER";
-        let activeBillingMode = "WALKIN"; // "WALKIN" or "ONLINE"
-        
+        let activeBillingMode = "WALKIN";
+
         let allOrdersList = [];
         let dynamicTelecallers = ["Unassigned"];
         let outOfStockAlertsList = [];
@@ -1206,10 +1206,8 @@
                 var cleanCustPhone = String(mobile).replace(/[^0-9]/g, '');
                 if (cleanCustPhone.length === 10) cleanCustPhone = '91' + cleanCustPhone;
 
-                // 1. Send WhatsApp Copy to Customer First
                 window.open('https://wa.me/' + cleanCustPhone + '?text=' + encodeURIComponent(finalWhatsAppText), '_blank');
 
-                // 2. Send Shop Copy to Official WhatsApp Number After 1.5 Seconds
                 setTimeout(function(){
                     var shopMsg = "📌 *SHOP COPY - COUNTER BILL GENERATED*\n\n" + finalWhatsAppText;
                     window.open('https://wa.me/' + shopWaNum + '?text=' + encodeURIComponent(shopMsg), '_blank');
