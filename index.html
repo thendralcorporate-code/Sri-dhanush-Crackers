@@ -604,7 +604,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // 🚨 🚨 உங்கள் APPS SCRIPT WEB APP URL-ஐ கீழே உள்ள 'YOUR_APPS_SCRIPT_WEB_APP_URL' இடத்தில் மாற்றவும் 🚨 🚨
         const API_URL = "https://script.google.com/macros/s/AKfycbwBlE_0IAUHMnKVVkPSt9jmsyh5ziewtMKnoizyUuz62E-Zj0IuPzOH8AmzGc3F-DftvQ/exec";
 
         let currentLang = 'both';
@@ -1593,7 +1592,7 @@
                         '<td>' +
                             '<div class="d-flex gap-1">' +
                                 '<input type="number" min="1" class="form-control form-control-sm text-center" id="add_qty_' + p.id + '" placeholder="+Qty" style="width:60px;">' +
-                                '<button class="btn btn-sm btn-success fw-bold py-0" onclick="submitProductUpdate(' + p.id + ')">💾 Save</button>' +
+                                '<button class="btn btn-sm btn-success fw-bold py-0" onclick="submitProductUpdate(event, ' + p.id + ')">💾 Save</button>' +
                             '</div>' +
                         '</td>' +
                     '</tr>';
@@ -1602,7 +1601,7 @@
             document.getElementById('stockUpdateTableBody').innerHTML = html;
         }
 
-        function submitProductUpdate(pId) {
+        function submitProductUpdate(evt, pId) {
             var addQtyInput = document.getElementById("add_qty_" + pId);
             var rateInput = document.getElementById("edit_rate_" + pId);
             var perSelect = document.getElementById("edit_per_" + pId);
@@ -1611,24 +1610,46 @@
             var rate = rateInput ? rateInput.value : "";
             var per = perSelect ? perSelect.value : "";
 
+            var saveBtn = evt ? evt.target : null;
+            var originalBtnText = saveBtn ? saveBtn.innerHTML : "💾 Save";
+            if(saveBtn) {
+                saveBtn.innerText = "⏳ Saving...";
+                saveBtn.disabled = true;
+            }
+
             fetch(API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({ action: "updateProductDetails", productId: pId, newRate: rate, newPer: per })
+                body: JSON.stringify({
+                    action: "updateFullProduct",
+                    productId: pId,
+                    addQty: qty,
+                    newRate: rate,
+                    newPer: per
+                })
             })
             .then(res => res.json())
             .then(res => {
-                if (qty > 0) {
-                    fetch(API_URL, {
-                        method: "POST",
-                        headers: { "Content-Type": "text/plain;charset=utf-8" },
-                        body: JSON.stringify({ action: "updateStock", productId: pId, addQty: qty })
-                    });
+                if(saveBtn) {
+                    saveBtn.innerHTML = originalBtnText;
+                    saveBtn.disabled = false;
                 }
-                alert("✅ பொருளின் விவரங்கள் புதுப்பிக்கப்பட்டன!");
-                if (addQtyInput) addQtyInput.value = "";
-                fetchProducts();
-                setTimeout(renderStockManagementTable, 1000);
+
+                if (res && res.status === "Success") {
+                    alert("✅ " + res.message);
+                    if (addQtyInput) addQtyInput.value = "";
+                    fetchProducts();
+                    setTimeout(renderStockManagementTable, 500);
+                } else {
+                    alert("❌ புதுப்பிக்க முடியவில்லை: " + (res.message || "Error"));
+                }
+            })
+            .catch(err => {
+                if(saveBtn) {
+                    saveBtn.innerHTML = originalBtnText;
+                    saveBtn.disabled = false;
+                }
+                alert("⚠️ Error: " + err.toString());
             });
         }
 
