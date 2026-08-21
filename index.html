@@ -1219,11 +1219,9 @@
                 btn.disabled = true;
             }
 
-            fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({ action: "login", username: u, password: p })
-            })
+            var loginUrl = API_URL + "?action=login&username=" + encodeURIComponent(u) + "&password=" + encodeURIComponent(p);
+
+            fetch(loginUrl)
             .then(res => res.json())
             .then(res => {
                 if (btn) {
