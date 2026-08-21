@@ -9,42 +9,47 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
+        :root {
+            --primary-color: #8c1d1d;
+            --accent-color: #ffeb3b;
+        }
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
         body { background-color: #f4f6f9; color: #2d3748; margin: 0; padding: 0; padding-bottom: 200px; }
         
         .admin-nav { background: #1a202c; color: white; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; }
-        .header { background: linear-gradient(135deg, #8c1d1d, #c53030); color: white; padding: 15px 10px; text-align: center; border-radius: 8px; margin: 10px; margin-bottom: 12px; }
+        .header { background: var(--primary-color); color: white; padding: 15px 10px; text-align: center; border-radius: 8px; margin: 10px; margin-bottom: 12px; }
         .header h1 { margin: 2px 0; font-size: 20px; text-transform: uppercase; }
-        .header h2 { margin: 2px 0; font-size: 15px; color: #ffeb3b; }
+        .header h2 { margin: 2px 0; font-size: 15px; color: var(--accent-color); }
         .header p { margin: 2px 0; font-size: 12px; }
+        .shop-logo-img { max-height: 70px; margin-bottom: 8px; display: none; border-radius: 6px; }
 
         .lang-bar {
             background: #ffffff; padding: 8px 12px; border-radius: 8px; margin: 10px; margin-bottom: 12px;
-            display: flex; justify-content: space-between; align-items: center; border: 2px solid #8c1d1d;
+            display: flex; justify-content: space-between; align-items: center; border: 2px solid var(--primary-color);
             box-shadow: 0 2px 5px rgba(0,0,0,0.08); flex-wrap: wrap; gap: 6px;
         }
-        .lang-title { font-weight: bold; font-size: 12px; color: #8c1d1d; }
+        .lang-title { font-weight: bold; font-size: 12px; color: var(--primary-color); }
         .lang-btn-group { display: flex; gap: 4px; }
-        .lang-btn { border: 1px solid #8c1d1d; background: #ffffff; color: #8c1d1d; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        .lang-btn.active { background: #8c1d1d; color: #ffffff; }
+        .lang-btn { border: 1px solid var(--primary-color); background: #ffffff; color: var(--primary-color); padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .lang-btn.active { background: var(--primary-color); color: #ffffff; }
 
-        .step2-header { background: #8c1d1d; color: white; padding: 8px 12px; text-align: center; border-radius: 6px; margin: 10px; margin-bottom: 10px; font-weight: bold; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
-        .form-card { background: white; padding: 15px; border-radius: 8px; margin: 10px; margin-bottom: 12px; border-left: 4px solid #8c1d1d; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
+        .step2-header { background: var(--primary-color); color: white; padding: 8px 12px; text-align: center; border-radius: 6px; margin: 10px; margin-bottom: 10px; font-weight: bold; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
+        .form-card { background: white; padding: 15px; border-radius: 8px; margin: 10px; margin-bottom: 12px; border-left: 4px solid var(--primary-color); box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
         .form-group { margin-bottom: 12px; }
         .form-group label { font-weight: bold; display: block; margin-bottom: 4px; font-size: 13px; color: #2d3748; }
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; background: white; }
         
-        .btn-next { background-color: #8c1d1d; color: white; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px; }
-        .btn-back { background-color: #ffffff; color: #8c1d1d; border: 1px solid #ffffff; padding: 4px 10px; font-size: 12px; font-weight: bold; border-radius: 4px; cursor: pointer; }
+        .btn-next { background-color: var(--primary-color); color: white; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px; }
+        .btn-back { background-color: #ffffff; color: var(--primary-color); border: 1px solid #ffffff; padding: 4px 10px; font-size: 12px; font-weight: bold; border-radius: 4px; cursor: pointer; }
 
         .cat-title { background-color: #feebc8; color: #742a2a; padding: 8px 10px; font-weight: bold; font-size: 14px; border-radius: 6px; margin: 12px 10px 6px 10px; border-left: 4px solid #dd6b20; text-transform: uppercase; }
         
         .item-card { background: white; border: 1px solid #cbd5e0; padding: 10px; border-radius: 8px; margin: 0 10px 8px 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-        .sno-badge { background: #8c1d1d; color: white; font-weight: bold; font-size: 11px; padding: 4px 8px; border-radius: 4px; margin-right: 10px; min-width: 32px; text-align: center; }
+        .sno-badge { background: var(--primary-color); color: white; font-weight: bold; font-size: 11px; padding: 4px 8px; border-radius: 4px; margin-right: 10px; min-width: 32px; text-align: center; }
         .item-info { flex: 1; padding-right: 8px; }
         .item-name { font-weight: bold; font-size: 14px; color: #1a202c; }
         .item-subname { font-size: 12px; color: #4a5568; }
-        .item-rate { color: #8c1d1d; font-weight: bold; font-size: 13px; margin-top: 2px; }
+        .item-rate { color: var(--primary-color); font-weight: bold; font-size: 13px; margin-top: 2px; }
         
         .item-action { display: flex; align-items: center; gap: 6px; }
         .item-total-badge { font-size: 12px; font-weight: bold; color: #2b6cb0; background: #ebf8ff; padding: 4px 8px; border-radius: 4px; border: 1px solid #bee3f8; white-space: nowrap; }
@@ -58,7 +63,7 @@
             background: #ffffff !important; 
             padding: 12px 15px 35px 15px !important; 
             box-shadow: 0 -5px 25px rgba(0,0,0,0.2) !important; 
-            border-top: 3px solid #8c1d1d !important; 
+            border-top: 3px solid var(--primary-color) !important; 
             display: flex !important; 
             justify-content: space-between !important; 
             align-items: center !important; 
@@ -73,7 +78,7 @@
         .btn-submit { background-color: #25d366; color: white; border: none; padding: 12px 18px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; }
         .summary-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px; }
         .summary-table th, .summary-table td { border: 1px solid #e2e8f0; padding: 6px; text-align: left; }
-        .summary-table th { background-color: #8c1d1d; color: white; }
+        .summary-table th { background-color: var(--primary-color); color: white; }
 
         .btn-wa { background: #25d366; color: white; border-radius: 6px; font-weight: 600; font-size: 0.72rem; padding: 4px 8px; border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 3px; }
         .btn-pdf-3 { background: #3182ce; color: white; border-radius: 6px; font-weight: 600; font-size: 0.72rem; padding: 4px 8px; border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 3px; margin-top: 3px; }
@@ -82,25 +87,25 @@
         #hiddenBillWrap { position: absolute; left: -9999px; top: 0; width: 700px; background: #ffffff; }
         .printableBillSection { background: #ffffff !important; padding: 10px 15px !important; font-family: Arial, sans-serif !important; color: #000000 !important; margin: 0 !important; page-break-after: always; }
 
-        .copy-type-tag { font-size: 13px; font-weight: bold; color: #8c1d1d; text-align: right; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        .pdf-header-title { text-align: center; color: #8c1d1d; font-weight: bold; font-size: 22px; margin: 0; }
+        .copy-type-tag { font-size: 13px; font-weight: bold; color: var(--primary-color); text-align: right; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .pdf-header-title { text-align: center; color: var(--primary-color); font-weight: bold; font-size: 22px; margin: 0; }
         .pdf-header-sub { text-align: center; font-size: 12px; font-weight: bold; margin: 2px 0; }
-        .pdf-header-contact { text-align: center; font-size: 11px; margin-bottom: 12px; border-bottom: 2px solid #8c1d1d; padding-bottom: 6px; }
+        .pdf-header-contact { text-align: center; font-size: 11px; margin-bottom: 12px; border-bottom: 2px solid var(--primary-color); padding-bottom: 6px; }
         .pdf-sec-head { background: #f2f2f2; font-weight: bold; text-align: center; padding: 4px; font-size: 12px; border: 1px solid #333; margin-bottom: 10px; }
         .pdf-info-grid { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
         .pdf-info-grid td { padding: 4px 8px; font-size: 11px; vertical-align: top; }
         .pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
         .pdf-table th, .pdf-table td { border: 1px solid #000; padding: 6px 8px; font-size: 11px; vertical-align: middle; }
-        .pdf-table th { background-color: #8c1d1d; color: #ffffff; text-align: center; }
+        .pdf-table th { background-color: var(--primary-color); color: #ffffff; text-align: center; }
         
-        .pdf-total-box { font-size: 15px; font-weight: bold; color: #ffffff; background-color: #8c1d1d; text-align: right; padding: 8px 15px; border-radius: 6px; margin-top: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .pdf-total-box { font-size: 15px; font-weight: bold; color: #ffffff; background-color: var(--primary-color); text-align: right; padding: 8px 15px; border-radius: 6px; margin-top: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
         .stat-card { background: white; border-radius: 8px; padding: 12px; text-align: center; border-left: 4px solid #3182ce; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .stat-num { font-size: 20px; font-weight: bold; color: #2d3748; }
         .stat-label { font-size: 11px; color: #718096; text-transform: uppercase; font-weight: bold; }
 
         #reviewOrderModal { z-index: 1060 !important; }
-        #reviewOrderModal .modal-content { border-radius: 12px; border: 2px solid #8c1d1d; box-shadow: 0 10px 30px rgba(0,0,0,0.4); background: #ffffff !important; }
+        #reviewOrderModal .modal-content { border-radius: 12px; border: 2px solid var(--primary-color); box-shadow: 0 10px 30px rgba(0,0,0,0.4); background: #ffffff !important; }
         #reviewOrderModal .modal-footer { background-color: #ffffff !important; border-top: 2px solid #e2e8f0; z-index: 1070 !important; }
     </style>
 </head>
@@ -115,6 +120,7 @@
 
     <div id="customerStoreView">
         <div id="shop-main-header" class="header">
+            <img id="hdr_shop_logo" class="shop-logo-img" alt="Shop Logo">
             <p style="font-size: 10px; margin-bottom: 2px;">ॐ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; உ</p>
             <p style="font-size: 11px; font-weight: bold;">ஸ்ரீ இரத்தினகிரிஸ்வரர் உடனுரை சுரும்பார் குழலி துணை</p>
             <h1 id="hdr_shop_name">SRI DHANUSH CRACKERS</h1>
@@ -134,7 +140,7 @@
         </div>
 
         <div id="step-1" class="form-card">
-            <h3 style="margin: 0 0 12px 0; color: #8c1d1d; border-bottom: 2px solid #fee2e2; padding-bottom: 5px;" id="cust-header">👤 வாடிக்கையாளர் விவரங்கள்</h3>
+            <h3 style="margin: 0 0 12px 0; color: var(--primary-color); border-bottom: 2px solid #fee2e2; padding-bottom: 5px;" id="cust-header">👤 வாடிக்கையாளர் விவரங்கள்</h3>
             
             <div class="form-group">
                 <label id="lbl-name">உங்கள் பெயர் (Full Name) *</label>
@@ -202,7 +208,7 @@
             <div id="items-container"></div>
 
             <div class="form-card" id="order-summary" style="display: none; margin-top: 12px; margin-bottom: 140px;">
-                <h4 style="color: #8c1d1d; margin-top: 0; font-size: 13px;" id="summary-header">📋 தேர்வு செய்த பொருட்கள்</h4>
+                <h4 style="color: var(--primary-color); margin-top: 0; font-size: 13px;" id="summary-header">📋 தேர்வு செய்த பொருட்கள்</h4>
                 <div id="summary-content"></div>
             </div>
 
@@ -211,7 +217,7 @@
             <div class="sticky-footer">
                 <div>
                     <span style="font-size: 11px; color: #4a5568;" id="total-lbl">மொத்த தொகை:</span><br>
-                    <span id="grand-total" style="font-size: 18px; font-weight: bold; color: #8c1d1d;">₹ 0.00</span>
+                    <span id="grand-total" style="font-size: 18px; font-weight: bold; color: var(--primary-color);">₹ 0.00</span>
                     <br><small class="text-danger fw-bold" style="font-size: 9px;">* Min. Order: ₹2,000</small>
                 </div>
                 <div class="d-flex gap-2">
@@ -367,7 +373,7 @@
     
     <div class="modal fade" id="shopModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content text-center p-3" style="border-radius:15px; border:3px solid #8c1d1d;">
+            <div class="modal-content text-center p-3" style="border-radius:15px; border:3px solid var(--primary-color);">
                 <div class="modal-body">
                     <h4 class="text-danger fw-bold mb-3">🏪 ஒரு முக்கியமான கேள்வி!</h4>
                     <p class="fw-bold fs-6 text-dark mb-4">உங்களுக்கு புதிய பட்டாசு கடை தொடங்க ஆர்வம் உள்ளதா?</p>
@@ -383,7 +389,7 @@
     <!-- LOGIN MODAL -->
     <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content p-3" style="border-radius:12px; border:2px solid #8c1d1d;">
+            <div class="modal-content p-3" style="border-radius:12px; border:2px solid var(--primary-color);">
                 <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title fw-bold text-danger"><i class="fas fa-user-lock me-2"></i>Staff / Admin Login</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -428,7 +434,7 @@
                 <button class="nav-link fw-bold text-success" id="tab-stock-btn" onclick="switchAdminTab('stock')"><i class="fas fa-boxes me-1"></i> Add / Update Stock & Rates</button>
             </li>
             <li class="nav-item" id="tab-settings-li" style="display: none;">
-                <button class="nav-link fw-bold text-warning" id="tab-settings-btn" onclick="switchAdminTab('settings')"><i class="fas fa-cog me-1"></i> Web Settings</button>
+                <button class="nav-link fw-bold text-warning" id="tab-settings-btn" onclick="switchAdminTab('settings')"><i class="fas fa-cog me-1"></i> Web Settings & Theme</button>
             </li>
         </ul>
 
@@ -565,10 +571,30 @@
                 <div class="mb-2"><label class="form-label fw-bold text-dark" style="font-size:12px;">Price List Tagline & Year</label><input type="text" id="set_header_title" class="form-control form-control-sm"></div>
                 <div class="mb-2"><label class="form-label fw-bold text-dark" style="font-size:12px;">Shop Address</label><textarea id="set_address" class="form-control form-control-sm" rows="2"></textarea></div>
                 <div class="mb-2"><label class="form-label fw-bold text-dark" style="font-size:12px;">Contact Phone Numbers</label><input type="text" id="set_contacts" class="form-control form-control-sm"></div>
-                <div class="mb-3">
+                <div class="mb-2">
                     <label class="form-label fw-bold text-danger" style="font-size:12px;"><i class="fab fa-whatsapp me-1"></i> Official WhatsApp Receiver Number</label>
                     <input type="text" id="set_whatsapp" class="form-control form-control-sm fw-bold" placeholder="e.g. 919080329266">
                 </div>
+                
+                <hr class="my-3">
+                <h6 class="fw-bold text-primary mb-2"><i class="fas fa-palette me-2"></i>Website Color & Logo Branding</h6>
+                
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="form-label fw-bold text-dark" style="font-size:12px;">Primary Theme Color</label>
+                        <input type="color" id="set_primary_color" class="form-control form-control-color w-100" value="#8c1d1d">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-bold text-dark" style="font-size:12px;">Sub Title / Accent Color</label>
+                        <input type="color" id="set_secondary_color" class="form-control form-control-color w-100" value="#ffeb3b">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark" style="font-size:12px;">Shop Logo Image URL (PNG/JPG Link)</label>
+                    <input type="text" id="set_logo_url" class="form-control form-control-sm" placeholder="https://i.imgur.com/your-logo.png">
+                </div>
+
                 <button class="btn btn-danger fw-bold w-100" onclick="saveAdminWebsiteSettings()">💾 Save Website Changes</button>
             </div>
         </div>
@@ -579,7 +605,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // 🚨 🚨 உங்கள் APPS SCRIPT WEB APP URL-ஐ கீழே உள்ள 'YOUR_APPS_SCRIPT_WEB_APP_URL' இடத்தில் மாற்றவும் 🚨 🚨
-        const API_URL = "https://script.google.com/macros/s/AKfycbwBlE_0IAUHMnKVVkPSt9jmsyh5ziewtMKnoizyUuz62E-Zj0IuPzOH8AmzGc3F-DftvQ/exec";
+        const API_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL";
 
         let currentLang = 'both';
         let isAdminLoggedIn = false;
@@ -636,19 +662,43 @@
                     targetWhatsAppNumber = String(sheetWaNum).replace(/[^0-9]/g, '');
                 }
 
+                if (st.PrimaryColor) {
+                    document.documentElement.style.setProperty('--primary-color', st.PrimaryColor);
+                }
+                if (st.AccentColor) {
+                    document.documentElement.style.setProperty('--accent-color', st.AccentColor);
+                }
+                if (st.ShopLogoUrl && st.ShopLogoUrl.trim() !== "") {
+                    var logoImg = document.getElementById("hdr_shop_logo");
+                    if (logoImg) {
+                        logoImg.src = st.ShopLogoUrl;
+                        logoImg.style.display = "inline-block";
+                    }
+                }
+
                 if(document.getElementById("set_shop_name")) document.getElementById("set_shop_name").value = st.ShopName || "";
                 if(document.getElementById("set_shop_sub")) document.getElementById("set_shop_sub").value = st.ShopSubTitle || "";
                 if(document.getElementById("set_header_title")) document.getElementById("set_header_title").value = st.HeaderTitle || "";
                 if(document.getElementById("set_address")) document.getElementById("set_address").value = st.Address || "";
                 if(document.getElementById("set_contacts")) document.getElementById("set_contacts").value = st.ContactNumbers || "";
                 if(document.getElementById("set_whatsapp")) document.getElementById("set_whatsapp").value = targetWhatsAppNumber;
+                if(document.getElementById("set_primary_color")) document.getElementById("set_primary_color").value = st.PrimaryColor || "#8c1d1d";
+                if(document.getElementById("set_secondary_color")) document.getElementById("set_secondary_color").value = st.AccentColor || "#ffeb3b";
+                if(document.getElementById("set_logo_url")) document.getElementById("set_logo_url").value = st.ShopLogoUrl || "";
             })
             .catch(err => console.error("Settings Error:", err));
         }
 
         function saveAdminWebsiteSettings() {
             var waInput = document.getElementById("set_whatsapp");
-            var waNum = waInput ? waInput.value.trim().replace(/[^0-9]/g, '') : '';
+            var rawNum = waInput ? waInput.value.trim().replace(/[^0-9]/g, '') : '';
+            
+            var waNum = rawNum;
+            if (rawNum.length === 10) {
+                waNum = '91' + rawNum;
+            } else if (rawNum.length === 12 && rawNum.startsWith('9191')) {
+                waNum = rawNum.substring(2);
+            }
             
             if (!waNum) {
                 alert("தயவுசெய்து செல்லுபடியாகும் வாட்ஸ்அப் எண்ணை உள்ளிடவும்!");
@@ -661,7 +711,10 @@
                 HeaderTitle: document.getElementById("set_header_title") ? document.getElementById("set_header_title").value.trim() : "",
                 Address: document.getElementById("set_address") ? document.getElementById("set_address").value.trim() : "",
                 ContactNumbers: document.getElementById("set_contacts") ? document.getElementById("set_contacts").value.trim() : "",
-                WhatsAppNumber: waNum
+                WhatsAppNumber: waNum,
+                PrimaryColor: document.getElementById("set_primary_color") ? document.getElementById("set_primary_color").value : "#8c1d1d",
+                AccentColor: document.getElementById("set_secondary_color") ? document.getElementById("set_secondary_color").value : "#ffeb3b",
+                ShopLogoUrl: document.getElementById("set_logo_url") ? document.getElementById("set_logo_url").value.trim() : ""
             };
 
             fetch(API_URL, {
