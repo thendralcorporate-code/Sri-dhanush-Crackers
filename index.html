@@ -425,7 +425,7 @@
                 <button class="nav-link fw-bold text-danger" id="tab-analytics-btn" onclick="switchAdminTab('analytics')"><i class="fas fa-chart-pie me-1"></i> Overall Analytics & Sales</button>
             </li>
             <li class="nav-item" id="tab-stock-li" style="display: none;">
-                <button class="nav-link fw-bold text-success" id="tab-stock-btn" onclick="switchAdminTab('stock')"><i class="fas fa-boxes me-1"></i> Add / Update Stock</button>
+                <button class="nav-link fw-bold text-success" id="tab-stock-btn" onclick="switchAdminTab('stock')"><i class="fas fa-boxes me-1"></i> Add / Update Stock & Rates</button>
             </li>
             <li class="nav-item" id="tab-settings-li" style="display: none;">
                 <button class="nav-link fw-bold text-warning" id="tab-settings-btn" onclick="switchAdminTab('settings')"><i class="fas fa-cog me-1"></i> Web Settings</button>
@@ -538,18 +538,19 @@
 
         <div id="adminTabStock" style="display: none;">
             <div class="card p-3 border-0 shadow-sm">
-                <h6 class="fw-bold text-success mb-3"><i class="fas fa-plus-circle me-2"></i>Quick Product Stock Updater</h6>
+                <h6 class="fw-bold text-success mb-3"><i class="fas fa-plus-circle me-2"></i>Quick Product Stock & Price Manager</h6>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0" style="font-size:12px;">
                         <thead class="table-secondary">
                             <tr>
                                 <th># ID</th><th>Product Name</th><th>Category</th>
-                                <th class="text-center">Current Stock</th><th class="text-center">Status</th>
-                                <th class="text-center" width="200px">Add / Increase Stock</th>
+                                <th>Unit (Per)</th><th>Rate (₹)</th>
+                                <th class="text-center">Stock & Status</th>
+                                <th class="text-center">Add Stock & Save</th>
                             </tr>
                         </thead>
                         <tbody id="stockUpdateTableBody">
-                            <tr><td colspan="6" class="text-center">பட்டாசுகள் லோட் ஆகிறது...</td></tr>
+                            <tr><td colspan="7" class="text-center">பட்டாசுகள் லோட் ஆகிறது...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -1040,7 +1041,7 @@
                     finalWhatsAppText += count + ". " + fullItemName + "\n   └ Qty: " + qty + " x ₹" + price + " = *₹" + itemTotal + "*\n";
 
                     itemsArrayObj.push({
-                        sno: count, name: fullItemName, category: p.category,
+                        sno: count, id: p.id, name: fullItemName, category: p.category,
                         qty: qty, rate: price, total: itemTotal
                     });
 
@@ -1500,10 +1501,11 @@
             });
         }
 
+        // 🟢 RENDER STOCK & PRICE MANAGER TABLE
         function renderStockManagementTable() {
             var html = "";
             if (!rawProductsArray || rawProductsArray.length === 0) {
-                html = '<tr><td colspan="6" class="text-center py-3">பொருட்கள் கிடைக்கவில்லை!</td></tr>';
+                html = '<tr><td colspan="7" class="text-center py-3">பொருட்கள் கிடைக்கவில்லை!</td></tr>';
             } else {
                 rawProductsArray.forEach(function(p) {
                     var statusBadge = (p.stock <= 0 || p.status === "Out of Stock") ? 
@@ -1514,12 +1516,23 @@
                         '<td><b>#' + p.id + '</b></td>' +
                         '<td><b>' + p.eng + '</b><br><small class="text-muted">' + p.tam + '</small></td>' +
                         '<td><small>' + p.category + '</small></td>' +
-                        '<td class="text-center fw-bold fs-6 text-primary">' + p.stock + '</td>' +
-                        '<td class="text-center">' + statusBadge + '</td>' +
                         '<td>' +
-                            '<div class="input-group input-group-sm">' +
-                                '<input type="number" min="1" class="form-control text-center" id="add_qty_' + p.id + '" placeholder="+ Qty">' +
-                                '<button class="btn btn-success btn-sm fw-bold" onclick="submitStockUpdate(' + p.id + ')">Add Stock</button>' +
+                            '<select class="form-select form-select-sm" id="edit_per_' + p.id + '" style="font-size:11px; min-width:80px;">' +
+                                '<option value="1 Pkt" ' + (p.per === '1 Pkt' ? 'selected' : '') + '>1 Pkt</option>' +
+                                '<option value="1 Box" ' + (p.per === '1 Box' ? 'selected' : '') + '>1 Box</option>' +
+                                '<option value="1 Bdl" ' + (p.per === '1 Bdl' ? 'selected' : '') + '>1 Bdl</option>' +
+                                '<option value="1 Piece" ' + (p.per === '1 Piece' ? 'selected' : '') + '>1 Piece</option>' +
+                                '<option value="1 Set" ' + (p.per === '1 Set' ? 'selected' : '') + '>1 Set</option>' +
+                            '</select>' +
+                        '</td>' +
+                        '<td>' +
+                            '<input type="number" class="form-control form-control-sm text-end fw-bold" id="edit_rate_' + p.id + '" value="' + p.rate + '" style="width:80px;">' +
+                        '</td>' +
+                        '<td class="text-center fw-bold text-primary">' + p.stock + '<br>' + statusBadge + '</td>' +
+                        '<td>' +
+                            '<div class="d-flex gap-1">' +
+                                '<input type="number" min="1" class="form-control form-control-sm text-center" id="add_qty_' + p.id + '" placeholder="+Qty" style="width:60px;">' +
+                                '<button class="btn btn-sm btn-success fw-bold py-0" onclick="submitProductUpdate(' + p.id + ')">💾 Save</button>' +
                             '</div>' +
                         '</td>' +
                     '</tr>';
@@ -1528,29 +1541,32 @@
             document.getElementById('stockUpdateTableBody').innerHTML = html;
         }
 
-        function submitStockUpdate(pId) {
-            var input = document.getElementById("add_qty_" + pId);
-            var qty = parseInt(input.value) || 0;
+        // 🟢 SUBMIT STOCK & PRICE UPDATE
+        function submitProductUpdate(pId) {
+            var addQtyInput = document.getElementById("add_qty_" + pId);
+            var rateInput = document.getElementById("edit_rate_" + pId);
+            var perSelect = document.getElementById("edit_per_" + pId);
 
-            if (qty <= 0) {
-                alert("தயவுசெய்து செல்லுபடியாகும் எண்ணிக்கையை உள்ளிடவும்!");
-                return;
-            }
+            var qty = parseInt(addQtyInput ? addQtyInput.value : 0) || 0;
+            var rate = rateInput ? rateInput.value : "";
+            var per = perSelect ? perSelect.value : "";
 
             fetch(API_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "updateStock", productId: pId, addQty: qty })
+                body: JSON.stringify({ action: "updateProductDetails", productId: pId, newRate: rate, newPer: per })
             })
             .then(res => res.json())
             .then(res => {
-                if (res && res.status === "Success") {
-                    alert("✅ " + res.message);
-                    input.value = "";
-                    fetchProducts();
-                    setTimeout(renderStockManagementTable, 1000);
-                } else {
-                    alert("❌ பிழை: " + (res.message || "புதுப்பிக்க முடியவில்லை"));
+                if (qty > 0) {
+                    fetch(API_URL, {
+                        method: "POST",
+                        body: JSON.stringify({ action: "updateStock", productId: pId, addQty: qty })
+                    });
                 }
+                alert("✅ பொருளின் விவரங்கள் புதுப்பிக்கப்பட்டன!");
+                if (addQtyInput) addQtyInput.value = "";
+                fetchProducts();
+                setTimeout(renderStockManagementTable, 1000);
             });
         }
 
@@ -1584,22 +1600,22 @@
         }
 
         function sendAdminWA(phone, custName, orderId, totalAmt, currentStatus, lrUrl) {
-    var msg = 'வணக்கம் ' + custName + ', உங்கள் ஆர்டர் (' + orderId + ') நிலை: *' + currentStatus + '*. தொகை: ₹' + totalAmt + '.';
-    if(lrUrl && lrUrl !== '' && lrUrl !== 'undefined' && lrUrl !== 'null') {
-        msg += '\n\n🚚 டிரான்ஸ்போர்ட் ரசீது (LR Receipt):\n' + lrUrl;
-    }
-    msg += '\n\nநன்றி! - Sri Dhanush Crackers';
-    
-    var cleanPhone = String(phone).replace(/[^0-9]/g, '');
-    if (cleanPhone.length === 10) {
-        cleanPhone = '91' + cleanPhone;
-    } else if (cleanPhone.length === 12 && cleanPhone.startsWith('91')) {
-        cleanPhone = cleanPhone;
-    }
+            var msg = 'வணக்கம் ' + custName + ', உங்கள் ஆர்டர் (' + orderId + ') நிலை: *' + currentStatus + '*. தொகை: ₹' + totalAmt + '.';
+            if(lrUrl && lrUrl !== '' && lrUrl !== 'undefined' && lrUrl !== 'null') {
+                msg += '\n\n🚚 டிரான்ஸ்போர்ட் ரசீது (LR Receipt):\n' + lrUrl;
+            }
+            msg += '\n\nநன்றி! - Sri Dhanush Crackers';
+            
+            var cleanPhone = String(phone).replace(/[^0-9]/g, '');
+            if (cleanPhone.length === 10) {
+                cleanPhone = '91' + cleanPhone;
+            } else if (cleanPhone.length === 12 && cleanPhone.startsWith('91')) {
+                cleanPhone = cleanPhone;
+            }
 
-    var waLink = 'https://wa.me/' + cleanPhone + '?text=' + encodeURIComponent(msg);
-    window.open(waLink, '_blank');
-}
+            var waLink = 'https://wa.me/' + cleanPhone + '?text=' + encodeURIComponent(msg);
+            window.open(waLink, '_blank');
+        }
 
         function triggerLrUpload(rowIndex) {
             currentUploadingRowIndex = rowIndex;
