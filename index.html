@@ -1272,26 +1272,29 @@
         }
 
         function loadDashboardOrders() {
-            fetch(API_URL + "?action=getDashboard")
-            .then(res => res.json())
-            .then(data => {
-                allOrdersList = data.orders || [];
-                dynamicTelecallers = data.telecallersList || ["Unassigned"];
-                outOfStockAlertsList = data.outOfStockList || [];
+    // ஆர்டர்கள் மற்றும் பட்டாசு ஸ்டாக் இரண்டையும் ஒரே நேரத்தில் புதுப்பிக்கிறது
+    fetchProducts();
+    
+    fetch(API_URL + "?action=getDashboard")
+    .then(res => res.json())
+    .then(data => {
+        allOrdersList = data.orders || [];
+        dynamicTelecallers = data.telecallersList || ["Unassigned"];
+        outOfStockAlertsList = data.outOfStockList || [];
 
-                if(outOfStockAlertsList.length > 0) {
-                    var names = outOfStockAlertsList.map(x => x.name + " (" + x.stock + " left)").join(", ");
-                    document.getElementById('stockAlertText').innerText = names;
-                    document.getElementById('stockAlertBanner').style.display = "block";
-                } else {
-                    document.getElementById('stockAlertBanner').style.display = "none";
-                }
-                
-                renderAdminTable(getFilteredOrdersByRole());
-                calculateAnalytics();
-            });
+        if(outOfStockAlertsList.length > 0) {
+            var names = outOfStockAlertsList.map(x => x.name + " (" + x.stock + " left)").join(", ");
+            document.getElementById('stockAlertText').innerText = names;
+            document.getElementById('stockAlertBanner').style.display = "block";
+        } else {
+            document.getElementById('stockAlertBanner').style.display = "none";
         }
-
+        
+        renderAdminTable(getFilteredOrdersByRole());
+        calculateAnalytics();
+        renderStockManagementTable();
+    });
+}
         function getFilteredOrdersByRole() {
             if(loggedInUserRole.toUpperCase() === "ADMIN" || loggedInUserType === "ACCOUNTS") {
                 return allOrdersList;
@@ -1602,57 +1605,60 @@
         }
 
         function submitProductUpdate(evt, pId) {
-            var addQtyInput = document.getElementById("add_qty_" + pId);
-            var rateInput = document.getElementById("edit_rate_" + pId);
-            var perSelect = document.getElementById("edit_per_" + pId);
+    var addQtyInput = document.getElementById("add_qty_" + pId);
+    var rateInput = document.getElementById("edit_rate_" + pId);
+    var perSelect = document.getElementById("edit_per_" + pId);
 
-            var qty = parseInt(addQtyInput ? addQtyInput.value : 0) || 0;
-            var rate = rateInput ? rateInput.value : "";
-            var per = perSelect ? perSelect.value : "";
+    var qty = parseInt(addQtyInput ? addQtyInput.value : 0) || 0;
+    var rate = rateInput ? rateInput.value : "";
+    var per = perSelect ? perSelect.value : "";
 
-            var saveBtn = evt ? evt.target : null;
-            var originalBtnText = saveBtn ? saveBtn.innerHTML : "💾 Save";
-            if(saveBtn) {
-                saveBtn.innerText = "⏳ Saving...";
-                saveBtn.disabled = true;
-            }
+    var saveBtn = evt ? evt.target : null;
+    var originalBtnText = saveBtn ? saveBtn.innerHTML : "💾 Save";
+    if(saveBtn) {
+        saveBtn.innerText = "⏳ Saving...";
+        saveBtn.disabled = true;
+    }
 
-            fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({
-                    action: "updateFullProduct",
-                    productId: pId,
-                    addQty: qty,
-                    newRate: rate,
-                    newPer: per
-                })
-            })
-            .then(res => res.json())
-            .then(res => {
-                if(saveBtn) {
-                    saveBtn.innerHTML = originalBtnText;
-                    saveBtn.disabled = false;
-                }
-
-                if (res && res.status === "Success") {
-                    alert("✅ " + res.message);
-                    if (addQtyInput) addQtyInput.value = "";
-                    fetchProducts();
-                    setTimeout(renderStockManagementTable, 500);
-                } else {
-                    alert("❌ புதுப்பிக்க முடியவில்லை: " + (res.message || "Error"));
-                }
-            })
-            .catch(err => {
-                if(saveBtn) {
-                    saveBtn.innerHTML = originalBtnText;
-                    saveBtn.disabled = false;
-                }
-                alert("⚠️ Error: " + err.toString());
-            });
+    fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+            action: "updateFullProduct",
+            productId: pId,
+            addQty: qty,
+            newRate: rate,
+            newPer: per
+        })
+    })
+    .then(res => res.json())
+    .then(res => {
+        if(saveBtn) {
+            saveBtn.innerHTML = originalBtnText;
+            saveBtn.disabled = false;
         }
 
+        if (res && res.status === "Success") {
+            alert("✅ " + res.message);
+            if (addQtyInput) addQtyInput.value = "";
+            
+            // 🚀 புதுப்பிக்கப்பட்ட டேட்டாவை உடனே மீண்டும் எடுத்து திரையை மாற்றுதல்
+            fetchProducts();
+            setTimeout(function(){
+                renderStockManagementTable();
+            }, 300);
+        } else {
+            alert("❌ புதுப்பிக்க முடியவில்லை: " + (res.message || "Error"));
+        }
+    })
+    .catch(err => {
+        if(saveBtn) {
+            saveBtn.innerHTML = originalBtnText;
+            saveBtn.disabled = false;
+        }
+        alert("⚠️ Error: " + err.toString());
+    });
+}
         function filterAdminOrders() {
             var query = document.getElementById("adminSearchInput").value.toLowerCase().trim();
             var baseOrders = getFilteredOrdersByRole();
