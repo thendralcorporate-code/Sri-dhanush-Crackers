@@ -1584,18 +1584,22 @@
         }
 
         function sendAdminWA(phone, custName, orderId, totalAmt, currentStatus, lrUrl) {
-            var msg = 'வணக்கம் ' + custName + ', உங்கள் ஆர்டர் (' + orderId + ') நிலை: *' + currentStatus + '*. தொகை: ₹' + totalAmt + '.';
-            if(lrUrl && lrUrl !== '' && lrUrl !== 'undefined' && lrUrl !== 'null') {
-                msg += '\n\n🚚 டிரான்ஸ்போர்ட் ரசீது (LR Receipt):\n' + lrUrl;
-            }
-            msg += '\n\nநன்றி! - Sri Dhanush Crackers';
-            
-            var cleanPhone = String(phone).replace(/[^0-9]/g, '');
-            if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
+    var msg = 'வணக்கம் ' + custName + ', உங்கள் ஆர்டர் (' + orderId + ') நிலை: *' + currentStatus + '*. தொகை: ₹' + totalAmt + '.';
+    if(lrUrl && lrUrl !== '' && lrUrl !== 'undefined' && lrUrl !== 'null') {
+        msg += '\n\n🚚 டிரான்ஸ்போர்ட் ரசீது (LR Receipt):\n' + lrUrl;
+    }
+    msg += '\n\nநன்றி! - Sri Dhanush Crackers';
+    
+    var cleanPhone = String(phone).replace(/[^0-9]/g, '');
+    if (cleanPhone.length === 10) {
+        cleanPhone = '91' + cleanPhone;
+    } else if (cleanPhone.length === 12 && cleanPhone.startsWith('91')) {
+        cleanPhone = cleanPhone;
+    }
 
-            var waLink = 'https://wa.me/' + cleanPhone + '?text=' + encodeURIComponent(msg);
-            window.open(waLink, '_blank');
-        }
+    var waLink = 'https://wa.me/' + cleanPhone + '?text=' + encodeURIComponent(msg);
+    window.open(waLink, '_blank');
+}
 
         function triggerLrUpload(rowIndex) {
             currentUploadingRowIndex = rowIndex;
