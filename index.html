@@ -11,23 +11,28 @@
     <style>
         :root { --primary-color: #8c1d1d; --accent-color: #ffeb3b; }
         body { background: #f4f6f9; font-family: sans-serif; padding-bottom: 180px; }
-        .admin-nav { background: #1a202c; color: white; padding: 8px 15px; display: flex; justify-content: space-between; }
+        .admin-nav { background: #1a202c; color: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; }
         .header { background: var(--primary-color); color: white; padding: 15px; text-align: center; border-radius: 8px; margin: 10px; }
         .header h1 { margin: 0; font-size: 22px; }
         .shop-logo-img { max-height: 70px; display: none; margin-bottom: 5px; }
-        
+
+        .filter-card { background: white; padding: 12px; margin: 10px; border-radius: 8px; border: 1px solid #cbd5e0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .lang-bar { background: white; padding: 8px 12px; border-radius: 8px; margin: 10px; border: 2px solid var(--primary-color); display: flex; justify-content: space-between; align-items: center; }
+        .lang-btn { border: 1px solid var(--primary-color); background: white; color: var(--primary-color); padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .lang-btn.active { background: var(--primary-color); color: white; }
+
         .item-card { background: white; border: 1px solid #cbd5e0; padding: 10px; border-radius: 8px; margin: 0 10px 8px 10px; display: flex; justify-content: space-between; align-items: center; }
         .qty-input { width: 55px; text-align: center; font-weight: bold; border: 2px solid #3182ce; border-radius: 5px; }
         .row-total { color: var(--primary-color); font-weight: bold; font-size: 13px; min-width: 65px; text-align: right; }
-        .cat-title { background: #feebc8; color: #742a2a; padding: 6px 10px; font-weight: bold; border-radius: 6px; margin: 10px; border-left: 4px solid #dd6b20; }
-        
+        .cat-title { background: #feebc8; color: #742a2a; padding: 6px 10px; font-weight: bold; border-radius: 6px; margin: 10px; border-left: 4px solid #dd6b20; text-transform: uppercase; }
+
         .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 12px 15px 25px 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.15); border-top: 3px solid var(--primary-color); display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
         .loader-screen { position: fixed; top:0; left:0; right:0; bottom:0; background: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 
         .order-card { background: white; padding: 10px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid #ccc; }
         .order-card.pending { border-left-color: #e53e3e; background: #fff5f5; }
         .order-card.approved { border-left-color: #38a169; background: #f0fff4; }
-        
+
         #hiddenBillWrap { position: absolute; left: -9999px; top: 0; width: 600px; background: white; padding: 20px; }
     </style>
 </head>
@@ -51,6 +56,15 @@
             <p id="hdr_contacts" class="mb-0">📞 Contact Store</p>
         </div>
 
+        <div class="lang-bar">
+            <span class="fw-bold text-danger" style="font-size:12px;">🌐 Language:</span>
+            <div>
+                <button class="lang-btn active" id="btn-both" onclick="setLanguage('both')">தமிழ் + En</button>
+                <button class="lang-btn" id="btn-ta" onclick="setLanguage('ta')">தமிழ்</button>
+                <button class="lang-btn" id="btn-en" onclick="setLanguage('en')">English</button>
+            </div>
+        </div>
+
         <div id="step-1" class="card p-3 m-2">
             <h6 class="fw-bold text-danger">👤 வாடிக்கையாளர் விவரங்கள்</h6>
             <input type="text" id="cust_name" class="form-control form-control-sm mb-2" placeholder="பெயர் (Name) *">
@@ -61,10 +75,42 @@
         </div>
 
         <div id="step-2" style="display:none;">
-            <div class="p-2 bg-white m-2 rounded d-flex gap-2">
-                <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="🔍 தேடுக..." onkeyup="renderProducts()">
-                <button class="btn btn-sm btn-outline-danger" onclick="goToStep1()">✏️ Edit</button>
+            <!-- Filter Section -->
+            <div class="filter-card">
+                <div class="row g-2 mb-2">
+                    <div class="col-8">
+                        <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="🔍 தேடுக..." onkeyup="renderProducts()">
+                    </div>
+                    <div class="col-4">
+                        <button class="btn btn-sm btn-outline-danger w-100 fw-bold" onclick="goToStep1()">✏️ Edit Info</button>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <select id="catSelect" class="form-select form-select-sm" onchange="renderProducts()">
+                            <option value="ALL">அனைத்து பிரிவுகள் (All)</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <select id="sortSelect" class="form-select form-select-sm" onchange="renderProducts()">
+                            <option value="DEFAULT">வரிசைப்படுத்து (Default)</option>
+                            <option value="LOW_HIGH">விலை: குறைவிலிருந்து அதிகம்</option>
+                            <option value="HIGH_LOW">விலை: அதிகத்திலிருந்து குறைவு</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Price Range Slider -->
+                <div class="mt-2 pt-2 border-top">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="fw-bold text-danger"><i class="fas fa-filter me-1"></i>அதிகபட்ச விலை வரம்பு (Max Price):</small>
+                        <span id="priceRangeValue" class="badge bg-danger">₹ 5000</span>
+                    </div>
+                    <input type="range" class="form-range" id="priceRange" min="10" max="5000" step="10" value="5000" oninput="updatePriceSlider(this.value)">
+                </div>
             </div>
+
             <div id="items-container"></div>
 
             <div class="sticky-footer">
@@ -130,7 +176,7 @@
         // 🚀 MASTER API URL HERE
         const MASTER_API_URL = "https://script.google.com/macros/s/AKfycby7LQ3ebuBeRAiDX66Z1ax6NBXqyOezHJJOTctbM3ayka1hFAMH_fcod7YpHfjZWYF1/exec";
 
-        let shopConfig = null, rawProducts = [], selectedQty = {}, userRole = "GUEST", targetShopWhatsApp = "919080329266";
+        let shopConfig = null, rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", targetShopWhatsApp = "919080329266";
 
         window.onload = function() {
             var host = window.location.hostname || "sridhanushcrackers.in";
@@ -164,34 +210,88 @@
                 .then(r => r.text()).then(pTxt => {
                     rawProducts = JSON.parse(pTxt) || [];
                     document.getElementById("loaderScreen").style.display = "none";
+                    setupPriceSliderRange();
+                    populateCategoryDropdown();
                     renderProducts();
                 });
+            });
+        }
+
+        function setupPriceSliderRange() {
+            if(rawProducts.length === 0) return;
+            var maxRate = Math.max(...rawProducts.map(p => p.rate));
+            var slider = document.getElementById("priceRange");
+            slider.max = maxRate;
+            slider.value = maxRate;
+            document.getElementById("priceRangeValue").innerText = "₹ " + maxRate;
+        }
+
+        function updatePriceSlider(val) {
+            document.getElementById("priceRangeValue").innerText = "₹ " + val;
+            renderProducts();
+        }
+
+        function populateCategoryDropdown() {
+            var catSelect = document.getElementById("catSelect");
+            var categories = [...new Set(rawProducts.map(p => p.category))];
+            categories.forEach(cat => {
+                var opt = document.createElement("option");
+                opt.value = cat; opt.innerText = cat;
+                catSelect.appendChild(opt);
             });
         }
 
         function renderProducts() {
             var container = document.getElementById("items-container");
             var searchTxt = document.getElementById("searchInput").value.toLowerCase();
+            var selectedCat = document.getElementById("catSelect").value;
+            var sortVal = document.getElementById("sortSelect").value;
+            var maxPriceLimit = parseFloat(document.getElementById("priceRange").value) || 999999;
+
+            var filtered = rawProducts.filter(item => {
+                if(selectedCat !== "ALL" && item.category !== selectedCat) return false;
+                if(item.rate > maxPriceLimit) return false;
+                var nameMatch = item.eng.toLowerCase().includes(searchTxt) || item.tam.includes(searchTxt);
+                return nameMatch;
+            });
+
+            if(sortVal === "LOW_HIGH") {
+                filtered.sort((a, b) => a.rate - b.rate);
+            } else if(sortVal === "HIGH_LOW") {
+                filtered.sort((a, b) => b.rate - a.rate);
+            }
+
             var html = "", currCat = "";
 
-            rawProducts.forEach(item => {
-                if(!item.eng.toLowerCase().includes(searchTxt)) return;
-                if(item.category !== currCat) {
+            filtered.forEach(item => {
+                if(sortVal === "DEFAULT" && item.category !== currCat) {
                     currCat = item.category;
                     html += '<div class="cat-title">' + currCat + '</div>';
                 }
+
+                var titleDisplay = item.eng;
+                if(currentLang === "ta") titleDisplay = item.tam;
+                else if(currentLang === "both") titleDisplay = item.eng + ' <small class="text-muted">(' + item.tam + ')</small>';
+
                 var q = selectedQty[item.id] || 0;
                 var rowTot = q * item.rate;
 
                 html += '<div class="item-card">' +
-                            '<div><b>' + item.eng + '</b><br><small class="text-muted">₹ ' + item.rate + '</small></div>' +
+                            '<div><b>' + titleDisplay + '</b><br><small class="text-muted">₹ ' + item.rate + ' / ' + item.per + '</small></div>' +
                             '<div class="d-flex align-items-center gap-2">' +
                                 '<input type="number" min="0" class="qty-input" value="' + (q || '') + '" oninput="updateQty(' + item.id + ', this.value)">' +
                                 '<span class="row-total">₹ ' + rowTot + '</span>' +
                             '</div>' +
                         '</div>';
             });
-            container.innerHTML = html;
+            container.innerHTML = html || "<div class='p-4 text-center text-muted'>பொருட்கள் எதுவும் கிடைக்கவில்லை!</div>";
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + lang).classList.add('active');
+            renderProducts();
         }
 
         function updateQty(id, val) {
@@ -212,6 +312,11 @@
             }
             document.getElementById("step-1").style.display = "none";
             document.getElementById("step-2").style.display = "block";
+        }
+
+        function goToStep1() {
+            document.getElementById("step-1").style.display = "block";
+            document.getElementById("step-2").style.display = "none";
         }
 
         function openReviewModal() {
