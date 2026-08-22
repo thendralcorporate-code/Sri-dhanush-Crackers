@@ -24,11 +24,11 @@
         .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 12px 15px 25px 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.15); border-top: 3px solid var(--primary-color); display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
         .loader-screen { position: fixed; top:0; left:0; right:0; bottom:0; background: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 
-        /* Order Verification Styles */
         .order-card { background: white; padding: 10px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid #ccc; }
-        .order-card.pending { border-left-color: #e53e3e; background: #fff5f5; opacity: 0.7; }
+        .order-card.pending { border-left-color: #e53e3e; background: #fff5f5; }
         .order-card.approved { border-left-color: #38a169; background: #f0fff4; }
-        #hiddenBillWrap { position: absolute; left: -9999px; top: 0; width: 650px; background: white; padding: 15px; }
+        
+        #hiddenBillWrap { position: absolute; left: -9999px; top: 0; width: 600px; background: white; padding: 20px; }
     </style>
 </head>
 <body>
@@ -43,7 +43,6 @@
         <button class="btn btn-outline-warning btn-sm py-0" style="font-size:11px;" onclick="openLoginModal()">🔒 Staff Login</button>
     </div>
 
-    <!-- Store View -->
     <div id="customerStoreView">
         <div class="header">
             <img id="hdr_shop_logo" class="shop-logo-img" alt="Logo">
@@ -78,7 +77,6 @@
         </div>
     </div>
 
-    <!-- Admin Verification Panel -->
     <div id="adminPanelView" class="p-2" style="display:none;">
         <div class="d-flex justify-content-between align-items-center mb-2 bg-dark text-white p-2 rounded">
             <span id="currentUserBadge" class="fw-bold text-warning">Role: -</span>
@@ -88,7 +86,6 @@
         <div id="ordersListContainer"></div>
     </div>
 
-    <!-- Review Order Modal -->
     <div class="modal fade" id="reviewModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3">
@@ -97,13 +94,12 @@
                 <div class="fw-bold text-end text-danger fs-5 mb-2">Total: <span id="reviewGrandTotal">₹ 0.00</span></div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-secondary w-50" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-success w-50 fw-bold" onclick="finalizeOrder()">Submit Order 🚀</button>
+                    <button class="btn btn-success w-50 fw-bold" onclick="finalizeOrder()">Submit & Print PDF 🚀</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Login Modal -->
     <div class="modal fade" id="loginModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3">
@@ -115,7 +111,6 @@
         </div>
     </div>
 
-    <!-- Hidden Printable PDF -->
     <div id="hiddenBillWrap">
         <div id="printableBill">
             <h3 id="pdfShopTitle" class="text-center text-danger fw-bold">CRACKER STORE</h3>
@@ -123,7 +118,7 @@
             <p><b>Order ID:</b> <span id="billOrderId"></span> | <b>Date:</b> <span id="billDate"></span></p>
             <p><b>Customer:</b> <span id="billCustName"></span> (<span id="billCustPhone"></span>)</p>
             <table class="table table-bordered">
-                <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Total</th></tr></thead>
+                <thead><tr><th>#</th><th>Item</th><th>Qty</th><th>Rate</th><th>Total</th></tr></thead>
                 <tbody id="billItemsBody"></tbody>
             </table>
             <h4 class="text-end text-danger">TOTAL: Rs. <span id="billGrandTotal">0.00</span></h4>
@@ -135,7 +130,7 @@
         // 🚀 MASTER API URL HERE
         const MASTER_API_URL = "https://script.google.com/macros/s/AKfycby7LQ3ebuBeRAiDX66Z1ax6NBXqyOezHJJOTctbM3ayka1hFAMH_fcod7YpHfjZWYF1/exec";
 
-        let shopConfig = null, rawProducts = [], selectedQty = {}, userRole = "GUEST";
+        let shopConfig = null, rawProducts = [], selectedQty = {}, userRole = "GUEST", targetShopWhatsApp = "919080329266";
 
         window.onload = function() {
             var host = window.location.hostname || "sridhanushcrackers.in";
@@ -155,8 +150,14 @@
             fetch(MASTER_API_URL + "?action=getSettings&sheetId=" + shopConfig.clientSheetId)
             .then(r => r.text()).then(stTxt => {
                 var st = JSON.parse(stTxt);
-                if(st.ShopName) document.getElementById("hdr_shop_name").innerText = st.ShopName;
+                if(st.ShopName) {
+                    document.getElementById("hdr_shop_name").innerText = st.ShopName;
+                    document.getElementById("navShopTitle").innerText = st.ShopName;
+                    document.getElementById("pdfShopTitle").innerText = st.ShopName;
+                }
                 if(st.Address) document.getElementById("hdr_address").innerText = st.Address;
+                if(st.ContactNumbers) document.getElementById("hdr_contacts").innerText = st.ContactNumbers;
+                if(st.WhatsAppNumber) targetShopWhatsApp = st.WhatsAppNumber.replace(/[^0-9]/g, '');
                 if(st.PrimaryColor) document.documentElement.style.setProperty('--primary-color', st.PrimaryColor);
 
                 fetch(MASTER_API_URL + "?action=getProducts&sheetId=" + shopConfig.clientSheetId)
@@ -230,28 +231,50 @@
         }
 
         function finalizeOrder() {
+            var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
             var orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
+            var name = document.getElementById("cust_name").value.trim();
+            var mobile = document.getElementById("cust_mobile").value.trim();
+
             var itemsObj = [];
+            var waMessage = "*NEW ESTIMATE ORDER*\nOrder ID: " + orderId + "\nCustomer: " + name + " (" + mobile + ")\n\n*ITEMS:*\n";
+            var pdfTableRows = "", sno = 1;
+
             rawProducts.forEach(p => {
                 var q = selectedQty[p.id] || 0;
-                if(q > 0) itemsObj.push({ id: p.id, name: p.eng, qty: q, rate: p.rate, total: q * p.rate });
+                if(q > 0) {
+                    var tot = q * p.rate;
+                    itemsObj.push({ id: p.id, name: p.eng, qty: q, rate: p.rate, total: tot });
+                    waMessage += sno + ". " + p.eng + " x " + q + " = ₹" + tot + "\n";
+                    pdfTableRows += "<tr><td>" + sno + "</td><td>" + p.eng + "</td><td>" + q + "</td><td>₹" + p.rate + "</td><td>₹" + tot + "</td></tr>";
+                    sno++;
+                }
             });
+            waMessage += "\n*TOTAL AMOUNT: ₹" + total + "*";
+
+            document.getElementById("billOrderId").innerText = orderId;
+            document.getElementById("billDate").innerText = new Date().toLocaleDateString();
+            document.getElementById("billCustName").innerText = name;
+            document.getElementById("billCustPhone").innerText = mobile;
+            document.getElementById("billItemsBody").innerHTML = pdfTableRows;
+            document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN') + ".00";
+
+            html2pdf().set({ margin: 0.5, filename: orderId + '_Invoice.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }).from(document.getElementById('printableBill')).save();
 
             var payload = {
                 shopId: shopConfig.shopId, shopName: shopConfig.shopName,
-                orderId: orderId, name: document.getElementById("cust_name").value,
-                mobile: document.getElementById("cust_mobile").value,
-                address: document.getElementById("cust_address").value,
-                district: document.getElementById("cust_district").value,
-                total: document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, ''),
-                orderType: "Online Customer", itemsArray: itemsObj
+                orderId: orderId, name: name, mobile: mobile,
+                address: document.getElementById("cust_address").value.trim(),
+                district: document.getElementById("cust_district").value.trim(),
+                total: total, orderType: "Online Customer", itemsArray: itemsObj
             };
 
             fetch(MASTER_API_URL, {
                 method: "POST", body: JSON.stringify({ action: "saveOrder", clientSheetId: shopConfig.clientSheetId, payload: payload })
             })
-            .then(r => r.text()).then(txt => {
-                alert("✅ ஆர்டர் அனுப்பப்பட்டது! Accounts அனுமதிக்குப்பின் உறுதி செய்யப்படும்.");
+            .then(r => r.text()).then(() => {
+                window.open("https://wa.me/" + targetShopWhatsApp + "?text=" + encodeURIComponent(waMessage), "_blank");
+                alert("✅ ஆர்டர் வெற்றிகரமாக அனுப்பப்பட்டது! PDF Bill டவுன்லோட் செய்யப்பட்டுள்ளது.");
                 location.reload();
             });
         }
