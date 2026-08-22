@@ -200,24 +200,30 @@
         let targetShopWhatsApp = "919080329266";
 
         window.onload = function() {
-            var currentHost = window.location.hostname; // Automatically grabs Subdomain/Domain
-            
-            // 🌐 Fetch Dynamic Shop Configuration by Domain
-            fetch(MASTER_API_URL + "?action=getShopDataByDomain&domain=" + encodeURIComponent(currentHost))
-            .then(res => res.json())
-            .then(res => {
-                if(res.success) {
-                    shopConfig = res;
-                    loadShopSettingsAndProducts();
-                } else {
-                    document.getElementById("loaderMsg").innerText = res.message || "❌ கடை கிடைக்கவில்லை!";
-                }
-            })
-            .catch(err => {
-                document.getElementById("loaderMsg").innerText = "⚠️ Server Connection Error!";
-            });
-        };
+    var currentHost = window.location.hostname || "sridhanushcrackers.in";
+    
+    if(currentHost === "localhost" || currentHost === "127.0.0.1") {
+        currentHost = "sridhanushcrackers.in";
+    }
 
+    var reqUrl = MASTER_API_URL + "?action=getShopDataByDomain&domain=" + encodeURIComponent(currentHost);
+
+    fetch(reqUrl)
+    .then(res => res.text()) // முதலில் Text-ஆக வாங்கி பிறகு JSON-ஆக மாற்றுவது CORS-ஐத் தவிர்க்கும்
+    .then(textData => {
+        var res = JSON.parse(textData);
+        if(res && res.success) {
+            shopConfig = res;
+            loadShopSettingsAndProducts();
+        } else {
+            document.getElementById("loaderMsg").innerHTML = "<span class='text-danger'>❌ " + (res.message || "கடை விவரங்கள் கிடைக்கவில்லை!") + "</span>";
+        }
+    })
+    .catch(err => {
+        console.error("Fetch Error:", err);
+        document.getElementById("loaderMsg").innerHTML = "<span class='text-danger'>⚠️ Server Connection Error!<br><small style='font-size:11px; color:#666;'>" + err.toString() + "</small></span>";
+    });
+};
         function loadShopSettingsAndProducts() {
             // 1. Fetch Store Settings
             fetch(MASTER_API_URL + "?action=getSettings&sheetId=" + shopConfig.clientSheetId)
