@@ -4,180 +4,107 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaS Cracker Store</title>
+    <title>SaaS Cracker Engine</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        :root {
-            --primary-color: #8c1d1d;
-            --accent-color: #ffeb3b;
-        }
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-        body { background-color: #f4f6f9; color: #2d3748; margin: 0; padding: 0; padding-bottom: 200px; }
+        :root { --primary-color: #8c1d1d; --accent-color: #ffeb3b; }
+        body { background: #f4f6f9; font-family: sans-serif; padding-bottom: 180px; }
+        .admin-nav { background: #1a202c; color: white; padding: 8px 15px; display: flex; justify-content: space-between; }
+        .header { background: var(--primary-color); color: white; padding: 15px; text-align: center; border-radius: 8px; margin: 10px; }
+        .header h1 { margin: 0; font-size: 22px; }
+        .shop-logo-img { max-height: 70px; display: none; margin-bottom: 5px; }
         
-        .admin-nav { background: #1a202c; color: white; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; }
-        .header { background: var(--primary-color); color: white; padding: 15px 10px; text-align: center; border-radius: 8px; margin: 10px; margin-bottom: 12px; }
-        .header h1 { margin: 2px 0; font-size: 20px; text-transform: uppercase; }
-        .header h2 { margin: 2px 0; font-size: 15px; color: var(--accent-color); }
-        .header p { margin: 2px 0; font-size: 12px; }
-        .shop-logo-img { max-height: 70px; margin-bottom: 8px; display: none; border-radius: 6px; }
-
-        .lang-bar {
-            background: #ffffff; padding: 8px 12px; border-radius: 8px; margin: 10px; margin-bottom: 12px;
-            display: flex; justify-content: space-between; align-items: center; border: 2px solid var(--primary-color);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.08); flex-wrap: wrap; gap: 6px;
-        }
-        .lang-title { font-weight: bold; font-size: 12px; color: var(--primary-color); }
-        .lang-btn-group { display: flex; gap: 4px; }
-        .lang-btn { border: 1px solid var(--primary-color); background: #ffffff; color: var(--primary-color); padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        .lang-btn.active { background: var(--primary-color); color: #ffffff; }
-
-        .step2-header { background: var(--primary-color); color: white; padding: 8px 12px; text-align: center; border-radius: 6px; margin: 10px; margin-bottom: 10px; font-weight: bold; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
-        .form-card { background: white; padding: 15px; border-radius: 8px; margin: 10px; margin-bottom: 12px; border-left: 4px solid var(--primary-color); box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { font-weight: bold; display: block; margin-bottom: 4px; font-size: 13px; color: #2d3748; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; background: white; }
+        .item-card { background: white; border: 1px solid #cbd5e0; padding: 10px; border-radius: 8px; margin: 0 10px 8px 10px; display: flex; justify-content: space-between; align-items: center; }
+        .qty-input { width: 55px; text-align: center; font-weight: bold; border: 2px solid #3182ce; border-radius: 5px; }
+        .row-total { color: var(--primary-color); font-weight: bold; font-size: 13px; min-width: 65px; text-align: right; }
+        .cat-title { background: #feebc8; color: #742a2a; padding: 6px 10px; font-weight: bold; border-radius: 6px; margin: 10px; border-left: 4px solid #dd6b20; }
         
-        .btn-next { background-color: var(--primary-color); color: white; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px; }
-        .btn-back { background-color: #ffffff; color: var(--primary-color); border: 1px solid #ffffff; padding: 4px 10px; font-size: 12px; font-weight: bold; border-radius: 4px; cursor: pointer; }
-
-        .cat-title { background-color: #feebc8; color: #742a2a; padding: 8px 10px; font-weight: bold; font-size: 14px; border-radius: 6px; margin: 12px 10px 6px 10px; border-left: 4px solid #dd6b20; text-transform: uppercase; }
-        
-        .item-card { background: white; border: 1px solid #cbd5e0; padding: 10px; border-radius: 8px; margin: 0 10px 8px 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-        .sno-badge { background: var(--primary-color); color: white; font-weight: bold; font-size: 11px; padding: 4px 8px; border-radius: 4px; margin-right: 10px; min-width: 32px; text-align: center; }
-        .item-info { flex: 1; padding-right: 8px; }
-        .item-name { font-weight: bold; font-size: 14px; color: #1a202c; }
-        .item-subname { font-size: 12px; color: #4a5568; }
-        .item-rate { color: var(--primary-color); font-weight: bold; font-size: 13px; margin-top: 2px; }
-        
-        .item-action { display: flex; align-items: center; gap: 6px; }
-        .item-total-badge { font-size: 12px; font-weight: bold; color: #2b6cb0; background: #ebf8ff; padding: 4px 8px; border-radius: 4px; border: 1px solid #bee3f8; white-space: nowrap; }
-        .qty-input { width: 55px; text-align: center; padding: 6px; border: 2px solid #3182ce; border-radius: 5px; font-size: 15px; font-weight: bold; background: #fff; }
-
-        .sticky-footer { 
-            position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; 
-            background: #ffffff !important; padding: 12px 15px 35px 15px !important; 
-            box-shadow: 0 -5px 25px rgba(0,0,0,0.2) !important; border-top: 3px solid var(--primary-color) !important; 
-            display: flex !important; justify-content: space-between !important; align-items: center !important; z-index: 1020 !important;
-        }
-
-        .btn-submit { background-color: #25d366; color: white; border: none; padding: 12px 18px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; }
-        .summary-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px; }
-        .summary-table th, .summary-table td { border: 1px solid #e2e8f0; padding: 6px; text-align: left; }
-        .summary-table th { background-color: var(--primary-color); color: white; }
-
-        #hiddenBillWrap { position: absolute; left: -9999px; top: 0; width: 700px; background: #ffffff; }
-        .printableBillSection { background: #ffffff !important; padding: 10px 15px !important; font-family: Arial, sans-serif !important; color: #000000 !important; margin: 0 !important; }
-        .pdf-header-title { text-align: center; color: var(--primary-color); font-weight: bold; font-size: 22px; margin: 0; }
-        .pdf-header-sub { text-align: center; font-size: 12px; font-weight: bold; margin: 2px 0; }
-        .pdf-header-contact { text-align: center; font-size: 11px; margin-bottom: 12px; border-bottom: 2px solid var(--primary-color); padding-bottom: 6px; }
-        .pdf-sec-head { background: #f2f2f2; font-weight: bold; text-align: center; padding: 4px; font-size: 12px; border: 1px solid #333; margin-bottom: 10px; }
-        .pdf-info-grid { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-        .pdf-info-grid td { padding: 4px 8px; font-size: 11px; vertical-align: top; }
-        .pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-        .pdf-table th, .pdf-table td { border: 1px solid #000; padding: 6px 8px; font-size: 11px; vertical-align: middle; }
-        .pdf-table th { background-color: var(--primary-color); color: #ffffff; text-align: center; }
-        .pdf-total-box { font-size: 15px; font-weight: bold; color: #ffffff; background-color: var(--primary-color); text-align: right; padding: 8px 15px; border-radius: 6px; margin-top: 15px; }
-        
-        .pos-toggle-bar { background: #edf2f7; border: 2px solid var(--primary-color); padding: 8px 12px; border-radius: 8px; margin: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 12px 15px 25px 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.15); border-top: 3px solid var(--primary-color); display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
         .loader-screen { position: fixed; top:0; left:0; right:0; bottom:0; background: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+
+        /* Order Verification Styles */
+        .order-card { background: white; padding: 10px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid #ccc; }
+        .order-card.pending { border-left-color: #e53e3e; background: #fff5f5; opacity: 0.7; }
+        .order-card.approved { border-left-color: #38a169; background: #f0fff4; }
+        #hiddenBillWrap { position: absolute; left: -9999px; top: 0; width: 650px; background: white; padding: 15px; }
     </style>
 </head>
 <body>
 
-    <!-- Loading Screen -->
     <div id="loaderScreen" class="loader-screen">
-        <div class="spinner-border text-danger mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
-        <h5 class="fw-bold text-dark" id="loaderMsg">பட்டாசு கடை விவரங்கள் லோட் ஆகிறது...</h5>
+        <div class="spinner-border text-danger mb-2"></div>
+        <h6 id="loaderMsg">பட்டாசு கடை விவரங்கள் லோட் ஆகிறது...</h6>
     </div>
 
     <div class="admin-nav">
-        <span style="font-weight:bold; font-size:12px;" class="text-warning" id="navShopTitle">💥 CRACKER STORE</span>
-        <button id="adminToggleBtn" class="btn btn-outline-warning btn-sm py-0" style="font-size:11px;" onclick="openLoginModal()">
-            🔒 Admin Login
-        </button>
+        <span class="fw-bold text-warning" id="navShopTitle">💥 CRACKER STORE</span>
+        <button class="btn btn-outline-warning btn-sm py-0" style="font-size:11px;" onclick="openLoginModal()">🔒 Staff Login</button>
     </div>
 
+    <!-- Store View -->
     <div id="customerStoreView">
-        <div id="shop-main-header" class="header">
-            <img id="hdr_shop_logo" class="shop-logo-img" alt="Shop Logo">
-            <p style="font-size: 10px; margin-bottom: 2px;">ॐ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; உ</p>
+        <div class="header">
+            <img id="hdr_shop_logo" class="shop-logo-img" alt="Logo">
             <h1 id="hdr_shop_name">CRACKER STORE</h1>
-            <h2 id="hdr_shop_sub">ஸ்ரீ தனுஷ் பட்டாசு கடை</h2>
-            <p><strong id="hdr_tagline">PRICE LIST 2026 — DIGITAL ESTIMATE FORM</strong></p>
-            <p id="hdr_address">📍 Sivakasi</p>
-            <p id="hdr_contacts">📞 Contact Store</p>
+            <p id="hdr_address" class="mb-0">📍 Sivakasi</p>
+            <p id="hdr_contacts" class="mb-0">📞 Contact Store</p>
         </div>
 
-        <div id="posBillingToggleBar" class="pos-toggle-bar" style="display: none;">
-            <span class="fw-bold text-dark" style="font-size: 13px;"><i class="fas fa-cash-register me-1 text-danger"></i> Billing Mode:</span>
-            <div class="btn-group btn-group-sm">
-                <button class="btn btn-primary active fw-bold" id="modeWalkinBtn" onclick="setBillingMode('WALKIN')">🏪 Counter Bill</button>
-                <button class="btn btn-outline-primary fw-bold" id="modeOnlineBtn" onclick="setBillingMode('ONLINE')">🌐 Online Mode</button>
-            </div>
+        <div id="step-1" class="card p-3 m-2">
+            <h6 class="fw-bold text-danger">👤 வாடிக்கையாளர் விவரங்கள்</h6>
+            <input type="text" id="cust_name" class="form-control form-control-sm mb-2" placeholder="பெயர் (Name) *">
+            <input type="tel" id="cust_mobile" class="form-control form-control-sm mb-2" placeholder="மொபைல் எண் (Mobile) *" maxlength="10">
+            <textarea id="cust_address" class="form-control form-control-sm mb-2" placeholder="முகவரி (Address)"></textarea>
+            <input type="text" id="cust_district" class="form-control form-control-sm mb-2" placeholder="மாவட்டம் (District)">
+            <button class="btn btn-danger w-100 fw-bold" onclick="goToStep2()">பட்டாசு பட்டியல் பார்க்க ➔</button>
         </div>
 
-        <div class="lang-bar" id="lang-bar-container">
-            <span class="lang-title" id="lang-label">🌐 மொழி (Language):</span>
-            <div class="lang-btn-group">
-                <button class="lang-btn active" id="btn-both" onclick="setLanguage('both')">தமிழ் + En</button>
-                <button class="lang-btn" id="btn-ta" onclick="setLanguage('ta')">தமிழ்</button>
-                <button class="lang-btn" id="btn-en" onclick="setLanguage('en')">English</button>
-            </div>
-        </div>
-
-        <div id="step-1" class="form-card">
-            <h3 style="margin: 0 0 12px 0; color: var(--primary-color); border-bottom: 2px solid #fee2e2; padding-bottom: 5px;" id="cust-header">👤 வாடிக்கையாளர் விவரங்கள்</h3>
-            <div class="form-group"><label>உங்கள் பெயர் (Full Name) *</label><input type="text" id="cust_name" placeholder="சுந்தர்"></div>
-            <div class="form-group"><label>மொபைல் எண் (Mobile) *</label><input type="tel" id="cust_mobile" placeholder="9876543210" maxlength="10"></div>
-            <div class="form-group"><label>முகவரி (Address) *</label><textarea id="cust_address" rows="2" placeholder="வீட்டு எண், தெரு..."></textarea></div>
-            <div class="form-group"><label>மாவட்டம் (District) *</label><input type="text" id="cust_district" placeholder="மதுரை"></div>
-            <div class="form-group" id="transportGroupWrap"><label>விருப்பமான டிரான்ஸ்போர்ட்</label><input type="text" id="cust_transport" placeholder="Mettur Transport"></div>
-            <div class="form-group" id="paymentModeGroupWrap" style="display: none;">
-                <label class="text-danger fw-bold">பணம் செலுத்தும் முறை</label>
-                <select id="cust_pay_mode" class="form-select fw-bold">
-                    <option value="Cash">💵 Cash</option>
-                    <option value="GPay/PhonePe">📱 UPI / GPay</option>
-                </select>
-            </div>
-            <button type="button" class="btn-next" onclick="goToStep2(event)">பட்டாசு பட்டியல் பார்க்க ➔</button>
-        </div>
-
-        <div id="step-2" style="display: none;">
-            <div class="step2-header">
-                <span>🎆 பட்டாசு பட்டியல்</span>
-                <button class="btn-back" onclick="goToStep1()">✏️ Edit Info</button>
+        <div id="step-2" style="display:none;">
+            <div class="p-2 bg-white m-2 rounded d-flex gap-2">
+                <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="🔍 தேடுக..." onkeyup="renderProducts()">
+                <button class="btn btn-sm btn-outline-danger" onclick="goToStep1()">✏️ Edit</button>
             </div>
             <div id="items-container"></div>
+
             <div class="sticky-footer">
                 <div>
-                    <span style="font-size: 11px; color: #4a5568;">மொத்த தொகை:</span><br>
-                    <span id="grand-total" style="font-size: 18px; font-weight: bold; color: var(--primary-color);">₹ 0.00</span>
+                    <span style="font-size:11px;">மொத்த தொகை:</span><br>
+                    <span id="grand-total" class="fw-bold text-danger fs-5">₹ 0.00</span>
                 </div>
-                <button class="btn-submit" id="btn-send" onclick="finalizeOrder()">📱 சப்மிட்</button>
+                <button class="btn btn-success fw-bold" onclick="openReviewModal()">📋 Review Order</button>
             </div>
         </div>
+    </div>
 
-        <div id="hiddenBillWrap">
-            <div id="singleCustomerPdfContainer" class="printableBillSection">
-                <div class="pdf-header-title" id="pdfShopTitle">CRACKER STORE</div>
-                <div class="pdf-sec-head">CUSTOMER & ORDER DETAILS</div>
-                <table class="pdf-info-grid">
-                    <tr><td width="50%"><b>Order ID :</b> <span class="billOrderId"></span></td><td width="50%"><b>Date :</b> <span id="billDateStr"></span></td></tr>
-                    <tr><td><b>Name :</b> <span class="billCustName"></span></td><td><b>Mobile :</b> <span class="billCustPhone"></span></td></tr>
-                </table>
-                <table class="pdf-table">
-                    <thead><tr><th>S.No</th><th>Item Description</th><th>Qty</th><th>Rate</th><th>Total</th></tr></thead>
-                    <tbody class="singleBillItemsBody"></tbody>
-                </table>
-                <div class="pdf-total-box">TOTAL: Rs. <span class="billGrandTotal">0.00</span></div>
+    <!-- Admin Verification Panel -->
+    <div id="adminPanelView" class="p-2" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-2 bg-dark text-white p-2 rounded">
+            <span id="currentUserBadge" class="fw-bold text-warning">Role: -</span>
+            <button class="btn btn-sm btn-danger" onclick="location.reload()">Logout</button>
+        </div>
+        <h6 class="fw-bold text-dark">📦 Orders & Payment Verification</h6>
+        <div id="ordersListContainer"></div>
+    </div>
+
+    <!-- Review Order Modal -->
+    <div class="modal fade" id="reviewModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-3">
+                <h5 class="fw-bold text-danger">📋 ஆர்டர் விவரங்கள் (Review)</h5>
+                <div id="reviewItemsList" class="my-2" style="max-height:250px; overflow-y:auto;"></div>
+                <div class="fw-bold text-end text-danger fs-5 mb-2">Total: <span id="reviewGrandTotal">₹ 0.00</span></div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-secondary w-50" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-success w-50 fw-bold" onclick="finalizeOrder()">Submit Order 🚀</button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Login Modal -->
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="loginModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3">
                 <h5 class="fw-bold text-danger">Staff Login</h5>
@@ -188,61 +115,53 @@
         </div>
     </div>
 
+    <!-- Hidden Printable PDF -->
+    <div id="hiddenBillWrap">
+        <div id="printableBill">
+            <h3 id="pdfShopTitle" class="text-center text-danger fw-bold">CRACKER STORE</h3>
+            <hr>
+            <p><b>Order ID:</b> <span id="billOrderId"></span> | <b>Date:</b> <span id="billDate"></span></p>
+            <p><b>Customer:</b> <span id="billCustName"></span> (<span id="billCustPhone"></span>)</p>
+            <table class="table table-bordered">
+                <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Total</th></tr></thead>
+                <tbody id="billItemsBody"></tbody>
+            </table>
+            <h4 class="text-end text-danger">TOTAL: Rs. <span id="billGrandTotal">0.00</span></h4>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // 🚀 MASTER API ROUTER URL HERE
+        // 🚀 MASTER API URL HERE
         const MASTER_API_URL = "https://script.google.com/macros/s/AKfycby7LQ3ebuBeRAiDX66Z1ax6NBXqyOezHJJOTctbM3ayka1hFAMH_fcod7YpHfjZWYF1/exec";
 
-        let shopConfig = null;
-        let rawProductsArray = [];
-        let selectedQuantities = {};
-        let activeBillingMode = "WALKIN";
-        let targetShopWhatsApp = "919080329266";
+        let shopConfig = null, rawProducts = [], selectedQty = {}, userRole = "GUEST";
 
         window.onload = function() {
-    var currentHost = window.location.hostname || "sridhanushcrackers.in";
-    
-    if(currentHost === "localhost" || currentHost === "127.0.0.1") {
-        currentHost = "sridhanushcrackers.in";
-    }
+            var host = window.location.hostname || "sridhanushcrackers.in";
+            if(host === "localhost" || host === "127.0.0.1") host = "sridhanushcrackers.in";
 
-    var reqUrl = MASTER_API_URL + "?action=getShopDataByDomain&domain=" + encodeURIComponent(currentHost);
+            fetch(MASTER_API_URL + "?action=getShopDataByDomain&domain=" + encodeURIComponent(host))
+            .then(res => res.text()).then(txt => {
+                var res = JSON.parse(txt);
+                if(res.success) {
+                    shopConfig = res;
+                    loadShopSettingsAndProducts();
+                } else { document.getElementById("loaderMsg").innerText = res.message; }
+            });
+        };
 
-    fetch(reqUrl)
-    .then(res => res.text()) // முதலில் Text-ஆக வாங்கி பிறகு JSON-ஆக மாற்றுவது CORS-ஐத் தவிர்க்கும்
-    .then(textData => {
-        var res = JSON.parse(textData);
-        if(res && res.success) {
-            shopConfig = res;
-            loadShopSettingsAndProducts();
-        } else {
-            document.getElementById("loaderMsg").innerHTML = "<span class='text-danger'>❌ " + (res.message || "கடை விவரங்கள் கிடைக்கவில்லை!") + "</span>";
-        }
-    })
-    .catch(err => {
-        console.error("Fetch Error:", err);
-        document.getElementById("loaderMsg").innerHTML = "<span class='text-danger'>⚠️ Server Connection Error!<br><small style='font-size:11px; color:#666;'>" + err.toString() + "</small></span>";
-    });
-};
         function loadShopSettingsAndProducts() {
-            // 1. Fetch Store Settings
             fetch(MASTER_API_URL + "?action=getSettings&sheetId=" + shopConfig.clientSheetId)
-            .then(res => res.json())
-            .then(st => {
-                if(st.ShopName) {
-                    document.getElementById("hdr_shop_name").innerText = st.ShopName;
-                    document.getElementById("navShopTitle").innerText = st.ShopName;
-                    document.getElementById("pdfShopTitle").innerText = st.ShopName;
-                }
+            .then(r => r.text()).then(stTxt => {
+                var st = JSON.parse(stTxt);
+                if(st.ShopName) document.getElementById("hdr_shop_name").innerText = st.ShopName;
                 if(st.Address) document.getElementById("hdr_address").innerText = st.Address;
-                if(st.ContactNumbers) document.getElementById("hdr_contacts").innerText = st.ContactNumbers;
-                if(st.WhatsAppNumber) targetShopWhatsApp = st.WhatsAppNumber.replace(/[^0-9]/g, '');
+                if(st.PrimaryColor) document.documentElement.style.setProperty('--primary-color', st.PrimaryColor);
 
-                // 2. Fetch Store Products
                 fetch(MASTER_API_URL + "?action=getProducts&sheetId=" + shopConfig.clientSheetId)
-                .then(res => res.json())
-                .then(prods => {
-                    rawProductsArray = prods || [];
+                .then(r => r.text()).then(pTxt => {
+                    rawProducts = JSON.parse(pTxt) || [];
                     document.getElementById("loaderScreen").style.display = "none";
                     renderProducts();
                 });
@@ -251,78 +170,137 @@
 
         function renderProducts() {
             var container = document.getElementById("items-container");
-            var html = "";
-            rawProductsArray.forEach(item => {
-                var currentVal = selectedQuantities[item.id] || 0;
+            var searchTxt = document.getElementById("searchInput").value.toLowerCase();
+            var html = "", currCat = "";
+
+            rawProducts.forEach(item => {
+                if(!item.eng.toLowerCase().includes(searchTxt)) return;
+                if(item.category !== currCat) {
+                    currCat = item.category;
+                    html += '<div class="cat-title">' + currCat + '</div>';
+                }
+                var q = selectedQty[item.id] || 0;
+                var rowTot = q * item.rate;
+
                 html += '<div class="item-card">' +
-                            '<div><b>#' + item.id + ' ' + item.eng + '</b><br><small>₹ ' + item.rate + '</small></div>' +
-                            '<input type="number" min="0" placeholder="0" class="qty-input" value="' + (currentVal || '') + '" oninput="saveInputValue(' + item.id + ', this.value)">' +
+                            '<div><b>' + item.eng + '</b><br><small class="text-muted">₹ ' + item.rate + '</small></div>' +
+                            '<div class="d-flex align-items-center gap-2">' +
+                                '<input type="number" min="0" class="qty-input" value="' + (q || '') + '" oninput="updateQty(' + item.id + ', this.value)">' +
+                                '<span class="row-total">₹ ' + rowTot + '</span>' +
+                            '</div>' +
                         '</div>';
             });
             container.innerHTML = html;
         }
 
-        function saveInputValue(id, val) {
-            selectedQuantities[id] = parseInt(val) || 0;
+        function updateQty(id, val) {
+            selectedQty[id] = parseInt(val) || 0;
+            renderProducts();
             calculateTotal();
         }
 
         function calculateTotal() {
-            var total = 0;
-            rawProductsArray.forEach(p => {
-                var qty = selectedQuantities[p.id] || 0;
-                total += (qty * p.rate);
-            });
-            document.getElementById("grand-total").innerText = "₹ " + total.toLocaleString('en-IN') + ".00";
+            var tot = 0;
+            rawProducts.forEach(p => { tot += (selectedQty[p.id] || 0) * p.rate; });
+            document.getElementById("grand-total").innerText = "₹ " + tot.toLocaleString('en-IN') + ".00";
         }
 
-        function goToStep2(e) {
+        function goToStep2() {
+            if(!document.getElementById("cust_name").value || !document.getElementById("cust_mobile").value) {
+                alert("பெயர் மற்றும் போன் நம்பர் உள்ளிடவும்!"); return;
+            }
             document.getElementById("step-1").style.display = "none";
             document.getElementById("step-2").style.display = "block";
         }
 
-        function goToStep1() {
-            document.getElementById("step-1").style.display = "block";
-            document.getElementById("step-2").style.display = "none";
+        function openReviewModal() {
+            var html = "<table class='table table-sm'>", tot = 0;
+            rawProducts.forEach(p => {
+                var q = selectedQty[p.id] || 0;
+                if(q > 0) {
+                    var t = q * p.rate; tot += t;
+                    html += "<tr><td>" + p.eng + " x " + q + "</td><td class='text-end'>₹" + t + "</td></tr>";
+                }
+            });
+            html += "</table>";
+            if(tot <= 0) { alert("பட்டாசுகளைத் தேர்ந்தெடுக்கவும்!"); return; }
+            document.getElementById("reviewItemsList").innerHTML = html;
+            document.getElementById("reviewGrandTotal").innerText = "₹ " + tot;
+            new bootstrap.Modal(document.getElementById("reviewModal")).show();
         }
 
         function finalizeOrder() {
-            var orderId = "ORD-" + Date.now();
-            var name = document.getElementById("cust_name").value.trim();
-            var mobile = document.getElementById("cust_mobile").value.trim();
-
-            var total = 0;
-            var itemsArrayObj = [];
-
-            rawProductsArray.forEach(p => {
-                var qty = selectedQuantities[p.id] || 0;
-                if(qty > 0) {
-                    var tot = qty * p.rate;
-                    total += tot;
-                    itemsArrayObj.push({ id: p.id, name: p.eng, qty: qty, rate: p.rate, total: tot });
-                }
+            var orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
+            var itemsObj = [];
+            rawProducts.forEach(p => {
+                var q = selectedQty[p.id] || 0;
+                if(q > 0) itemsObj.push({ id: p.id, name: p.eng, qty: q, rate: p.rate, total: q * p.rate });
             });
 
             var payload = {
-                shopId: shopConfig.shopId,
-                shopName: shopConfig.shopName,
-                orderId: orderId, name: name, mobile: mobile,
-                address: document.getElementById("cust_address").value.trim(),
-                district: document.getElementById("cust_district").value.trim(),
-                total: total, itemsArray: itemsArrayObj
+                shopId: shopConfig.shopId, shopName: shopConfig.shopName,
+                orderId: orderId, name: document.getElementById("cust_name").value,
+                mobile: document.getElementById("cust_mobile").value,
+                address: document.getElementById("cust_address").value,
+                district: document.getElementById("cust_district").value,
+                total: document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, ''),
+                orderType: "Online Customer", itemsArray: itemsObj
             };
 
-            // 🚀 Save Order to BOTH Client Sheet AND Central Lead Master Copy
             fetch(MASTER_API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({ action: "saveOrder", clientSheetId: shopConfig.clientSheetId, payload: payload })
+                method: "POST", body: JSON.stringify({ action: "saveOrder", clientSheetId: shopConfig.clientSheetId, payload: payload })
             })
-            .then(res => res.json())
-            .then(res => {
-                alert("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது!");
+            .then(r => r.text()).then(txt => {
+                alert("✅ ஆர்டர் அனுப்பப்பட்டது! Accounts அனுமதிக்குப்பின் உறுதி செய்யப்படும்.");
                 location.reload();
             });
+        }
+
+        function openLoginModal() { new bootstrap.Modal(document.getElementById("loginModal")).show(); }
+
+        function processLogin() {
+            var u = document.getElementById("login_user").value, p = document.getElementById("login_pass").value;
+            fetch(MASTER_API_URL + "?action=login&sheetId=" + shopConfig.clientSheetId + "&username=" + u + "&password=" + p)
+            .then(r => r.text()).then(txt => {
+                var res = JSON.parse(txt);
+                if(res.success) {
+                    userRole = res.userRole;
+                    document.getElementById("currentUserBadge").innerText = "Role: " + userRole;
+                    document.getElementById("customerStoreView").style.display = "none";
+                    document.getElementById("adminPanelView").style.display = "block";
+                    bootstrap.Modal.getInstance(document.getElementById("loginModal")).hide();
+                    loadAdminOrders();
+                } else alert(res.message);
+            });
+        }
+
+        function loadAdminOrders() {
+            fetch(MASTER_API_URL + "?action=getOrders&sheetId=" + shopConfig.clientSheetId)
+            .then(r => r.text()).then(txt => {
+                var orders = JSON.parse(txt) || [];
+                var html = "";
+                orders.forEach(o => {
+                    var isApproved = o.approvalStatus === "Approved";
+                    var isGreyedOut = (userRole === "TELECALLER" && !isApproved);
+
+                    html += '<div class="order-card ' + (isApproved ? 'approved' : 'pending') + '" style="' + (isGreyedOut ? 'opacity:0.4; pointer-events:none;' : '') + '">' +
+                                '<div class="d-flex justify-content-between"><b>' + o.orderId + ' - ' + o.name + '</b><span class="badge bg-' + (isApproved ? 'success' : 'danger') + '">' + o.approvalStatus + '</span></div>' +
+                                '<small>📞 ' + o.mobile + ' | Total: ₹' + o.total + '</small><br>';
+
+                    if((userRole === "ADMIN" || userRole === "ACCOUNTS") && !isApproved) {
+                        html += '<button class="btn btn-sm btn-success mt-2 fw-bold" onclick="approveOrder(\'' + o.orderId + '\')">Approve Payment ✅</button>';
+                    }
+                    html += '</div>';
+                });
+                document.getElementById("ordersListContainer").innerHTML = html;
+            });
+        }
+
+        function approveOrder(orderId) {
+            fetch(MASTER_API_URL, {
+                method: "POST", body: JSON.stringify({ action: "updateOrderStatus", clientSheetId: shopConfig.clientSheetId, orderId: orderId, newStatus: "Approved" })
+            })
+            .then(r => r.text()).then(() => { alert("Order Approved!"); loadAdminOrders(); });
         }
     </script>
 </body>
