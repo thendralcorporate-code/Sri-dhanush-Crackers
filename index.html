@@ -2,7 +2,7 @@
 <html lang="ta">
 <head>
     <base target="_top">
-    <meta charset="UTF-8">startPOSCounterSession()
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SaaS Cracker Engine</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -12,9 +12,16 @@
         :root { --primary-color: #8c1d1d; --accent-color: #ffeb3b; }
         body { background: #f4f6f9; font-family: sans-serif; padding-bottom: 180px; }
         .admin-nav { background: #1a202c; color: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; }
-        .header { background: var(--primary-color); color: white; padding: 15px; text-align: center; border-radius: 8px; margin: 10px; }
+        .header { background: var(--primary-color); color: white; padding: 15px; text-align: center; border-radius: 8px; margin: 10px; transition: background 0.3s ease; }
         .header h1 { margin: 0; font-size: 22px; }
         .shop-logo-img { max-height: 70px; display: none; margin-bottom: 5px; }
+
+        /* POS Theme Styling */
+        body.pos-mode { background: #ebf8ff; }
+        body.pos-mode .header { background: #1a365d !important; border-bottom: 4px solid #3182ce; }
+        body.pos-mode .admin-nav { background: #0f172a !important; }
+        .pos-badge { display: none; background: #3182ce; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-top: 5px; }
+        body.pos-mode .pos-badge { display: inline-block; }
 
         .filter-card { background: white; padding: 12px; margin: 10px; border-radius: 8px; border: 1px solid #cbd5e0; }
         .lang-bar { background: white; padding: 8px 12px; border-radius: 8px; margin: 10px; border: 2px solid var(--primary-color); display: flex; justify-content: space-between; align-items: center; }
@@ -43,13 +50,13 @@
         <h6 id="loaderMsg">பட்டாசு கடை விவரங்கள் லோட் ஆகிறது...</h6>
     </div>
 
-   <div class="admin-nav">
-    <span class="fw-bold text-warning" id="navShopTitle">💥 CRACKER STORE</span>
-    <div>
-        <button class="btn btn-sm btn-success fw-bold me-1 py-0" style="font-size:12px;" onclick="openPOSDirectMode()">🏪 POS Counter</button>
-        <button class="btn btn-outline-warning btn-sm py-0" style="font-size:11px;" onclick="openLoginModal()">🔒 Staff Login</button>
+    <div class="admin-nav">
+        <span class="fw-bold text-warning" id="navShopTitle">💥 CRACKER STORE</span>
+        <div>
+            <button class="btn btn-sm btn-success fw-bold me-1 py-0" style="font-size:12px;" onclick="openPOSDirectMode()">🏪 POS Counter</button>
+            <button class="btn btn-outline-warning btn-sm py-0" style="font-size:11px;" onclick="openLoginModal()">🔒 Staff Login</button>
+        </div>
     </div>
-</div>
 
     <div id="customerStoreView">
         <div class="header">
@@ -57,6 +64,7 @@
             <h1 id="hdr_shop_name">CRACKER STORE</h1>
             <p id="hdr_address" class="mb-0">📍 Sivakasi</p>
             <p id="hdr_contacts" class="mb-0">📞 Contact Store</p>
+            <span class="pos-badge">🏪 WALKIN COUNTER BILLING MODE</span>
         </div>
 
         <div class="lang-bar">
@@ -69,12 +77,12 @@
         </div>
 
         <div id="step-1" class="card p-3 m-2">
-            <h6 class="fw-bold text-danger">👤 வாடிக்கையாளர் விவரங்கள்</h6>
+            <h6 class="fw-bold text-danger" id="step1Title">👤 வாடிக்கையாளர் விவரங்கள்</h6>
             <input type="text" id="cust_name" class="form-control form-control-sm mb-2" placeholder="பெயர் (Name) *">
             <input type="tel" id="cust_mobile" class="form-control form-control-sm mb-2" placeholder="மொபைல் எண் (Mobile) *" maxlength="10">
             <textarea id="cust_address" class="form-control form-control-sm mb-2" placeholder="முகவரி (Address)"></textarea>
             <input type="text" id="cust_district" class="form-control form-control-sm mb-2" placeholder="மாவட்டம் (District)">
-            <button class="btn btn-danger w-100 fw-bold" onclick="goToStep2()">பட்டாசு பட்டியல் பார்க்க ➔</button>
+            <button class="btn btn-danger w-100 fw-bold" id="btnGoStep2" onclick="goToStep2()">பட்டாசு பட்டியல் பார்க்க ➔</button>
         </div>
 
         <div id="step-2" style="display:none;">
@@ -205,7 +213,7 @@
         // 🚀 MASTER API URL HERE
         const MASTER_API_URL = "https://script.google.com/macros/s/AKfycby7LQ3ebuBeRAiDX66Z1ax6NBXqyOezHJJOTctbM3ayka1hFAMH_fcod7YpHfjZWYF1/exec";
 
-        let shopConfig = null, rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [];
+        let shopConfig = null, rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], currentSessionType = "Online Customer";
 
         window.onload = function() {
             var host = window.location.hostname || "sridhanushcrackers.in";
@@ -244,6 +252,36 @@
                     renderProducts();
                 });
             });
+        }
+
+        function openPOSDirectMode() {
+            var pin = prompt("🔑 POS Counter Password / PIN டைப் செய்யவும்:");
+            if(!pin) return;
+
+            fetch(MASTER_API_URL + "?action=login&sheetId=" + shopConfig.clientSheetId + "&username=pos&password=" + encodeURIComponent(pin))
+            .then(r => r.text()).then(txt => {
+                var res = JSON.parse(txt);
+                if(res.success) {
+                    currentSessionType = "Walk-in Customer"; // Sets Order Type to Walk-in
+                    document.body.classList.add("pos-mode");
+                    alert("🏪 Walk-in POS Billing Session Started!");
+                    startPOSCounterSession();
+                } else {
+                    alert("❌ தவறான POS Password / PIN!");
+                }
+            });
+        }
+
+        function startPOSCounterSession() {
+            document.getElementById("cust_name").value = "";
+            document.getElementById("cust_mobile").value = "";
+            document.getElementById("cust_district").value = "Local Store";
+            document.getElementById("cust_address").value = "Walk-in Counter";
+
+            document.getElementById("customerStoreView").style.display = "block";
+            document.getElementById("adminPanelView").style.display = "none";
+            document.getElementById("step-1").style.display = "block";
+            document.getElementById("step-2").style.display = "none";
         }
 
         function setupPriceSliderRange() {
@@ -359,10 +397,11 @@
             var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
             var orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
             var name = document.getElementById("cust_name").value.trim();
-            var mobile = document.getElementById("cust_mobile").value.trim();
+            var rawMobile = document.getElementById("cust_mobile").value.replace(/[^0-9]/g, '');
+            var custMobileFormatted = rawMobile.length === 10 ? "91" + rawMobile : rawMobile;
 
             var itemsObj = [];
-            var waMessage = "*NEW ESTIMATE ORDER*\nOrder ID: " + orderId + "\nCustomer: " + name + " (" + mobile + ")\n\n*ITEMS:*\n";
+            var waMessage = "*ESTIMATE BILL - " + shopConfig.shopName + "*\nOrder ID: " + orderId + "\nCustomer: " + name + "\n\n*ITEMS:*\n";
             var pdfTableRows = "", sno = 1;
 
             rawProducts.forEach(p => {
@@ -375,31 +414,35 @@
                     sno++;
                 }
             });
-            waMessage += "\n*TOTAL AMOUNT: ₹" + total + "*";
+            waMessage += "\n*TOTAL AMOUNT: ₹" + total + "*\n\nThank you for shopping with us! 💥";
 
             document.getElementById("billOrderId").innerText = orderId;
             document.getElementById("billDate").innerText = new Date().toLocaleDateString();
             document.getElementById("billCustName").innerText = name;
-            document.getElementById("billCustPhone").innerText = mobile;
+            document.getElementById("billCustPhone").innerText = rawMobile;
             document.getElementById("billItemsBody").innerHTML = pdfTableRows;
             document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN') + ".00";
 
+            // Generate PDF Bill
             html2pdf().set({ margin: 0.5, filename: orderId + '_Invoice.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }).from(document.getElementById('printableBill')).save();
 
             var payload = {
                 shopId: shopConfig.shopId, shopName: shopConfig.shopName,
-                orderId: orderId, name: name, mobile: mobile,
+                orderId: orderId, name: name, mobile: rawMobile,
                 address: document.getElementById("cust_address").value.trim(),
                 district: document.getElementById("cust_district").value.trim(),
-                total: total, orderType: "Online Customer", itemsArray: itemsObj
+                total: total, orderType: currentSessionType, itemsArray: itemsObj
             };
 
             fetch(MASTER_API_URL, {
                 method: "POST", body: JSON.stringify({ action: "saveOrder", clientSheetId: shopConfig.clientSheetId, payload: payload })
             })
             .then(r => r.text()).then(() => {
-                window.open("https://wa.me/" + targetShopWhatsApp + "?text=" + encodeURIComponent(waMessage), "_blank");
-                alert("✅ ஆர்டர் வெற்றிகரமாக அனுப்பப்பட்டது! PDF Bill டவுன்லோட் செய்யப்பட்டுள்ளது.");
+                // Send WhatsApp to Customer & Admin
+                var custUrl = "https://api.whatsapp.com/send?phone=" + custMobileFormatted + "&text=" + encodeURIComponent(waMessage);
+                window.open(custUrl, "_blank");
+
+                alert("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது! PDF பில் டவுன்லோட் செய்யப்பட்டது.");
                 location.reload();
             });
         }
@@ -418,7 +461,6 @@
                     document.getElementById("adminPanelView").style.display = "block";
                     if(userRole === "ADMIN") {
                         document.getElementById("btnProductManage").style.display = "inline-block";
-                        document.getElementById("posToggleBtn").style.display = "inline-block";
                     }
                     bootstrap.Modal.getInstance(document.getElementById("loginModal")).hide();
                     loadAdminOrders();
@@ -529,36 +571,6 @@
             })
             .then(r => r.text()).then(() => alert("Product Updated!"));
         }
-
-        function openPOSDirectMode() {
-    var pin = prompt("🔑 POS Counter Password / PIN டைப் செய்யவும்:");
-    if(!pin) return;
-
-    fetch(MASTER_API_URL + "?action=login&sheetId=" + shopConfig.clientSheetId + "&username=pos&password=" + encodeURIComponent(pin))
-    .then(r => r.text()).then(txt => {
-        var res = JSON.parse(txt);
-        if(res.success) {
-            alert("✅ POS Counter Session Started!");
-            startPOSCounterSession();
-        } else {
-            alert("❌ தவறான POS Password / PIN!");
-        }
-    });
-}
-
-function startPOSCounterSession() {
-    // கஸ்டமர் விவரங்களை டைப் செய்ய ஃபார்ம் காலியாக்கப்படும்
-    document.getElementById("cust_name").value = "";
-    document.getElementById("cust_mobile").value = "";
-    document.getElementById("cust_district").value = "";
-    document.getElementById("cust_address").value = "";
-
-    document.getElementById("customerStoreView").style.display = "block";
-    document.getElementById("adminPanelView").style.display = "none";
-
-    // Step-1 ஃபார்ம் காண்பிக்கப்படும் (பெயர், போன் நம்பர் உள்ளிட)
-    document.getElementById("step-1").style.display = "block";
-    document.getElementById("step-2").style.display = "none";
-}    </script>
+    </script>
 </body>
 </html>
