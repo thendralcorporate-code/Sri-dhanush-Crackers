@@ -68,7 +68,7 @@
         </div>
 
         <div class="lang-bar">
-            <span class="fw-bold text-danger" style="font-size:12px;">🌐 Language:</span>
+            <span class="fw-bold text-danger" style="font-size:12px;" id="lblLang">🌐 Language:</span>
             <div>
                 <button class="lang-btn active" id="btn-both" onclick="setLanguage('both')">தமிழ் + En</button>
                 <button class="lang-btn" id="btn-ta" onclick="setLanguage('ta')">தமிழ்</button>
@@ -89,25 +89,25 @@
             <div class="filter-card">
                 <div class="row g-2 mb-2">
                     <div class="col-8"><input type="text" id="searchInput" class="form-control form-control-sm" placeholder="🔍 தேடுக..." onkeyup="renderProducts()"></div>
-                    <div class="col-4"><button class="btn btn-sm btn-outline-danger w-100 fw-bold" onclick="goToStep1()">✏️ Edit Info</button></div>
+                    <div class="col-4"><button class="btn btn-sm btn-outline-danger w-100 fw-bold" id="btnEditInfo" onclick="goToStep1()">✏️ Edit Info</button></div>
                 </div>
                 <div class="row g-2 mb-2">
                     <div class="col-6">
                         <select id="catSelect" class="form-select form-select-sm" onchange="renderProducts()">
-                            <option value="ALL">அனைத்து பிரிவுகள் (All)</option>
+                            <option value="ALL" id="optAllCat">அனைத்து பிரிவுகள் (All)</option>
                         </select>
                     </div>
                     <div class="col-6">
                         <select id="sortSelect" class="form-select form-select-sm" onchange="renderProducts()">
-                            <option value="DEFAULT">வரிசைப்படுத்து (Default)</option>
-                            <option value="LOW_HIGH">விலை: குறைவிலிருந்து அதிகம்</option>
-                            <option value="HIGH_LOW">விலை: அதிகத்திலிருந்து குறைவு</option>
+                            <option value="DEFAULT" id="optSortDef">வரிசைப்படுத்து (Default)</option>
+                            <option value="LOW_HIGH" id="optSortLow">விலை: குறைவிலிருந்து அதிகம்</option>
+                            <option value="HIGH_LOW" id="optSortHigh">விலை: அதிகத்திலிருந்து குறைவு</option>
                         </select>
                     </div>
                 </div>
                 <div class="mt-2 pt-2 border-top">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <small class="fw-bold text-danger"><i class="fas fa-filter me-1"></i>அதிகபட்ச விலை வரம்பு:</small>
+                        <small class="fw-bold text-danger" id="lblMaxPrice"><i class="fas fa-filter me-1"></i>அதிகபட்ச விலை வரம்பு:</small>
                         <span id="priceRangeValue" class="badge bg-danger">₹ 5000</span>
                     </div>
                     <input type="range" class="form-range" id="priceRange" min="10" max="5000" step="10" value="5000" oninput="updatePriceSlider(this.value)">
@@ -118,10 +118,10 @@
 
             <div class="sticky-footer">
                 <div>
-                    <span style="font-size:11px;">மொத்த தொகை:</span><br>
+                    <span style="font-size:11px;" id="lblGrandTotText">மொத்த தொகை:</span><br>
                     <span id="grand-total" class="fw-bold text-danger fs-5">₹ 0.00</span>
                 </div>
-                <button class="btn btn-success fw-bold" onclick="openReviewModal()">📋 Review Order</button>
+                <button class="btn btn-success fw-bold" id="btnReviewOrder" onclick="openReviewModal()">📋 Review Order</button>
             </div>
         </div>
     </div>
@@ -147,12 +147,31 @@
     <div class="modal fade" id="reviewModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3">
-                <h5 class="fw-bold text-danger">📋 ஆர்டர் விவரங்கள் (Review)</h5>
+                <h5 class="fw-bold text-danger" id="modalReviewTitle">📋 ஆர்டர் விவரங்கள் (Review)</h5>
                 <div id="reviewItemsList" class="my-2" style="max-height:250px; overflow-y:auto;"></div>
                 <div class="fw-bold text-end text-danger fs-5 mb-2">Total: <span id="reviewGrandTotal">₹ 0.00</span></div>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-secondary w-50" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-success w-50 fw-bold" onclick="finalizeOrder()">Submit & Print PDF 🚀</button>
+                    <button class="btn btn-secondary w-50" data-bs-dismiss="modal" id="btnModalCancel">Cancel</button>
+                    <button class="btn btn-success w-50 fw-bold" id="btnModalSubmit" onclick="finalizeOrder()">Submit & Print PDF 🚀</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 💥 Franchise Popup Modal -->
+    <div class="modal fade" id="franchiseModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-3 border-danger">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold text-danger" id="franTitle">💥 பட்டாசு கடை ஆரம்பிக்க விருப்பமா?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted" id="franDesc">சொந்தமாகப் பட்டாசு வியாபாரம் செய்ய விரும்புகிறீர்களா? மொத்த விலையில் பட்டாசு பெற உங்கள் விவரங்களை உள்ளிடவும்.</p>
+                    <input type="text" id="fran_name" class="form-control form-control-sm mb-2" placeholder="உங்கள் பெயர் (Your Name)">
+                    <input type="tel" id="fran_mobile" class="form-control form-control-sm mb-2" placeholder="மொபைல் எண் (Mobile Number)">
+                    <input type="text" id="fran_city" class="form-control form-control-sm mb-3" placeholder="ஊர் / மாவட்டம் (City/District)">
+                    <button class="btn btn-danger w-100 fw-bold" id="btnFranSubmit" onclick="submitFranchiseEnquiry()">தொடர்புகொள்ள ➔</button>
                 </div>
             </div>
         </div>
@@ -283,17 +302,36 @@
                     setupPriceSliderRange();
                     populateCategoryDropdown();
                     renderProducts();
+
+                    // Trigger Franchise Popup after 3 seconds
+                    setTimeout(function() {
+                        if(currentSessionType === "Online Customer") {
+                            new bootstrap.Modal(document.getElementById("franchiseModal")).show();
+                        }
+                    }, 3000);
                 });
             });
         }
 
-        // 🟢 FIX 1: Auto Dynamic Price Slider set to Highest Product Rate
+        function submitFranchiseEnquiry() {
+            var fn = document.getElementById("fran_name").value.trim();
+            var fm = document.getElementById("fran_mobile").value.trim();
+            var fc = document.getElementById("fran_city").value.trim();
+
+            if(!fn || !fm) {
+                alert("பெயர் மற்றும் போன் நம்பர் உள்ளிடவும்!"); return;
+            }
+
+            var msg = "*NEW FRANCHISE / WHOLESALE ENQUIRY*\nShop: " + shopConfig.shopName + "\nName: " + fn + "\nMobile: " + fm + "\nCity: " + fc;
+            window.open("https://api.whatsapp.com/send?phone=" + targetShopWhatsApp + "&text=" + encodeURIComponent(msg), "_blank");
+            bootstrap.Modal.getInstance(document.getElementById("franchiseModal")).hide();
+        }
+
         function setupPriceSliderRange() {
             if(rawProducts.length === 0) return;
             var maxRate = Math.max(...rawProducts.map(p => parseFloat(p.rate) || 0));
             var slider = document.getElementById("priceRange");
-            slider.max = maxRate; 
-            slider.value = maxRate;
+            slider.max = maxRate; slider.value = maxRate;
             document.getElementById("priceRangeValue").innerText = "₹ " + maxRate;
         }
 
@@ -310,7 +348,86 @@
             });
         }
 
-        // 🟢 FIX 2: Strict Language Selection Logic (English / Tamil / Both)
+        // 🟢 FIX: Complete Site-Wide Language Translator Engine
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + lang).classList.add('active');
+
+            if(lang === "en") {
+                document.getElementById("step1Title").innerText = "👤 Customer Details";
+                document.getElementById("cust_name").placeholder = "Name *";
+                document.getElementById("cust_mobile").placeholder = "10 Digit Mobile Number *";
+                document.getElementById("cust_address").placeholder = "Delivery Address";
+                document.getElementById("cust_district").placeholder = "District / City";
+                document.getElementById("btnGoStep2").innerText = "View Cracker List ➔";
+                document.getElementById("searchInput").placeholder = "🔍 Search Crackers...";
+                document.getElementById("btnEditInfo").innerText = "✏️ Edit Info";
+                document.getElementById("optAllCat").innerText = "All Categories";
+                document.getElementById("optSortDef").innerText = "Sort By (Default)";
+                document.getElementById("optSortLow").innerText = "Price: Low to High";
+                document.getElementById("optSortHigh").innerText = "Price: High to Low";
+                document.getElementById("lblMaxPrice").innerHTML = '<i class="fas fa-filter me-1"></i>Max Price Limit:';
+                document.getElementById("lblGrandTotText").innerText = "Grand Total:";
+                document.getElementById("btnReviewOrder").innerText = "📋 Review Order";
+                document.getElementById("modalReviewTitle").innerText = "📋 Order Review";
+                document.getElementById("btnModalCancel").innerText = "Cancel";
+                document.getElementById("btnModalSubmit").innerText = "Submit & Print PDF 🚀";
+                document.getElementById("franTitle").innerText = "💥 Interested to Start Cracker Business?";
+                document.getElementById("franDesc").innerText = "Want to do wholesale cracker business? Enter details to get best prices.";
+                document.getElementById("fran_name").placeholder = "Your Name";
+                document.getElementById("fran_mobile").placeholder = "Mobile Number";
+                document.getElementById("fran_city").placeholder = "City / District";
+                document.getElementById("btnFranSubmit").innerText = "Contact Us ➔";
+            } else if(lang === "ta") {
+                document.getElementById("step1Title").innerText = "👤 வாடிக்கையாளர் விவரங்கள்";
+                document.getElementById("cust_name").placeholder = "பெயர் *";
+                document.getElementById("cust_mobile").placeholder = "10 இலக்க மொபைல் எண் *";
+                document.getElementById("cust_address").placeholder = "முகவரி";
+                document.getElementById("cust_district").placeholder = "மாவட்டம்";
+                document.getElementById("btnGoStep2").innerText = "பட்டாசு பட்டியல் பார்க்க ➔";
+                document.getElementById("searchInput").placeholder = "🔍 தேடுக...";
+                document.getElementById("btnEditInfo").innerText = "✏️ மாற்றுதல்";
+                document.getElementById("optAllCat").innerText = "அனைத்து பிரிவுகள்";
+                document.getElementById("optSortDef").innerText = "வரிசைப்படுத்து";
+                document.getElementById("optSortLow").innerText = "விலை: குறைவிலிருந்து அதிகம்";
+                document.getElementById("optSortHigh").innerText = "விலை: அதிகத்திலிருந்து குறைவு";
+                document.getElementById("lblMaxPrice").innerHTML = '<i class="fas fa-filter me-1"></i>அதிகபட்ச விலை வரம்பு:';
+                document.getElementById("lblGrandTotText").innerText = "மொத்த தொகை:";
+                document.getElementById("btnReviewOrder").innerText = "📋 சரிபார்க்க";
+                document.getElementById("modalReviewTitle").innerText = "📋 ஆர்டர் விவரங்கள்";
+                document.getElementById("btnModalCancel").innerText = "ரத்து செய்க";
+                document.getElementById("btnModalSubmit").innerText = "சப்மிட் செய்க 🚀";
+                document.getElementById("franTitle").innerText = "💥 பட்டாசு கடை ஆரம்பிக்க விருப்பமா?";
+                document.getElementById("franDesc").innerText = "சொந்தமாகப் பட்டாசு வியாபாரம் செய்ய விரும்புகிறீர்களா? மொத்த விலையில் பட்டாசு பெற உங்கள் விவரங்களை உள்ளிடவும்.";
+                document.getElementById("fran_name").placeholder = "உங்கள் பெயர்";
+                document.getElementById("fran_mobile").placeholder = "மொபைல் எண்";
+                document.getElementById("fran_city").placeholder = "ஊர் / மாவட்டம்";
+                document.getElementById("btnFranSubmit").innerText = "தொடர்புகொள்ள ➔";
+            } else {
+                document.getElementById("step1Title").innerText = "👤 வாடிக்கையாளர் விவரங்கள் (Customer Info)";
+                document.getElementById("cust_name").placeholder = "பெயர் (Name) *";
+                document.getElementById("cust_mobile").placeholder = "10 இலக்க மொபைல் எண் (Mobile) *";
+                document.getElementById("cust_address").placeholder = "முகவரி (Address)";
+                document.getElementById("cust_district").placeholder = "மாவட்டம் (District)";
+                document.getElementById("btnGoStep2").innerText = "பட்டாசு பட்டியல் பார்க்க ➔";
+                document.getElementById("searchInput").placeholder = "🔍 தேடுக / Search...";
+                document.getElementById("btnEditInfo").innerText = "✏️ Edit Info";
+                document.getElementById("optAllCat").innerText = "அனைத்து பிரிவுகள் (All)";
+                document.getElementById("optSortDef").innerText = "வரிசைப்படுத்து (Default)";
+                document.getElementById("optSortLow").innerText = "விலை: குறைவிலிருந்து அதிகம்";
+                document.getElementById("optSortHigh").innerText = "விலை: அதிகத்திலிருந்து குறைவு";
+                document.getElementById("lblMaxPrice").innerHTML = '<i class="fas fa-filter me-1"></i>அதிகபட்ச விலை வரம்பு:';
+                document.getElementById("lblGrandTotText").innerText = "மொத்த தொகை:";
+                document.getElementById("btnReviewOrder").innerText = "📋 Review Order";
+                document.getElementById("modalReviewTitle").innerText = "📋 ஆர்டர் விவரங்கள் (Review)";
+                document.getElementById("btnModalCancel").innerText = "Cancel";
+                document.getElementById("btnModalSubmit").innerText = "Submit & Print PDF 🚀";
+            }
+
+            renderProducts();
+        }
+
         function renderProducts() {
             var container = document.getElementById("items-container");
             var searchTxt = document.getElementById("searchInput").value.toLowerCase();
@@ -357,13 +474,6 @@
             container.innerHTML = html || "<div class='p-4 text-center text-muted'>பொருட்கள் எதுவும் கிடைக்கவில்லை!</div>";
         }
 
-        function setLanguage(lang) {
-            currentLang = lang;
-            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-' + lang).classList.add('active');
-            renderProducts();
-        }
-
         function updateQty(id, val) {
             selectedQty[id] = parseInt(val) || 0;
             renderProducts();
@@ -376,19 +486,12 @@
             document.getElementById("grand-total").innerText = "₹ " + tot.toLocaleString('en-IN') + ".00";
         }
 
-        // 🟢 FIX 3: Strict 10-Digit Mobile Number Validation
         function goToStep2() {
             var name = document.getElementById("cust_name").value.trim();
             var mobile = document.getElementById("cust_mobile").value.trim().replace(/[^0-9]/g, '');
 
-            if(!name) {
-                alert("⚠️ தயவுசெய்து உங்கள் பெயரை உள்ளிடவும்!"); 
-                return;
-            }
-            if(mobile.length !== 10) {
-                alert("⚠️ தயவுசெய்து சரியான 10 இலக்க மொபைல் எண்ணை உள்ளிடவும்!"); 
-                return;
-            }
+            if(!name) { alert("⚠️ தயவுசெய்து உங்கள் பெயரை உள்ளிடவும்!"); return; }
+            if(mobile.length !== 10) { alert("⚠️ தயவுசெய்து சரியான 10 இலக்க மொபைல் எண்ணை உள்ளிடவும்!"); return; }
 
             document.getElementById("step-1").style.display = "none";
             document.getElementById("step-2").style.display = "block";
@@ -399,7 +502,6 @@
             document.getElementById("step-2").style.display = "none";
         }
 
-        // 🟢 FIX 4: Minimum Order Value ₹2000 Check for Online Orders Only
         function openReviewModal() {
             var html = "<table class='table table-sm'>", tot = 0;
             rawProducts.forEach(p => {
@@ -411,12 +513,8 @@
             });
             html += "</table>";
 
-            if(tot <= 0) { 
-                alert("⚠️ தயவுசெய்து ஏதேனும் பட்டாசுகளைத் தேர்ந்தெடுக்கவும்!"); 
-                return; 
-            }
+            if(tot <= 0) { alert("⚠️ தயவுசெய்து ஏதேனும் பட்டாசுகளைத் தேர்ந்தெடுக்கவும்!"); return; }
 
-            // Online Order Minimum Limit Rule
             if(currentSessionType === "Online Customer" && tot < 2000) {
                 alert("⚠️ ஆன்லைன் ஆர்டர்களுக்கு குறைந்தபட்ச தொகை ₹2,000 இருக்க வேண்டும்!\n\nதற்போதைய தொகை: ₹" + tot);
                 return;
@@ -439,9 +537,7 @@
                     document.body.classList.add("pos-mode");
                     alert("🏪 Walk-in POS Billing Session Started!");
                     startPOSCounterSession();
-                } else {
-                    alert("❌ தவறான POS Password / PIN!");
-                }
+                } else { alert("❌ தவறான POS Password / PIN!"); }
             });
         }
 
