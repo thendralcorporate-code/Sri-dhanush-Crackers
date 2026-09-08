@@ -40,7 +40,7 @@
         .order-card.pending { border-left-color: #e53e3e; background: #fff5f5; }
         .order-card.approved { border-left-color: #38a169; background: #ffffff; }
 
-        #hiddenBillWrap { position: absolute; left: -9999px; top: 0; width: 600px; background: white; padding: 20px; }
+        #hiddenBillWrap { position: absolute; left: -9999px; top: 0; width: 650px; background: white; padding: 20px; }
     </style>
 </head>
 <body>
@@ -79,7 +79,7 @@
         <div id="step-1" class="card p-3 m-2">
             <h6 class="fw-bold text-danger" id="step1Title">👤 வாடிக்கையாளர் விவரங்கள்</h6>
             <input type="text" id="cust_name" class="form-control form-control-sm mb-2" placeholder="பெயர் (Name) *">
-            <input type="tel" id="cust_mobile" class="form-control form-control-sm mb-2" placeholder="மொபைல் எண் (Mobile) *" maxlength="10">
+            <input type="tel" id="cust_mobile" class="form-control form-control-sm mb-2" placeholder="10 இலக்க மொபைல் எண் (Mobile) *" maxlength="10">
             <textarea id="cust_address" class="form-control form-control-sm mb-2" placeholder="முகவரி (Address)"></textarea>
             <input type="text" id="cust_district" class="form-control form-control-sm mb-2" placeholder="மாவட்டம் (District)">
             <button class="btn btn-danger w-100 fw-bold" id="btnGoStep2" onclick="goToStep2()">பட்டாசு பட்டியல் பார்க்க ➔</button>
@@ -194,49 +194,50 @@
     </div>
 
     <!-- Printable PDF Professional Layout -->
-<div id="hiddenBillWrap">
-    <div id="printableBill" style="padding: 25px; font-family: 'Helvetica', 'Arial', sans-serif; color: #2d3748; background: #ffffff;">
-        <div style="text-align: center; border-bottom: 2px solid #8c1d1d; padding-bottom: 10px; margin-bottom: 15px;">
-            <h2 id="pdfShopTitle" style="color: #8c1d1d; margin: 0; font-weight: bold; font-size: 24px;">SRI DHANUSH CRACKERS</h2>
-            <p id="pdfShopSubtitle" style="margin: 2px 0; font-size: 12px; color: #4a5568; font-weight: bold;">Sri Dhanush Crackers - Sivakasi | Customer Order Estimate</p>
-            <p id="pdfShopAddress" style="margin: 2px 0; font-size: 11px; color: #718096;">6/360, RCC BUILDING, Anuppankulam, Sattur Road, Sivakasi | Mob: 9080329266, 9976708194</p>
-        </div>
-
-        <div style="background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 15px; margin-bottom: 15px; display: flex; justify-content: space-between; font-size: 12px;">
-            <div>
-                <p style="margin: 3px 0;"><b>Order ID:</b> <span id="billOrderId"></span></p>
-                <p style="margin: 3px 0;"><b>Customer Name:</b> <span id="billCustName"></span></p>
-                <p style="margin: 3px 0;"><b>Mobile Number:</b> <span id="billCustPhone"></span></p>
+    <div id="hiddenBillWrap">
+        <div id="printableBill" style="padding: 20px; font-family: 'Helvetica', 'Arial', sans-serif; color: #2d3748; background: #ffffff;">
+            <div style="text-align: center; border-bottom: 2px solid #8c1d1d; padding-bottom: 10px; margin-bottom: 15px;">
+                <h2 id="pdfShopTitle" style="color: #8c1d1d; margin: 0; font-weight: bold; font-size: 24px;">SRI DHANUSH CRACKERS</h2>
+                <p id="pdfShopSubtitle" style="margin: 2px 0; font-size: 12px; color: #4a5568; font-weight: bold;">Sri Dhanush Crackers - Sivakasi | Customer Order Estimate</p>
+                <p id="pdfShopAddress" style="margin: 2px 0; font-size: 11px; color: #718096;">6/360, RCC BUILDING, Anuppankulam, Sattur Road, Sivakasi | Mob: 9080329266, 9976708194</p>
             </div>
-            <div style="text-align: right;">
-                <p style="margin: 3px 0;"><b>Date:</b> <span id="billDate"></span></p>
-                <p style="margin: 3px 0;"><b>Order Mode:</b> <span id="billOrderType">Online Order</span></p>
-                <p style="margin: 3px 0;"><b>Address:</b> <span id="billCustAddress"></span></p>
+
+            <div style="background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 15px; margin-bottom: 15px; display: flex; justify-content: space-between; font-size: 12px;">
+                <div>
+                    <p style="margin: 3px 0;"><b>Order ID:</b> <span id="billOrderId"></span></p>
+                    <p style="margin: 3px 0;"><b>Customer Name:</b> <span id="billCustName"></span></p>
+                    <p style="margin: 3px 0;"><b>Mobile Number:</b> <span id="billCustPhone"></span></p>
+                </div>
+                <div style="text-align: right;">
+                    <p style="margin: 3px 0;"><b>Date:</b> <span id="billDate"></span></p>
+                    <p style="margin: 3px 0;"><b>Order Mode:</b> <span id="billOrderType">Online Order</span></p>
+                    <p style="margin: 3px 0;"><b>Address:</b> <span id="billCustAddress"></span></p>
+                </div>
             </div>
-        </div>
 
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
-            <thead>
-                <tr style="background: #8c1d1d; color: #ffffff; text-align: left;">
-                    <th style="padding: 8px; border: 1px solid #8c1d1d; width: 40px; text-align: center;">S.No</th>
-                    <th style="padding: 8px; border: 1px solid #8c1d1d;">Item Name Description</th>
-                    <th style="padding: 8px; border: 1px solid #8c1d1d; width: 50px; text-align: center;">Qty</th>
-                    <th style="padding: 8px; border: 1px solid #8c1d1d; width: 80px; text-align: right;">Rate (Rs)</th>
-                    <th style="padding: 8px; border: 1px solid #8c1d1d; width: 90px; text-align: right;">Total (Rs)</th>
-                </tr>
-            </thead>
-            <tbody id="billItemsBody"></tbody>
-        </table>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
+                <thead>
+                    <tr style="background: #8c1d1d; color: #ffffff; text-align: left;">
+                        <th style="padding: 8px; border: 1px solid #8c1d1d; width: 40px; text-align: center;">S.No</th>
+                        <th style="padding: 8px; border: 1px solid #8c1d1d;">Item Name Description</th>
+                        <th style="padding: 8px; border: 1px solid #8c1d1d; width: 50px; text-align: center;">Qty</th>
+                        <th style="padding: 8px; border: 1px solid #8c1d1d; width: 80px; text-align: right;">Rate (Rs)</th>
+                        <th style="padding: 8px; border: 1px solid #8c1d1d; width: 90px; text-align: right;">Total (Rs)</th>
+                    </tr>
+                </thead>
+                <tbody id="billItemsBody"></tbody>
+            </table>
 
-        <div style="text-align: right; margin-top: 15px; padding-top: 10px; border-top: 2px dashed #cbd5e0;">
-            <h3 style="margin: 0; color: #8c1d1d; font-size: 18px;">ESTIMATE TOTAL: Rs. <span id="billGrandTotal">0.00</span></h3>
-        </div>
+            <div style="text-align: right; margin-top: 15px; padding-top: 10px; border-top: 2px dashed #cbd5e0;">
+                <h3 style="margin: 0; color: #8c1d1d; font-size: 18px;">ESTIMATE TOTAL: Rs. <span id="billGrandTotal">0.00</span></h3>
+            </div>
 
-        <div style="text-align: center; margin-top: 25px; padding-top: 10px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #718096; font-style: italic;">
-            *** Thank you for your order! Wish you a happy Diwali! ***
+            <div style="text-align: center; margin-top: 25px; padding-top: 10px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #718096; font-style: italic;">
+                *** Thank you for your order! Wish you a happy Diwali! ***
+            </div>
         </div>
     </div>
-</div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // 🚀 MASTER API URL HERE
@@ -267,7 +268,10 @@
                     document.getElementById("navShopTitle").innerText = st.ShopName;
                     document.getElementById("pdfShopTitle").innerText = st.ShopName;
                 }
-                if(st.Address) document.getElementById("hdr_address").innerText = st.Address;
+                if(st.Address) {
+                    document.getElementById("hdr_address").innerText = st.Address;
+                    document.getElementById("pdfShopAddress").innerText = st.Address;
+                }
                 if(st.ContactNumbers) document.getElementById("hdr_contacts").innerText = st.ContactNumbers;
                 if(st.WhatsAppNumber) targetShopWhatsApp = st.WhatsAppNumber.replace(/[^0-9]/g, '');
                 if(st.PrimaryColor) document.documentElement.style.setProperty('--primary-color', st.PrimaryColor);
@@ -283,41 +287,13 @@
             });
         }
 
-        function openPOSDirectMode() {
-            var pin = prompt("🔑 POS Counter Password / PIN டைப் செய்யவும்:");
-            if(!pin) return;
-
-            fetch(MASTER_API_URL + "?action=login&sheetId=" + shopConfig.clientSheetId + "&username=pos&password=" + encodeURIComponent(pin))
-            .then(r => r.text()).then(txt => {
-                var res = JSON.parse(txt);
-                if(res.success) {
-                    currentSessionType = "Walk-in Customer"; // Sets Order Type to Walk-in
-                    document.body.classList.add("pos-mode");
-                    alert("🏪 Walk-in POS Billing Session Started!");
-                    startPOSCounterSession();
-                } else {
-                    alert("❌ தவறான POS Password / PIN!");
-                }
-            });
-        }
-
-        function startPOSCounterSession() {
-            document.getElementById("cust_name").value = "";
-            document.getElementById("cust_mobile").value = "";
-            document.getElementById("cust_district").value = "Local Store";
-            document.getElementById("cust_address").value = "Walk-in Counter";
-
-            document.getElementById("customerStoreView").style.display = "block";
-            document.getElementById("adminPanelView").style.display = "none";
-            document.getElementById("step-1").style.display = "block";
-            document.getElementById("step-2").style.display = "none";
-        }
-
+        // 🟢 FIX 1: Auto Dynamic Price Slider set to Highest Product Rate
         function setupPriceSliderRange() {
             if(rawProducts.length === 0) return;
-            var maxRate = Math.max(...rawProducts.map(p => p.rate));
+            var maxRate = Math.max(...rawProducts.map(p => parseFloat(p.rate) || 0));
             var slider = document.getElementById("priceRange");
-            slider.max = maxRate; slider.value = maxRate;
+            slider.max = maxRate; 
+            slider.value = maxRate;
             document.getElementById("priceRangeValue").innerText = "₹ " + maxRate;
         }
 
@@ -334,6 +310,7 @@
             });
         }
 
+        // 🟢 FIX 2: Strict Language Selection Logic (English / Tamil / Both)
         function renderProducts() {
             var container = document.getElementById("items-container");
             var searchTxt = document.getElementById("searchInput").value.toLowerCase();
@@ -344,7 +321,7 @@
             var filtered = rawProducts.filter(item => {
                 if(selectedCat !== "ALL" && item.category !== selectedCat) return false;
                 if(item.rate > maxPriceLimit) return false;
-                return item.eng.toLowerCase().includes(searchTxt) || item.tam.includes(searchTxt);
+                return (item.eng && item.eng.toLowerCase().includes(searchTxt)) || (item.tam && item.tam.includes(searchTxt));
             });
 
             if(sortVal === "LOW_HIGH") filtered.sort((a, b) => a.rate - b.rate);
@@ -356,9 +333,15 @@
                     currCat = item.category;
                     html += '<div class="cat-title">' + currCat + '</div>';
                 }
+                
                 var titleDisplay = item.eng;
-                if(currentLang === "ta") titleDisplay = item.tam;
-                else if(currentLang === "both") titleDisplay = item.eng + ' <small class="text-muted">(' + item.tam + ')</small>';
+                if(currentLang === "ta") {
+                    titleDisplay = item.tam || item.eng;
+                } else if(currentLang === "en") {
+                    titleDisplay = item.eng;
+                } else if(currentLang === "both") {
+                    titleDisplay = item.eng + (item.tam ? ' <small class="text-muted">(' + item.tam + ')</small>' : '');
+                }
 
                 var q = selectedQty[item.id] || 0;
                 var rowTot = q * item.rate;
@@ -393,10 +376,20 @@
             document.getElementById("grand-total").innerText = "₹ " + tot.toLocaleString('en-IN') + ".00";
         }
 
+        // 🟢 FIX 3: Strict 10-Digit Mobile Number Validation
         function goToStep2() {
-            if(!document.getElementById("cust_name").value || !document.getElementById("cust_mobile").value) {
-                alert("பெயர் மற்றும் போன் நம்பர் உள்ளிடவும்!"); return;
+            var name = document.getElementById("cust_name").value.trim();
+            var mobile = document.getElementById("cust_mobile").value.trim().replace(/[^0-9]/g, '');
+
+            if(!name) {
+                alert("⚠️ தயவுசெய்து உங்கள் பெயரை உள்ளிடவும்!"); 
+                return;
             }
+            if(mobile.length !== 10) {
+                alert("⚠️ தயவுசெய்து சரியான 10 இலக்க மொபைல் எண்ணை உள்ளிடவும்!"); 
+                return;
+            }
+
             document.getElementById("step-1").style.display = "none";
             document.getElementById("step-2").style.display = "block";
         }
@@ -406,6 +399,7 @@
             document.getElementById("step-2").style.display = "none";
         }
 
+        // 🟢 FIX 4: Minimum Order Value ₹2000 Check for Online Orders Only
         function openReviewModal() {
             var html = "<table class='table table-sm'>", tot = 0;
             rawProducts.forEach(p => {
@@ -416,92 +410,121 @@
                 }
             });
             html += "</table>";
-            if(tot <= 0) { alert("பட்டாசுகளைத் தேர்ந்தெடுக்கவும்!"); return; }
+
+            if(tot <= 0) { 
+                alert("⚠️ தயவுசெய்து ஏதேனும் பட்டாசுகளைத் தேர்ந்தெடுக்கவும்!"); 
+                return; 
+            }
+
+            // Online Order Minimum Limit Rule
+            if(currentSessionType === "Online Customer" && tot < 2000) {
+                alert("⚠️ ஆன்லைன் ஆர்டர்களுக்கு குறைந்தபட்ச தொகை ₹2,000 இருக்க வேண்டும்!\n\nதற்போதைய தொகை: ₹" + tot);
+                return;
+            }
+
             document.getElementById("reviewItemsList").innerHTML = html;
-            document.getElementById("reviewGrandTotal").innerText = "₹ " + tot;
+            document.getElementById("reviewGrandTotal").innerText = "₹ " + tot.toLocaleString('en-IN');
             new bootstrap.Modal(document.getElementById("reviewModal")).show();
         }
 
-        function finalizeOrder() {
-    var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
-    var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
-    var name = document.getElementById("cust_name").value.trim();
-    var rawMobile = document.getElementById("cust_mobile").value.replace(/[^0-9]/g, '');
-    var custMobileFormatted = rawMobile.length === 10 ? "91" + rawMobile : rawMobile;
-    var address = document.getElementById("cust_address").value.trim() || "N/A";
+        function openPOSDirectMode() {
+            var pin = prompt("🔑 POS Counter Password / PIN டைப் செய்யவும்:");
+            if(!pin) return;
 
-    var itemsObj = [];
-    var waMessage = "*SRI DHANUSH CRACKERS - ESTIMATE BILL*\nOrder ID: " + orderId + "\nCustomer: " + name + "\n\n*ITEMS:*\n";
-    var pdfTableRows = "", sno = 1;
-
-    rawProducts.forEach(p => {
-        var q = selectedQty[p.id] || 0;
-        if(q > 0) {
-            var tot = q * p.rate;
-            itemsObj.push({ id: p.id, name: p.eng, qty: q, rate: p.rate, total: tot });
-            waMessage += sno + ". " + p.eng + " x " + q + " = ₹" + tot + "\n";
-            pdfTableRows += `<tr style="border-bottom: 1px solid #e2e8f0;">
-                <td style="padding: 6px; text-align: center;">${sno}</td>
-                <td style="padding: 6px;"><b>${p.eng}</b></td>
-                <td style="padding: 6px; text-align: center;">${q}</td>
-                <td style="padding: 6px; text-align: right;">Rs. ${p.rate.toFixed(2)}</td>
-                <td style="padding: 6px; text-align: right;">Rs. ${tot.toFixed(2)}</td>
-            </tr>`;
-            sno++;
+            fetch(MASTER_API_URL + "?action=login&sheetId=" + shopConfig.clientSheetId + "&username=pos&password=" + encodeURIComponent(pin))
+            .then(r => r.text()).then(txt => {
+                var res = JSON.parse(txt);
+                if(res.success) {
+                    currentSessionType = "Walk-in Customer";
+                    document.body.classList.add("pos-mode");
+                    alert("🏪 Walk-in POS Billing Session Started!");
+                    startPOSCounterSession();
+                } else {
+                    alert("❌ தவறான POS Password / PIN!");
+                }
+            });
         }
-    });
-    waMessage += "\n*ESTIMATE TOTAL: ₹" + total.toLocaleString('en-IN') + "*\n\n*** Thank you for your order! Wish you a happy Diwali! ***";
 
-    // Populate Printable Elements
-    document.getElementById("billOrderId").innerText = orderId;
-    document.getElementById("billDate").innerText = new Date().toLocaleDateString();
-    document.getElementById("billCustName").innerText = name;
-    document.getElementById("billCustPhone").innerText = rawMobile;
-    document.getElementById("billCustAddress").innerText = address;
-    document.getElementById("billOrderType").innerText = currentSessionType;
-    document.getElementById("billItemsBody").innerHTML = pdfTableRows;
-    document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN');
+        function startPOSCounterSession() {
+            document.getElementById("cust_name").value = "";
+            document.getElementById("cust_mobile").value = "";
+            document.getElementById("cust_district").value = "Local Store";
+            document.getElementById("cust_address").value = "Walk-in Counter";
 
-    // PDF Generation with High Quality Render Delay
-    setTimeout(function() {
-        var element = document.getElementById('printableBill');
-        var opt = {
-            margin:       0.3,
-            filename:     'Sri_Dhanush_Crackers_Estimate_' + orderId + '.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, logging: false },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save();
-    }, 200);
+            document.getElementById("customerStoreView").style.display = "block";
+            document.getElementById("adminPanelView").style.display = "none";
+            document.getElementById("step-1").style.display = "block";
+            document.getElementById("step-2").style.display = "none";
+        }
 
-    var payload = {
-        shopId: shopConfig.shopId, shopName: shopConfig.shopName,
-        orderId: orderId, name: name, mobile: rawMobile,
-        address: address, district: document.getElementById("cust_district").value.trim(),
-        total: total, orderType: currentSessionType, itemsArray: itemsObj
-    };
+        function finalizeOrder() {
+            var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
+            var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
+            var name = document.getElementById("cust_name").value.trim();
+            var rawMobile = document.getElementById("cust_mobile").value.replace(/[^0-9]/g, '');
+            var custMobileFormatted = rawMobile.length === 10 ? "91" + rawMobile : rawMobile;
+            var address = document.getElementById("cust_address").value.trim() || "N/A";
 
-    fetch(MASTER_API_URL, {
-        method: "POST", body: JSON.stringify({ action: "saveOrder", clientSheetId: shopConfig.clientSheetId, payload: payload })
-    })
-    .then(r => r.text()).then(() => {
-        var custUrl = "https://api.whatsapp.com/send?phone=" + custMobileFormatted + "&text=" + encodeURIComponent(waMessage);
-        window.open(custUrl, "_blank");
+            var itemsObj = [];
+            var waMessage = "*SRI DHANUSH CRACKERS - ESTIMATE BILL*\nOrder ID: " + orderId + "\nCustomer: " + name + "\n\n*ITEMS:*\n";
+            var pdfTableRows = "", sno = 1;
 
-        alert("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது! PDF Bill டவுன்லோட் செய்யப்பட்டது.");
-        location.reload();
-    });
+            rawProducts.forEach(p => {
+                var q = selectedQty[p.id] || 0;
+                if(q > 0) {
+                    var tot = q * p.rate;
+                    itemsObj.push({ id: p.id, name: p.eng, qty: q, rate: p.rate, total: tot });
+                    waMessage += sno + ". " + p.eng + " x " + q + " = ₹" + tot + "\n";
+                    pdfTableRows += '<tr style="border-bottom: 1px solid #e2e8f0;">' +
+                        '<td style="padding: 6px; text-align: center;">' + sno + '</td>' +
+                        '<td style="padding: 6px;"><b>' + p.eng + '</b></td>' +
+                        '<td style="padding: 6px; text-align: center;">' + q + '</td>' +
+                        '<td style="padding: 6px; text-align: right;">Rs. ' + p.rate.toFixed(2) + '</td>' +
+                        '<td style="padding: 6px; text-align: right;">Rs. ' + tot.toFixed(2) + '</td>' +
+                    '</tr>';
+                    sno++;
+                }
+            });
+            waMessage += "\n*ESTIMATE TOTAL: ₹" + total.toLocaleString('en-IN') + "*\n\n*** Thank you for your order! Wish you a happy Diwali! ***";
+
+            document.getElementById("billOrderId").innerText = orderId;
+            document.getElementById("billDate").innerText = new Date().toLocaleDateString();
+            document.getElementById("billCustName").innerText = name;
+            document.getElementById("billCustPhone").innerText = rawMobile;
+            document.getElementById("billCustAddress").innerText = address;
+            document.getElementById("billOrderType").innerText = currentSessionType;
+            document.getElementById("billItemsBody").innerHTML = pdfTableRows;
+            document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN');
+
+            setTimeout(function() {
+                var element = document.getElementById('printableBill');
+                var opt = {
+                    margin:       0.3,
+                    filename:     'Sri_Dhanush_Crackers_Estimate_' + orderId + '.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, logging: false },
+                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save();
+            }, 200);
+
+            var payload = {
+                shopId: shopConfig.shopId, shopName: shopConfig.shopName,
+                orderId: orderId, name: name, mobile: rawMobile,
+                address: address, district: document.getElementById("cust_district").value.trim(),
+                total: total, orderType: currentSessionType, itemsArray: itemsObj
+            };
+
             fetch(MASTER_API_URL, {
                 method: "POST", body: JSON.stringify({ action: "saveOrder", clientSheetId: shopConfig.clientSheetId, payload: payload })
             })
             .then(r => r.text()).then(() => {
-                // Send WhatsApp to Customer & Admin
-                var custUrl = "https://api.whatsapp.com/send?phone=" + custMobileFormatted + "&text=" + encodeURIComponent(waMessage);
-                window.open(custUrl, "_blank");
-
-                alert("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது! PDF பில் டவுன்லோட் செய்யப்பட்டது.");
-                location.reload();
+                var waUrl = "https://api.whatsapp.com/send?phone=" + custMobileFormatted + "&text=" + encodeURIComponent(waMessage);
+                if (confirm("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது! PDF Bill டவுன்லோட் செய்யப்பட்டது.\n\nWhatsApp-ல் பில் அனுப்ப 'OK' அழுத்தவும்.")) {
+                    window.location.href = waUrl;
+                } else {
+                    location.reload();
+                }
             });
         }
 
