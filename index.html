@@ -43,13 +43,13 @@
         <h6 id="loaderMsg">பட்டாசு கடை விவரங்கள் லோட் ஆகிறது...</h6>
     </div>
 
-    <div class="admin-nav">
-        <span class="fw-bold text-warning" id="navShopTitle">💥 CRACKER STORE</span>
-        <div>
-            <button id="posToggleBtn" class="btn btn-sm btn-outline-light me-1" style="display:none;" onclick="togglePOSMode()">🏪 POS Counter</button>
-            <button class="btn btn-outline-warning btn-sm py-0" style="font-size:11px;" onclick="openLoginModal()">🔒 Staff Login</button>
-        </div>
+   <div class="admin-nav">
+    <span class="fw-bold text-warning" id="navShopTitle">💥 CRACKER STORE</span>
+    <div>
+        <button class="btn btn-sm btn-success fw-bold me-1 py-0" style="font-size:12px;" onclick="openPOSDirectMode()">🏪 POS Counter</button>
+        <button class="btn btn-outline-warning btn-sm py-0" style="font-size:11px;" onclick="openLoginModal()">🔒 Staff Login</button>
     </div>
+</div>
 
     <div id="customerStoreView">
         <div class="header">
@@ -530,14 +530,33 @@
             .then(r => r.text()).then(() => alert("Product Updated!"));
         }
 
-        function togglePOSMode() {
-            document.getElementById("adminPanelView").style.display = "none";
-            document.getElementById("customerStoreView").style.display = "block";
-            document.getElementById("cust_name").value = "Walk-in Counter";
-            document.getElementById("cust_mobile").value = "9999999999";
-            document.getElementById("cust_district").value = "Local";
-            goToStep2();
+        function openPOSDirectMode() {
+    var pin = prompt("🔑 POS Counter Password / PIN டைப் செய்யவும்:");
+    if(!pin) return;
+
+    fetch(MASTER_API_URL + "?action=login&sheetId=" + shopConfig.clientSheetId + "&username=pos&password=" + encodeURIComponent(pin))
+    .then(r => r.text()).then(txt => {
+        var res = JSON.parse(txt);
+        if(res.success) {
+            alert("✅ POS Counter Session Started!");
+            startPOSCounterSession();
+        } else {
+            alert("❌ தவறான POS Password / PIN!");
         }
+    });
+}
+
+function startPOSCounterSession() {
+    document.getElementById("cust_name").value = "Walk-in Counter";
+    document.getElementById("cust_mobile").value = "9999999999";
+    document.getElementById("cust_district").value = "Local Store";
+    document.getElementById("cust_address").value = "Counter Sale";
+
+    document.getElementById("customerStoreView").style.display = "block";
+    document.getElementById("adminPanelView").style.display = "none";
+    document.getElementById("step-1").style.display = "none";
+    document.getElementById("step-2").style.display = "block";
+}
     </script>
 </body>
 </html>
