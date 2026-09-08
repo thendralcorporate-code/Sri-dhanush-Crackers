@@ -29,7 +29,7 @@
         .lang-btn.active { background: var(--primary-color); color: white; }
 
         .item-card { background: white; border: 1px solid #cbd5e0; padding: 10px; border-radius: 8px; margin: 0 10px 8px 10px; display: flex; justify-content: space-between; align-items: center; }
-        .qty-input { width: 55px; text-align: center; font-weight: bold; border: 2px solid #3182ce; border-radius: 5px; }
+        .qty-input { width: 60px; text-align: center; font-weight: bold; border: 2px solid #3182ce; border-radius: 5px; }
         .row-total { color: var(--primary-color); font-weight: bold; font-size: 13px; min-width: 65px; text-align: right; }
         .cat-title { background: #feebc8; color: #742a2a; padding: 6px 10px; font-weight: bold; border-radius: 6px; margin: 10px; border-left: 4px solid #dd6b20; text-transform: uppercase; }
 
@@ -40,7 +40,8 @@
         .order-card.pending { border-left-color: #e53e3e; background: #fff5f5; }
         .order-card.approved { border-left-color: #38a169; background: #ffffff; }
 
-        #hiddenBillWrap { position: absolute; left: -9999px; top: 0; width: 650px; background: white; padding: 20px; }
+        /* 🟢 PDF Layout Render Fix */
+        #hiddenBillWrap { position: fixed; top: 0; left: 0; width: 700px; z-index: -9999; opacity: 0; pointer-events: none; background: white; }
     </style>
 </head>
 <body>
@@ -164,14 +165,17 @@
             <div class="modal-content p-3 border-danger">
                 <div class="modal-header border-0 pb-0">
                     <h5 class="fw-bold text-danger" id="franTitle">💥 பட்டாசு கடை ஆரம்பிக்க விருப்பமா?</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <p class="small text-muted" id="franDesc">சொந்தமாகப் பட்டாசு வியாபாரம் செய்ய விரும்புகிறீர்களா? மொத்த விலையில் பட்டாசு பெற உங்கள் விவரங்களை உள்ளிடவும்.</p>
                     <input type="text" id="fran_name" class="form-control form-control-sm mb-2" placeholder="உங்கள் பெயர் (Your Name)">
-                    <input type="tel" id="fran_mobile" class="form-control form-control-sm mb-2" placeholder="மொபைல் எண் (Mobile Number)">
+                    <input type="tel" id="fran_mobile" class="form-control form-control-sm mb-2" placeholder="மொபைல் எண் (Mobile Number)" maxlength="10">
                     <input type="text" id="fran_city" class="form-control form-control-sm mb-3" placeholder="ஊர் / மாவட்டம் (City/District)">
-                    <button class="btn btn-danger w-100 fw-bold" id="btnFranSubmit" onclick="submitFranchiseEnquiry()">தொடர்புகொள்ள ➔</button>
+                    
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary w-50 fw-bold" onclick="handleFranchiseChoice(false)">இல்லை (No) ❌</button>
+                        <button class="btn btn-danger w-50 fw-bold" id="btnFranSubmit" onclick="handleFranchiseChoice(true)">ஆம் (Yes) ➔</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -278,47 +282,32 @@
             });
         };
 
-        // ❌ பழைய setTimeout பகுதியை நீக்கிவிடவும்.
-// ✅ புதிய loadShopSettingsAndProducts ஃபங்க்ஷன்:
-function loadShopSettingsAndProducts() {
-    fetch(MASTER_API_URL + "?action=getSettings&sheetId=" + shopConfig.clientSheetId)
-    .then(r => r.text()).then(stTxt => {
-        var st = JSON.parse(stTxt);
-        if(st.ShopName) {
-            document.getElementById("hdr_shop_name").innerText = st.ShopName;
-            document.getElementById("navShopTitle").innerText = st.ShopName;
-            document.getElementById("pdfShopTitle").innerText = st.ShopName;
-        }
-        if(st.Address) {
-            document.getElementById("hdr_address").innerText = st.Address;
-            document.getElementById("pdfShopAddress").innerText = st.Address;
-        }
-        if(st.ContactNumbers) document.getElementById("hdr_contacts").innerText = st.ContactNumbers;
-        if(st.WhatsAppNumber) targetShopWhatsApp = st.WhatsAppNumber.replace(/[^0-9]/g, '');
-        if(st.PrimaryColor) document.documentElement.style.setProperty('--primary-color', st.PrimaryColor);
+        function loadShopSettingsAndProducts() {
+            fetch(MASTER_API_URL + "?action=getSettings&sheetId=" + shopConfig.clientSheetId)
+            .then(r => r.text()).then(stTxt => {
+                var st = JSON.parse(stTxt);
+                if(st.ShopName) {
+                    document.getElementById("hdr_shop_name").innerText = st.ShopName;
+                    document.getElementById("navShopTitle").innerText = st.ShopName;
+                    document.getElementById("pdfShopTitle").innerText = st.ShopName;
+                }
+                if(st.Address) {
+                    document.getElementById("hdr_address").innerText = st.Address;
+                    document.getElementById("pdfShopAddress").innerText = st.Address;
+                }
+                if(st.ContactNumbers) document.getElementById("hdr_contacts").innerText = st.ContactNumbers;
+                if(st.WhatsAppNumber) targetShopWhatsApp = st.WhatsAppNumber.replace(/[^0-9]/g, '');
+                if(st.PrimaryColor) document.documentElement.style.setProperty('--primary-color', st.PrimaryColor);
 
-        fetch(MASTER_API_URL + "?action=getProducts&sheetId=" + shopConfig.clientSheetId)
-        .then(r => r.text()).then(pTxt => {
-            rawProducts = JSON.parse(pTxt) || [];
-            document.getElementById("loaderScreen").style.display = "none";
-            setupPriceSliderRange();
-            populateCategoryDropdown();
-            renderProducts();
-        });
-    });
-}
-        function submitFranchiseEnquiry() {
-            var fn = document.getElementById("fran_name").value.trim();
-            var fm = document.getElementById("fran_mobile").value.trim();
-            var fc = document.getElementById("fran_city").value.trim();
-
-            if(!fn || !fm) {
-                alert("பெயர் மற்றும் போன் நம்பர் உள்ளிடவும்!"); return;
-            }
-
-            var msg = "*NEW FRANCHISE / WHOLESALE ENQUIRY*\nShop: " + shopConfig.shopName + "\nName: " + fn + "\nMobile: " + fm + "\nCity: " + fc;
-            window.open("https://api.whatsapp.com/send?phone=" + targetShopWhatsApp + "&text=" + encodeURIComponent(msg), "_blank");
-            bootstrap.Modal.getInstance(document.getElementById("franchiseModal")).hide();
+                fetch(MASTER_API_URL + "?action=getProducts&sheetId=" + shopConfig.clientSheetId)
+                .then(r => r.text()).then(pTxt => {
+                    rawProducts = JSON.parse(pTxt) || [];
+                    document.getElementById("loaderScreen").style.display = "none";
+                    setupPriceSliderRange();
+                    populateCategoryDropdown();
+                    renderProducts();
+                });
+            });
         }
 
         function setupPriceSliderRange() {
@@ -342,7 +331,6 @@ function loadShopSettingsAndProducts() {
             });
         }
 
-        // 🟢 FIX: Complete Site-Wide Language Translator Engine
         function setLanguage(lang) {
             currentLang = lang;
             document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
@@ -367,12 +355,6 @@ function loadShopSettingsAndProducts() {
                 document.getElementById("modalReviewTitle").innerText = "📋 Order Review";
                 document.getElementById("btnModalCancel").innerText = "Cancel";
                 document.getElementById("btnModalSubmit").innerText = "Submit & Print PDF 🚀";
-                document.getElementById("franTitle").innerText = "💥 Interested to Start Cracker Business?";
-                document.getElementById("franDesc").innerText = "Want to do wholesale cracker business? Enter details to get best prices.";
-                document.getElementById("fran_name").placeholder = "Your Name";
-                document.getElementById("fran_mobile").placeholder = "Mobile Number";
-                document.getElementById("fran_city").placeholder = "City / District";
-                document.getElementById("btnFranSubmit").innerText = "Contact Us ➔";
             } else if(lang === "ta") {
                 document.getElementById("step1Title").innerText = "👤 வாடிக்கையாளர் விவரங்கள்";
                 document.getElementById("cust_name").placeholder = "பெயர் *";
@@ -392,12 +374,6 @@ function loadShopSettingsAndProducts() {
                 document.getElementById("modalReviewTitle").innerText = "📋 ஆர்டர் விவரங்கள்";
                 document.getElementById("btnModalCancel").innerText = "ரத்து செய்க";
                 document.getElementById("btnModalSubmit").innerText = "சப்மிட் செய்க 🚀";
-                document.getElementById("franTitle").innerText = "💥 பட்டாசு கடை ஆரம்பிக்க விருப்பமா?";
-                document.getElementById("franDesc").innerText = "சொந்தமாகப் பட்டாசு வியாபாரம் செய்ய விரும்புகிறீர்களா? மொத்த விலையில் பட்டாசு பெற உங்கள் விவரங்களை உள்ளிடவும்.";
-                document.getElementById("fran_name").placeholder = "உங்கள் பெயர்";
-                document.getElementById("fran_mobile").placeholder = "மொபைல் எண்";
-                document.getElementById("fran_city").placeholder = "ஊர் / மாவட்டம்";
-                document.getElementById("btnFranSubmit").innerText = "தொடர்புகொள்ள ➔";
             } else {
                 document.getElementById("step1Title").innerText = "👤 வாடிக்கையாளர் விவரங்கள் (Customer Info)";
                 document.getElementById("cust_name").placeholder = "பெயர் (Name) *";
@@ -460,17 +436,22 @@ function loadShopSettingsAndProducts() {
                 html += '<div class="item-card">' +
                             '<div><b>' + titleDisplay + '</b><br><small class="text-muted">₹ ' + item.rate + ' / ' + item.per + '</small></div>' +
                             '<div class="d-flex align-items-center gap-2">' +
-                                '<input type="number" min="0" class="qty-input" value="' + (q || '') + '" oninput="updateQty(' + item.id + ', this.value)">' +
-                                '<span class="row-total">₹ ' + rowTot + '</span>' +
+                                '<input type="number" min="0" id="input_qty_' + item.id + '" class="qty-input" value="' + (q || '') + '" oninput="updateQtyOnly(' + item.id + ', this.value)">' +
+                                '<span class="row-total" id="tot_' + item.id + '">₹ ' + rowTot + '</span>' +
                             '</div>' +
                         '</div>';
             });
             container.innerHTML = html || "<div class='p-4 text-center text-muted'>பொருட்கள் எதுவும் கிடைக்கவில்லை!</div>";
         }
 
-        function updateQty(id, val) {
+        // 🟢 FIX 1: Input Box Focus Out Problem Fixed
+        function updateQtyOnly(id, val) {
             selectedQty[id] = parseInt(val) || 0;
-            renderProducts();
+            var item = rawProducts.find(p => p.id === id);
+            if(item) {
+                var rowTot = selectedQty[id] * item.rate;
+                document.getElementById("tot_" + id).innerText = "₹ " + rowTot;
+            }
             calculateTotal();
         }
 
@@ -519,35 +500,42 @@ function loadShopSettingsAndProducts() {
             new bootstrap.Modal(document.getElementById("reviewModal")).show();
         }
 
-        function openPOSDirectMode() {
-            var pin = prompt("🔑 POS Counter Password / PIN டைப் செய்யவும்:");
-            if(!pin) return;
-
-            fetch(MASTER_API_URL + "?action=login&sheetId=" + shopConfig.clientSheetId + "&username=pos&password=" + encodeURIComponent(pin))
-            .then(r => r.text()).then(txt => {
-                var res = JSON.parse(txt);
-                if(res.success) {
-                    currentSessionType = "Walk-in Customer";
-                    document.body.classList.add("pos-mode");
-                    alert("🏪 Walk-in POS Billing Session Started!");
-                    startPOSCounterSession();
-                } else { alert("❌ தவறான POS Password / PIN!"); }
-            });
-        }
-
-        function startPOSCounterSession() {
-            document.getElementById("cust_name").value = "";
-            document.getElementById("cust_mobile").value = "";
-            document.getElementById("cust_district").value = "Local Store";
-            document.getElementById("cust_address").value = "Walk-in Counter";
-
-            document.getElementById("customerStoreView").style.display = "block";
-            document.getElementById("adminPanelView").style.display = "none";
-            document.getElementById("step-1").style.display = "block";
-            document.getElementById("step-2").style.display = "none";
-        }
-
+        // 🟢 FIX 2: Trigger Franchise Popup after Review Order Submit
         function finalizeOrder() {
+            var revModal = bootstrap.Modal.getInstance(document.getElementById("reviewModal"));
+            if(revModal) revModal.hide();
+            
+            if(currentSessionType === "Online Customer") {
+                var franM = new bootstrap.Modal(document.getElementById("franchiseModal"));
+                franM.show();
+            } else {
+                processFinalOrderSave(false);
+            }
+        }
+
+        function handleFranchiseChoice(isInterested) {
+            var franM = bootstrap.Modal.getInstance(document.getElementById("franchiseModal"));
+            if(franM) franM.hide();
+            
+            if(isInterested) {
+                var fn = document.getElementById("fran_name").value.trim();
+                var fm = document.getElementById("fran_mobile").value.trim();
+                var fc = document.getElementById("fran_city").value.trim();
+
+                if(!fn || !fm) {
+                    alert("⚠️ தயவுசெய்து பெயர் மற்றும் போன் நம்பரை உள்ளிடவும்!");
+                    return;
+                }
+
+                var msg = "*NEW FRANCHISE ENQUIRY*\nName: " + fn + "\nMobile: " + fm + "\nCity: " + fc;
+                window.open("https://api.whatsapp.com/send?phone=" + targetShopWhatsApp + "&text=" + encodeURIComponent(msg), "_blank");
+            }
+
+            processFinalOrderSave(isInterested);
+        }
+
+        // 🟢 FIX 3: Clean & Solid PDF Generator Fix
+        function processFinalOrderSave(hasFranchiseLead) {
             var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
             var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
             var name = document.getElementById("cust_name").value.trim();
@@ -596,7 +584,7 @@ function loadShopSettingsAndProducts() {
                     jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
                 };
                 html2pdf().set(opt).from(element).save();
-            }, 200);
+            }, 300);
 
             var payload = {
                 shopId: shopConfig.shopId, shopName: shopConfig.shopName,
@@ -616,6 +604,34 @@ function loadShopSettingsAndProducts() {
                     location.reload();
                 }
             });
+        }
+
+        function openPOSDirectMode() {
+            var pin = prompt("🔑 POS Counter Password / PIN டைப் செய்யவும்:");
+            if(!pin) return;
+
+            fetch(MASTER_API_URL + "?action=login&sheetId=" + shopConfig.clientSheetId + "&username=pos&password=" + encodeURIComponent(pin))
+            .then(r => r.text()).then(txt => {
+                var res = JSON.parse(txt);
+                if(res.success) {
+                    currentSessionType = "Walk-in Customer";
+                    document.body.classList.add("pos-mode");
+                    alert("🏪 Walk-in POS Billing Session Started!");
+                    startPOSCounterSession();
+                } else { alert("❌ தவறான POS Password / PIN!"); }
+            });
+        }
+
+        function startPOSCounterSession() {
+            document.getElementById("cust_name").value = "";
+            document.getElementById("cust_mobile").value = "";
+            document.getElementById("cust_district").value = "Local Store";
+            document.getElementById("cust_address").value = "Walk-in Counter";
+
+            document.getElementById("customerStoreView").style.display = "block";
+            document.getElementById("adminPanelView").style.display = "none";
+            document.getElementById("step-1").style.display = "block";
+            document.getElementById("step-2").style.display = "none";
         }
 
         function openLoginModal() { new bootstrap.Modal(document.getElementById("loginModal")).show(); }
