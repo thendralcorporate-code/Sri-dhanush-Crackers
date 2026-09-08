@@ -278,41 +278,35 @@
             });
         };
 
-        function loadShopSettingsAndProducts() {
-            fetch(MASTER_API_URL + "?action=getSettings&sheetId=" + shopConfig.clientSheetId)
-            .then(r => r.text()).then(stTxt => {
-                var st = JSON.parse(stTxt);
-                if(st.ShopName) {
-                    document.getElementById("hdr_shop_name").innerText = st.ShopName;
-                    document.getElementById("navShopTitle").innerText = st.ShopName;
-                    document.getElementById("pdfShopTitle").innerText = st.ShopName;
-                }
-                if(st.Address) {
-                    document.getElementById("hdr_address").innerText = st.Address;
-                    document.getElementById("pdfShopAddress").innerText = st.Address;
-                }
-                if(st.ContactNumbers) document.getElementById("hdr_contacts").innerText = st.ContactNumbers;
-                if(st.WhatsAppNumber) targetShopWhatsApp = st.WhatsAppNumber.replace(/[^0-9]/g, '');
-                if(st.PrimaryColor) document.documentElement.style.setProperty('--primary-color', st.PrimaryColor);
-
-                fetch(MASTER_API_URL + "?action=getProducts&sheetId=" + shopConfig.clientSheetId)
-                .then(r => r.text()).then(pTxt => {
-                    rawProducts = JSON.parse(pTxt) || [];
-                    document.getElementById("loaderScreen").style.display = "none";
-                    setupPriceSliderRange();
-                    populateCategoryDropdown();
-                    renderProducts();
-
-                    // Trigger Franchise Popup after 3 seconds
-                    setTimeout(function() {
-                        if(currentSessionType === "Online Customer") {
-                            new bootstrap.Modal(document.getElementById("franchiseModal")).show();
-                        }
-                    }, 3000);
-                });
-            });
+        // ❌ பழைய setTimeout பகுதியை நீக்கிவிடவும்.
+// ✅ புதிய loadShopSettingsAndProducts ஃபங்க்ஷன்:
+function loadShopSettingsAndProducts() {
+    fetch(MASTER_API_URL + "?action=getSettings&sheetId=" + shopConfig.clientSheetId)
+    .then(r => r.text()).then(stTxt => {
+        var st = JSON.parse(stTxt);
+        if(st.ShopName) {
+            document.getElementById("hdr_shop_name").innerText = st.ShopName;
+            document.getElementById("navShopTitle").innerText = st.ShopName;
+            document.getElementById("pdfShopTitle").innerText = st.ShopName;
         }
+        if(st.Address) {
+            document.getElementById("hdr_address").innerText = st.Address;
+            document.getElementById("pdfShopAddress").innerText = st.Address;
+        }
+        if(st.ContactNumbers) document.getElementById("hdr_contacts").innerText = st.ContactNumbers;
+        if(st.WhatsAppNumber) targetShopWhatsApp = st.WhatsAppNumber.replace(/[^0-9]/g, '');
+        if(st.PrimaryColor) document.documentElement.style.setProperty('--primary-color', st.PrimaryColor);
 
+        fetch(MASTER_API_URL + "?action=getProducts&sheetId=" + shopConfig.clientSheetId)
+        .then(r => r.text()).then(pTxt => {
+            rawProducts = JSON.parse(pTxt) || [];
+            document.getElementById("loaderScreen").style.display = "none";
+            setupPriceSliderRange();
+            populateCategoryDropdown();
+            renderProducts();
+        });
+    });
+}
         function submitFranchiseEnquiry() {
             var fn = document.getElementById("fran_name").value.trim();
             var fm = document.getElementById("fran_mobile").value.trim();
