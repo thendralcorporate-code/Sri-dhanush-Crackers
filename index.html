@@ -127,23 +127,59 @@
         </div>
     </div>
 
-    <!-- Admin Panel -->
-    <div id="adminPanelView" class="p-2" style="display:none;">
-        <div class="d-flex justify-content-between align-items-center mb-2 bg-dark text-white p-2 rounded">
-            <span id="currentUserBadge" class="fw-bold text-warning">Role: -</span>
+    <!-- 🚀 Modern Admin Panel Dashboard -->
+    <div id="adminPanelView" class="p-3" style="display:none; background: #f8fafc; min-height: 100vh;">
+        <!-- Admin Header Navigation Bar -->
+        <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded-3 shadow-sm text-white" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
+            <div class="d-flex align-items-center gap-2">
+                <span id="currentUserBadge" class="badge bg-warning text-dark fw-bold px-3 py-2 fs-6">Role: ADMIN</span>
+                <span class="text-white-50 small">| Shop Management Panel</span>
+            </div>
             <div>
-                <button id="btnProductManage" class="btn btn-sm btn-info text-white me-1 fw-bold" style="display:none;" onclick="openProductEditModal()">🏷️ Stock/Rate Edit</button>
-                <button class="btn btn-sm btn-danger fw-bold" onclick="location.reload()">Logout</button>
+                <button id="btnProductManage" class="btn btn-sm btn-info text-white me-2 fw-bold" style="display:none;" onclick="openProductEditModal()">🏷️ Stock / Rate Edit</button>
+                <button class="btn btn-sm btn-outline-light fw-bold" onclick="location.reload()">Logout 🚪</button>
             </div>
         </div>
 
-        <div class="bg-white p-2 rounded border mb-2 d-flex gap-2">
-            <input type="text" id="adminOrderSearch" class="form-control form-control-sm" placeholder="🔍 Search Order ID / Mobile..." onkeyup="renderAdminOrders()">
+        <!-- 📊 Quick Stats Analytics Cards -->
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm p-3 text-center" style="background: #ffffff; border-left: 4px solid #3b82f6 !important;">
+                    <small class="text-muted fw-bold">TOTAL ORDERS</small>
+                    <h3 class="fw-bold mb-0 text-primary" id="statTotalOrders">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm p-3 text-center" style="background: #ffffff; border-left: 4px solid #10b981 !important;">
+                    <small class="text-muted fw-bold">TOTAL REVENUE</small>
+                    <h3 class="fw-bold mb-0 text-success" id="statTotalRevenue">₹0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm p-3 text-center" style="background: #ffffff; border-left: 4px solid #ef4444 !important;">
+                    <small class="text-muted fw-bold">PENDING APPROVAL</small>
+                    <h3 class="fw-bold mb-0 text-danger" id="statPendingOrders">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm p-3 text-center" style="background: #ffffff; border-left: 4px solid #8b5cf6 !important;">
+                    <small class="text-muted fw-bold">APPROVED ORDERS</small>
+                    <h3 class="fw-bold mb-0 text-purple" id="statApprovedOrders">0</h3>
+                </div>
+            </div>
         </div>
 
+        <!-- 🔍 Search Bar -->
+        <div class="card border-0 shadow-sm p-3 mb-3">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                <input type="text" id="adminOrderSearch" class="form-control border-start-0 ps-0" placeholder="Search by Order ID (e.g. SDC-68784514), Mobile Number, or Customer Name..." onkeyup="renderAdminOrders()">
+            </div>
+        </div>
+
+        <!-- Orders List Container -->
         <div id="ordersListContainer"></div>
     </div>
-
     <!-- Review Order Modal -->
     <div class="modal fade" id="reviewModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
