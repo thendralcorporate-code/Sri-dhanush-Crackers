@@ -423,48 +423,76 @@
         }
 
         function finalizeOrder() {
-            var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
-            var orderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
-            var name = document.getElementById("cust_name").value.trim();
-            var rawMobile = document.getElementById("cust_mobile").value.replace(/[^0-9]/g, '');
-            var custMobileFormatted = rawMobile.length === 10 ? "91" + rawMobile : rawMobile;
+    var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
+    var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
+    var name = document.getElementById("cust_name").value.trim();
+    var rawMobile = document.getElementById("cust_mobile").value.replace(/[^0-9]/g, '');
+    var custMobileFormatted = rawMobile.length === 10 ? "91" + rawMobile : rawMobile;
+    var address = document.getElementById("cust_address").value.trim() || "N/A";
 
-            var itemsObj = [];
-            var waMessage = "*ESTIMATE BILL - " + shopConfig.shopName + "*\nOrder ID: " + orderId + "\nCustomer: " + name + "\n\n*ITEMS:*\n";
-            var pdfTableRows = "", sno = 1;
+    var itemsObj = [];
+    var waMessage = "*SRI DHANUSH CRACKERS - ESTIMATE BILL*\nOrder ID: " + orderId + "\nCustomer: " + name + "\n\n*ITEMS:*\n";
+    var pdfTableRows = "", sno = 1;
 
-            rawProducts.forEach(p => {
-                var q = selectedQty[p.id] || 0;
-                if(q > 0) {
-                    var tot = q * p.rate;
-                    itemsObj.push({ id: p.id, name: p.eng, qty: q, rate: p.rate, total: tot });
-                    waMessage += sno + ". " + p.eng + " x " + q + " = ₹" + tot + "\n";
-                    pdfTableRows += "<tr><td>" + sno + "</td><td>" + p.eng + "</td><td>" + q + "</td><td>₹" + p.rate + "</td><td>₹" + tot + "</td></tr>";
-                    sno++;
-                }
-            });
-            waMessage += "\n*TOTAL AMOUNT: ₹" + total + "*\n\nThank you for shopping with us! 💥";
+    rawProducts.forEach(p => {
+        var q = selectedQty[p.id] || 0;
+        if(q > 0) {
+            var tot = q * p.rate;
+            itemsObj.push({ id: p.id, name: p.eng, qty: q, rate: p.rate, total: tot });
+            waMessage += sno + ". " + p.eng + " x " + q + " = ₹" + tot + "\n";
+            pdfTableRows += `<tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 6px; text-align: center;">${sno}</td>
+                <td style="padding: 6px;"><b>${p.eng}</b></td>
+                <td style="padding: 6px; text-align: center;">${q}</td>
+                <td style="padding: 6px; text-align: right;">Rs. ${p.rate.toFixed(2)}</td>
+                <td style="padding: 6px; text-align: right;">Rs. ${tot.toFixed(2)}</td>
+            </tr>`;
+            sno++;
+        }
+    });
+    waMessage += "\n*ESTIMATE TOTAL: ₹" + total.toLocaleString('en-IN') + "*\n\n*** Thank you for your order! Wish you a happy Diwali! ***";
 
-            document.getElementById("billOrderId").innerText = orderId;
-            document.getElementById("billDate").innerText = new Date().toLocaleDateString();
-            document.getElementById("billCustName").innerText = name;
-            document.getElementById("billCustPhone").innerText = rawMobile;
-            document.getElementById("billItemsBody").innerHTML = pdfTableRows;
-            document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN') + ".00";
+    // Populate Printable Elements
+    document.getElementById("billOrderId").innerText = orderId;
+    document.getElementById("billDate").innerText = new Date().toLocaleDateString();
+    document.getElementById("billCustName").innerText = name;
+    document.getElementById("billCustPhone").innerText = rawMobile;
+    document.getElementById("billCustAddress").innerText = address;
+    document.getElementById("billOrderType").innerText = currentSessionType;
+    document.getElementById("billItemsBody").innerHTML = pdfTableRows;
+    document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN');
 
-            // ✅ புதிய கோடு (விவரங்கள் முழுமையாக லோட் ஆன பின் PDF டவுன்லோட் ஆகும்):
-setTimeout(function() {
-    var element = document.getElementById('printableBill');
-    var opt = {
-        margin:       0.3,
-        filename:     orderId + '_Invoice.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, logging: false },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    // PDF Generation with High Quality Render Delay
+    setTimeout(function() {
+        var element = document.getElementById('printableBill');
+        var opt = {
+            margin:       0.3,
+            filename:     'Sri_Dhanush_Crackers_Estimate_' + orderId + '.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, logging: false },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }, 200);
+
+    var payload = {
+        shopId: shopConfig.shopId, shopName: shopConfig.shopName,
+        orderId: orderId, name: name, mobile: rawMobile,
+        address: address, district: document.getElementById("cust_district").value.trim(),
+        total: total, orderType: currentSessionType, itemsArray: itemsObj
     };
-    html2pdf().set(opt).from(element).save();
-}, 200);
 
+    fetch(MASTER_API_URL, {
+        method: "POST", body: JSON.stringify({ action: "saveOrder", clientSheetId: shopConfig.clientSheetId, payload: payload })
+    })
+    .then(r => r.text()).then(() => {
+        var custUrl = "https://api.whatsapp.com/send?phone=" + custMobileFormatted + "&text=" + encodeURIComponent(waMessage);
+        window.open(custUrl, "_blank");
+
+        alert("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது! PDF Bill டவுன்லோட் செய்யப்பட்டது.");
+        location.reload();
+    });
+}
             fetch(MASTER_API_URL, {
                 method: "POST", body: JSON.stringify({ action: "saveOrder", clientSheetId: shopConfig.clientSheetId, payload: payload })
             })
