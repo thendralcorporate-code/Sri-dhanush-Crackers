@@ -423,16 +423,18 @@
             document.getElementById("billItemsBody").innerHTML = pdfTableRows;
             document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN') + ".00";
 
-            // Generate PDF Bill
-            html2pdf().set({ margin: 0.5, filename: orderId + '_Invoice.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }).from(document.getElementById('printableBill')).save();
-
-            var payload = {
-                shopId: shopConfig.shopId, shopName: shopConfig.shopName,
-                orderId: orderId, name: name, mobile: rawMobile,
-                address: document.getElementById("cust_address").value.trim(),
-                district: document.getElementById("cust_district").value.trim(),
-                total: total, orderType: currentSessionType, itemsArray: itemsObj
-            };
+            // ✅ புதிய கோடு (விவரங்கள் முழுமையாக லோட் ஆன பின் PDF டவுன்லோட் ஆகும்):
+setTimeout(function() {
+    var element = document.getElementById('printableBill');
+    var opt = {
+        margin:       0.3,
+        filename:     orderId + '_Invoice.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, logging: false },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+}, 200);
 
             fetch(MASTER_API_URL, {
                 method: "POST", body: JSON.stringify({ action: "saveOrder", clientSheetId: shopConfig.clientSheetId, payload: payload })
