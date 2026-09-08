@@ -719,19 +719,69 @@
             document.getElementById("statApprovedOrders").innerText = approvedCount;
         }
 
-        // 🔍 Perfect Search Engine Fix
         function renderAdminOrders() {
-            var searchTxt = document.getElementById("adminOrderSearch").value.trim().toLowerCase();
-            var html = "";
+    var searchTxt = document.getElementById("adminOrderSearch").value.trim().toLowerCase();
+    var html = "";
 
-            var filteredOrders = adminOrdersList.filter(o => {
-                if(!searchTxt) return true;
-                var oId = (o.orderId || "").toLowerCase();
-                var oMob = (o.mobile || "").toLowerCase();
-                var oName = (o.name || "").toLowerCase();
-                return oId.includes(searchTxt) || oMob.includes(searchTxt) || oName.includes(searchTxt);
-            });
+    var filteredOrders = adminOrdersList.filter(o => {
+        if (!searchTxt) return true;
 
+        // அனைத்து விதமான Key பெயர்களையும் சரிபார்க்கும் Safe Search Extraction
+        var id = (o.orderId || o.OrderId || o.orderid || o.id || "").toString().toLowerCase();
+        var mob = (o.mobile || o.Mobile || o.phone || o.Phone || "").toString().toLowerCase();
+        var nm = (o.name || o.Name || o.customerName || "").toString().toLowerCase();
+        var dist = (o.district || o.District || o.address || "").toString().toLowerCase();
+
+        return id.includes(searchTxt) || mob.includes(searchTxt) || nm.includes(searchTxt) || dist.includes(searchTxt);
+    });
+
+    filteredOrders.forEach(o => {
+        var oId = o.orderId || o.OrderId || o.orderid || "N/A";
+        var oName = o.name || o.Name || "Customer";
+        var oMobile = o.mobile || o.Mobile || o.phone || "N/A";
+        var oDistrict = o.district || o.District || "Local";
+        var oStatus = o.approvalStatus || o.ApprovalStatus || "Pending";
+        var oOrdStatus = o.orderStatus || o.OrderStatus || "Order Received";
+        var oTotal = parseFloat(o.total || o.Total || 0);
+
+        var isApproved = (oStatus.toLowerCase() === "approved");
+        var isGreyedOut = (userRole === "TELECALLER" && !isApproved);
+
+        html += '<div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; overflow: hidden; ' + (isGreyedOut ? 'opacity:0.4; pointer-events:none;' : '') + '">' +
+                    '<div class="card-body p-3">' +
+                        '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                            '<div>' +
+                                '<h6 class="fw-bold mb-0 text-dark">' + oId + ' - ' + oName + '</h6>' +
+                                '<small class="text-muted"><i class="fas fa-phone-alt me-1"></i>' + oMobile + ' | <i class="fas fa-map-marker-alt me-1"></i>' + oDistrict + '</small>' +
+                            '</div>' +
+                            '<div class="text-end">' +
+                                '<span class="badge ' + (isApproved ? 'bg-success' : 'bg-danger') + ' me-1">' + oStatus + '</span>' +
+                                '<span class="badge bg-primary">' + oOrdStatus + '</span>' +
+                                '<div class="fw-bold text-danger mt-1">₹' + oTotal.toLocaleString('en-IN') + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="pt-2 border-top d-flex gap-2 align-items-center flex-wrap">' +
+                            '<button class="btn btn-sm btn-outline-dark fw-bold" onclick="viewOrderItems(\'' + oId + '\')">👁️ View Items</button>';
+
+        if((userRole === "ADMIN" || userRole === "ACCOUNTS") && !isApproved) {
+            html += '<button class="btn btn-sm btn-success fw-bold" onclick="approveOrder(\'' + oId + '\')">Approve Payment ✅</button>';
+        }
+
+        if(isApproved || userRole === "ADMIN") {
+            html += '<select class="form-select form-select-sm d-inline-block" style="width:auto;" onchange="updateStatus(\'' + oId + '\', this.value)">' +
+                        '<option value="">Change Status...</option>' +
+                        '<option value="Order Received">Order Received</option>' +
+                        '<option value="Packing">Packing</option>' +
+                        '<option value="Dispatched">Dispatched</option>' +
+                        '<option value="Sent To Transport">Sent To Transport</option>' +
+                    '</select>';
+        }
+
+        html += '</div></div></div>';
+    });
+
+    document.getElementById("ordersListContainer").innerHTML = html || "<div class='card p-4 text-center text-muted border-0 shadow-sm'>எந்த ஆர்டர்களும் கிடைக்கவில்லை! (No Orders Found)</div>";
+}
             filteredOrders.forEach(o => {
                 var isApproved = o.approvalStatus === "Approved";
                 var isGreyedOut = (userRole === "TELECALLER" && !isApproved);
