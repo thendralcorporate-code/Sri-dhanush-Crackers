@@ -40,7 +40,7 @@
         .order-card.pending { border-left-color: #e53e3e; background: #fff5f5; }
         .order-card.approved { border-left-color: #38a169; background: #ffffff; }
 
-        /* 🟢 PDF Layout Render Fix */
+        /* PDF Layout Render Fix */
         #hiddenBillWrap { position: fixed; top: 0; left: 0; width: 700px; z-index: -9999; opacity: 0; pointer-events: none; background: white; }
     </style>
 </head>
@@ -159,18 +159,20 @@
         </div>
     </div>
 
-    <!-- 💥 Franchise Popup Modal -->
+    <!-- 💥 Franchise Popup Modal (Auto Filled from Step 1) -->
     <div class="modal fade" id="franchiseModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3 border-danger">
                 <div class="modal-header border-0 pb-0">
                     <h5 class="fw-bold text-danger" id="franTitle">💥 பட்டாசு கடை ஆரம்பிக்க விருப்பமா?</h5>
                 </div>
-                <div class="modal-body">
-                    <p class="small text-muted" id="franDesc">சொந்தமாகப் பட்டாசு வியாபாரம் செய்ய விரும்புகிறீர்களா? மொத்த விலையில் பட்டாசு பெற உங்கள் விவரங்களை உள்ளிடவும்.</p>
-                    <input type="text" id="fran_name" class="form-control form-control-sm mb-2" placeholder="உங்கள் பெயர் (Your Name)">
-                    <input type="tel" id="fran_mobile" class="form-control form-control-sm mb-2" placeholder="மொபைல் எண் (Mobile Number)" maxlength="10">
-                    <input type="text" id="fran_city" class="form-control form-control-sm mb-3" placeholder="ஊர் / மாவட்டம் (City/District)">
+                <div class="modal-body text-center">
+                    <p class="small text-muted" id="franDesc">சொந்தமாகப் பட்டாசு வியாபாரம் செய்ய விரும்புகிறீர்களா? மொத்த விலையில் பட்டாசு பெற எங்கள் குழுவைத் தொடர்புகொள்ள விருப்பமா?</p>
+                    <div class="bg-light p-2 rounded mb-3 text-start small">
+                        <div><b>Name:</b> <span id="popCustName">-</span></div>
+                        <div><b>Mobile:</b> <span id="popCustMobile">-</span></div>
+                        <div><b>City:</b> <span id="popCustCity">-</span></div>
+                    </div>
                     
                     <div class="d-flex gap-2">
                         <button class="btn btn-outline-secondary w-50 fw-bold" onclick="handleFranchiseChoice(false)">இல்லை (No) ❌</button>
@@ -444,7 +446,6 @@
             container.innerHTML = html || "<div class='p-4 text-center text-muted'>பொருட்கள் எதுவும் கிடைக்கவில்லை!</div>";
         }
 
-        // 🟢 FIX 1: Input Box Focus Out Problem Fixed
         function updateQtyOnly(id, val) {
             selectedQty[id] = parseInt(val) || 0;
             var item = rawProducts.find(p => p.id === id);
@@ -500,12 +501,16 @@
             new bootstrap.Modal(document.getElementById("reviewModal")).show();
         }
 
-        // 🟢 FIX 2: Trigger Franchise Popup after Review Order Submit
+        // 🟢 FIX: Step 1 Details are Auto-Populated into Franchise Popup
         function finalizeOrder() {
             var revModal = bootstrap.Modal.getInstance(document.getElementById("reviewModal"));
             if(revModal) revModal.hide();
             
             if(currentSessionType === "Online Customer") {
+                document.getElementById("popCustName").innerText = document.getElementById("cust_name").value.trim();
+                document.getElementById("popCustMobile").innerText = document.getElementById("cust_mobile").value.trim();
+                document.getElementById("popCustCity").innerText = document.getElementById("cust_district").value.trim() || "Local";
+
                 var franM = new bootstrap.Modal(document.getElementById("franchiseModal"));
                 franM.show();
             } else {
@@ -518,23 +523,17 @@
             if(franM) franM.hide();
             
             if(isInterested) {
-                var fn = document.getElementById("fran_name").value.trim();
-                var fm = document.getElementById("fran_mobile").value.trim();
-                var fc = document.getElementById("fran_city").value.trim();
+                var fn = document.getElementById("cust_name").value.trim();
+                var fm = document.getElementById("cust_mobile").value.trim();
+                var fc = document.getElementById("cust_district").value.trim();
 
-                if(!fn || !fm) {
-                    alert("⚠️ தயவுசெய்து பெயர் மற்றும் போன் நம்பரை உள்ளிடவும்!");
-                    return;
-                }
-
-                var msg = "*NEW FRANCHISE ENQUIRY*\nName: " + fn + "\nMobile: " + fm + "\nCity: " + fc;
+                var msg = "*NEW FRANCHISE / WHOLESALE ENQUIRY*\nName: " + fn + "\nMobile: " + fm + "\nCity: " + fc;
                 window.open("https://api.whatsapp.com/send?phone=" + targetShopWhatsApp + "&text=" + encodeURIComponent(msg), "_blank");
             }
 
             processFinalOrderSave(isInterested);
         }
 
-        // 🟢 FIX 3: Clean & Solid PDF Generator Fix
         function processFinalOrderSave(hasFranchiseLead) {
             var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
             var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
