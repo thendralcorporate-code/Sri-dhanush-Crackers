@@ -694,31 +694,63 @@
             fetch(MASTER_API_URL + "?action=getOrders&sheetId=" + shopConfig.clientSheetId)
             .then(r => r.text()).then(txt => {
                 adminOrdersList = JSON.parse(txt) || [];
+                updateDashboardStats();
                 renderAdminOrders();
             });
         }
 
-        function renderAdminOrders() {
-            var searchTxt = document.getElementById("adminOrderSearch").value.toLowerCase();
-            var html = "";
+        // 📊 Dashboard Analytics Calculations
+        function updateDashboardStats() {
+            var totalOrders = adminOrdersList.length;
+            var totalRevenue = 0;
+            var pendingCount = 0;
+            var approvedCount = 0;
 
             adminOrdersList.forEach(o => {
-                if(searchTxt && !o.orderId.toLowerCase().includes(searchTxt) && !o.mobile.includes(searchTxt) && !o.name.toLowerCase().includes(searchTxt)) return;
+                var tot = parseFloat(o.total) || 0;
+                totalRevenue += tot;
+                if(o.approvalStatus === "Approved") approvedCount++;
+                else pendingCount++;
+            });
 
+            document.getElementById("statTotalOrders").innerText = totalOrders;
+            document.getElementById("statTotalRevenue").innerText = "₹" + totalRevenue.toLocaleString('en-IN');
+            document.getElementById("statPendingOrders").innerText = pendingCount;
+            document.getElementById("statApprovedOrders").innerText = approvedCount;
+        }
+
+        // 🔍 Perfect Search Engine Fix
+        function renderAdminOrders() {
+            var searchTxt = document.getElementById("adminOrderSearch").value.trim().toLowerCase();
+            var html = "";
+
+            var filteredOrders = adminOrdersList.filter(o => {
+                if(!searchTxt) return true;
+                var oId = (o.orderId || "").toLowerCase();
+                var oMob = (o.mobile || "").toLowerCase();
+                var oName = (o.name || "").toLowerCase();
+                return oId.includes(searchTxt) || oMob.includes(searchTxt) || oName.includes(searchTxt);
+            });
+
+            filteredOrders.forEach(o => {
                 var isApproved = o.approvalStatus === "Approved";
                 var isGreyedOut = (userRole === "TELECALLER" && !isApproved);
 
-                html += '<div class="order-card ' + (isApproved ? 'approved' : 'pending') + '" style="' + (isGreyedOut ? 'opacity:0.4; pointer-events:none;' : '') + '">' +
-                            '<div class="d-flex justify-content-between align-items-center mb-1">' +
-                                '<b>' + o.orderId + ' - ' + o.name + '</b>' +
-                                '<div>' +
-                                    '<span class="badge bg-' + (isApproved ? 'success' : 'danger') + ' me-1">' + o.approvalStatus + '</span>' +
-                                    '<span class="badge bg-primary">' + (o.orderStatus || 'Order Received') + '</span>' +
+                html += '<div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; overflow: hidden; ' + (isGreyedOut ? 'opacity:0.4; pointer-events:none;' : '') + '">' +
+                            '<div class="card-body p-3">' +
+                                '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                                    '<div>' +
+                                        '<h6 class="fw-bold mb-0 text-dark">' + o.orderId + ' - ' + o.name + '</h6>' +
+                                        '<small class="text-muted"><i class="fas fa-phone-alt me-1"></i>' + o.mobile + ' | <i class="fas fa-map-marker-alt me-1"></i>' + o.district + '</small>' +
+                                    '</div>' +
+                                    '<div class="text-end">' +
+                                        '<span class="badge ' + (isApproved ? 'bg-success' : 'bg-danger') + ' me-1">' + o.approvalStatus + '</span>' +
+                                        '<span class="badge bg-primary">' + (o.orderStatus || 'Order Received') + '</span>' +
+                                        '<div class="fw-bold text-danger mt-1">₹' + parseFloat(o.total || 0).toLocaleString('en-IN') + '</div>' +
+                                    '</div>' +
                                 '</div>' +
-                            '</div>' +
-                            '<small class="text-muted">📞 ' + o.mobile + ' | 📍 ' + o.district + ' | 💰 Total: ₹' + o.total + '</small><br>' +
-                            '<div class="mt-2 d-flex gap-1 flex-wrap">' +
-                                '<button class="btn btn-sm btn-outline-dark fw-bold" onclick="viewOrderItems(\'' + o.orderId + '\')">👁️ View Items</button>';
+                                '<div class="pt-2 border-top d-flex gap-2 align-items-center flex-wrap">' +
+                                    '<button class="btn btn-sm btn-outline-dark fw-bold" onclick="viewOrderItems(\'' + o.orderId + '\')">👁️ View Items</button>';
 
                 if((userRole === "ADMIN" || userRole === "ACCOUNTS") && !isApproved) {
                     html += '<button class="btn btn-sm btn-success fw-bold" onclick="approveOrder(\'' + o.orderId + '\')">Approve Payment ✅</button>';
@@ -734,9 +766,10 @@
                             '</select>';
                 }
 
-                html += '</div></div>';
+                html += '</div></div></div>';
             });
-            document.getElementById("ordersListContainer").innerHTML = html || "<div class='text-center p-3 text-muted'>ஆர்டர்கள் எதுவும் இல்லை!</div>";
+
+            document.getElementById("ordersListContainer").innerHTML = html || "<div class='card p-4 text-center text-muted border-0 shadow-sm'>எந்த ஆர்டர்களும் கிடைக்கவில்லை! (No Orders Found)</div>";
         }
 
         function viewOrderItems(orderId) {
