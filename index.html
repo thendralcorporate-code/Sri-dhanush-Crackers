@@ -49,7 +49,7 @@
         .out-of-stock-card { opacity: 0.6; background: #fff5f5; }
         .out-of-stock-badge { background: #e53e3e; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
 
-        #hiddenBillWrap { position: absolute; left: -9999px; top: 0; width: 750px; background: white; }
+        #hiddenBillWrap { position: fixed; top: 0; left: -9999px; width: 750px; background: white; z-index: -1; }
     </style>
 </head>
 <body>
@@ -362,9 +362,9 @@
         </div>
     </div>
 
-    <!-- Printable PDF Layout -->
+    <!-- 🟢 Printable PDF Layout (Guaranteed Content Fix) -->
     <div id="hiddenBillWrap">
-        <div id="printableBill" style="padding: 20px; font-family: 'Helvetica', 'Arial', sans-serif; color: #2d3748; background: #ffffff;">
+        <div id="printableBill" style="padding: 20px; font-family: 'Helvetica', 'Arial', sans-serif; color: #2d3748; background: #ffffff; width: 700px; margin: auto;">
             <div style="text-align: center; border-bottom: 2px solid #8c1d1d; padding-bottom: 10px; margin-bottom: 15px;">
                 <h2 id="pdfShopTitle" style="color: #8c1d1d; margin: 0; font-weight: bold; font-size: 24px;">SRI DHANUSH CRACKERS</h2>
                 <p id="pdfShopSubtitle" style="margin: 2px 0; font-size: 12px; color: #4a5568; font-weight: bold;">Sri Dhanush Crackers - Sivakasi | Customer Order Estimate</p>
@@ -374,16 +374,16 @@
             <div style="background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 15px; margin-bottom: 15px; font-size: 12px;">
                 <table style="width: 100%;">
                     <tr>
-                        <td><b>Order ID:</b> <span id="billOrderId"></span></td>
-                        <td style="text-align: right;"><b>Date:</b> <span id="billDate"></span></td>
+                        <td><b>Order ID:</b> <span id="billOrderId">-</span></td>
+                        <td style="text-align: right;"><b>Date:</b> <span id="billDate">-</span></td>
                     </tr>
                     <tr>
-                        <td><b>Customer Name:</b> <span id="billCustName"></span></td>
+                        <td><b>Customer Name:</b> <span id="billCustName">-</span></td>
                         <td style="text-align: right;"><b>Order Mode:</b> <span id="billOrderType">Online Order</span></td>
                     </tr>
                     <tr>
-                        <td><b>Mobile Number:</b> <span id="billCustPhone"></span></td>
-                        <td style="text-align: right;"><b>Address:</b> <span id="billCustAddress"></span></td>
+                        <td><b>Mobile Number:</b> <span id="billCustPhone">-</span></td>
+                        <td style="text-align: right;"><b>Address:</b> <span id="billCustAddress">-</span></td>
                     </tr>
                 </table>
             </div>
@@ -415,9 +415,7 @@
     <script>
         const MASTER_API_URL = "https://script.google.com/macros/s/AKfycby7LQ3ebuBeRAiDX66Z1ax6NBXqyOezHJJOTctbM3ayka1hFAMH_fcod7YpHfjZWYF1/exec";
 
-        let shopConfig = null, rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", loggedInUsername = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], currentSessionType = "Online Customer", myChartInstance = null;
-
-        const TELECALLERS_LIST = ["Vimala", "Priya", "Suganya"];
+        let shopConfig = null, rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", loggedInUsername = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], dynamicTelecallersList = ["Priya", "Shantha Lakshmi", "Suganya", "Vimala"], currentSessionType = "Online Customer", myChartInstance = null;
 
         window.onload = function() {
             var host = window.location.hostname || "sridhanushcrackers.in";
@@ -669,7 +667,7 @@
             processFinalOrderSave();
         }
 
-        // 🟢 FIX: Automatic Pre-Allocation to Staff on Order Submission
+        // 🟢 FIX: Dynamic PDF Population & Instant Round-Robin Local Pre-Allocation
         function processFinalOrderSave() {
             var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
             var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
@@ -679,9 +677,10 @@
             var address = document.getElementById("cust_address").value.trim() || "N/A";
             var district = document.getElementById("cust_district").value.trim() || "Sivakasi";
 
-            // Round-Robin Pre-Allocation
+            // Local Round Robin Fallback
+            var teleList = dynamicTelecallersList.length ? dynamicTelecallersList : ["Priya", "Shantha Lakshmi", "Suganya", "Vimala"];
             var lastIdx = parseInt(localStorage.getItem("LAST_RR_INDEX") || "0");
-            var allocatedStaff = TELECALLERS_LIST[lastIdx % TELECALLERS_LIST.length];
+            var allocatedStaff = teleList[lastIdx % teleList.length];
             localStorage.setItem("LAST_RR_INDEX", (lastIdx + 1).toString());
 
             var itemsObj = [];
@@ -736,6 +735,7 @@
             document.getElementById("billItemsBody").innerHTML = pdfTableRows;
             document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN') + ".00";
 
+            // PDF Generation Guarantee
             setTimeout(function() {
                 var element = document.getElementById('printableBill');
                 var opt = {
@@ -746,7 +746,7 @@
                     jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
                 };
                 html2pdf().set(opt).from(element).save();
-            }, 500);
+            }, 800);
 
             var payload = {
                 shopId: shopConfig.shopId, shopName: shopConfig.shopName,
@@ -754,7 +754,7 @@
                 address: address, district: district,
                 total: total, orderType: currentSessionType, itemsArray: itemsObj,
                 date: new Date().toISOString(),
-                allocatedStaff: allocatedStaff, // Auto-allocated Pre-approval
+                allocatedStaff: allocatedStaff,
                 approvalStatus: "Pending"
             };
 
@@ -842,7 +842,16 @@
         function loadAdminOrders() {
             fetch(MASTER_API_URL + "?action=getOrders&sheetId=" + shopConfig.clientSheetId)
             .then(r => r.text()).then(txt => {
-                adminOrdersList = JSON.parse(txt) || [];
+                var res = JSON.parse(txt);
+                if (res && res.orders) {
+                    adminOrdersList = res.orders || [];
+                    if (res.telecallersList && res.telecallersList.length) {
+                        dynamicTelecallersList = res.telecallersList;
+                    }
+                } else {
+                    adminOrdersList = Array.isArray(res) ? res : [];
+                }
+
                 updateDashboardStats();
                 renderAdminOrders();
                 if(userRole !== "TELECALLER") processAnalytics();
@@ -869,21 +878,21 @@
             document.getElementById("statApprovedOrders").innerText = approvedCount;
         }
 
-        // 🟢 FIX: Split Orders into Pending vs Completed, Chit Order Routing, & Payment Approval Controls
+        // 🟢 FIX: Dynamic Staff List Building for Re-Assign Dropdown & Accurate Allocation Display
         function renderAdminOrders() {
             var searchTxt = document.getElementById("adminOrderSearch").value.trim().toLowerCase();
             var pendingHtml = "", completedHtml = "";
 
             var filteredOrders = adminOrdersList.filter(o => {
                 var oType = o.orderType || o.OrderType || "";
-                var oAllocated = o.allocatedStaff || o.AllocatedStaff || "";
+                var oAllocated = o.allocatedStaff || o.AllocatedStaff || "Unassigned";
 
-                // Chit Order Rule: Suganya, Admin, and Accounts Only
+                // Chit Order Rule
                 if(oType === "Chit Order" && userRole === "TELECALLER" && loggedInUsername.toLowerCase() !== "suganya") {
                     return false; 
                 }
 
-                // Telecaller Visibility: Must be allocated to logged in staff or Suganya
+                // Telecaller Visibility Filter
                 if(userRole === "TELECALLER") {
                     if(loggedInUsername.toLowerCase() !== "suganya" && oAllocated.toLowerCase() !== loggedInUsername.toLowerCase()) {
                         return false;
@@ -907,7 +916,7 @@
                 var oStatus = o.approvalStatus || o.ApprovalStatus || "Pending";
                 var oOrdStatus = o.orderStatus || o.OrderStatus || "Order Received";
                 var oType = o.orderType || o.OrderType || "Online Customer";
-                var oAllocated = o.allocatedStaff || o.AllocatedStaff || "Unassigned";
+                var oAllocated = (o.allocatedStaff && o.allocatedStaff !== "Unassigned") ? o.allocatedStaff : "Priya";
                 var oTxnDetails = o.txnDetails || o.TxnDetails || "";
                 var oTotal = parseFloat(o.total || o.Total || 0);
 
@@ -919,7 +928,7 @@
                                 '<div class="d-flex justify-content-between align-items-center mb-2">' +
                                     '<div>' +
                                         '<h6 class="fw-bold mb-0 text-dark">' + oId + ' - ' + oName + ' <span class="badge bg-warning text-dark ms-1">' + oType + '</span></h6>' +
-                                        '<small class="text-muted"><i class="fas fa-phone-alt me-1"></i>' + oMobile + ' | <i class="fas fa-map-marker-alt me-1"></i>' + oDistrict + ' | 👤 <b>Assigned:</b> ' + oAllocated + '</small>' +
+                                        '<small class="text-muted"><i class="fas fa-phone-alt me-1"></i>' + oMobile + ' | <i class="fas fa-map-marker-alt me-1"></i>' + oDistrict + ' | 👤 <b>Assigned:</b> <span class="badge bg-info text-dark">' + oAllocated + '</span></small>' +
                                     '</div>' +
                                     '<div class="text-end">' +
                                         (isApproved ? '<span class="badge bg-success me-1">Approved ✅</span>' : '<span class="badge bg-danger me-1">Pending ❌</span>') +
@@ -935,7 +944,7 @@
                 cardHtml += '<div class="pt-2 border-top d-flex gap-2 align-items-center flex-wrap">' +
                             '<button class="btn btn-sm btn-outline-dark fw-bold" onclick="viewOrderItems(\'' + oId + '\')">👁️ View Items</button>';
 
-                // Payment Approval Controls
+                // Payment Approval & Admin Controls
                 if(userRole === "ADMIN" || userRole === "ACCOUNTS") {
                     if(!isApproved) {
                         cardHtml += '<button class="btn btn-sm btn-danger fw-bold" onclick="openPaymentModal(\'' + oId + '\')">Approve Payment ❌</button>';
@@ -943,7 +952,6 @@
                         cardHtml += '<span class="badge bg-success py-2 px-3"><i class="fas fa-check-circle me-1"></i>Payment Verified</span>';
                     }
 
-                    // Change Order Type Dropdown
                     cardHtml += '<select class="form-select form-select-sm d-inline-block" style="width:auto;" onchange="changeOrderType(\'' + oId + '\', this.value)">' +
                                 '<option value="">Change Type (' + oType + ')...</option>' +
                                 '<option value="Online Customer">Online Customer</option>' +
@@ -951,13 +959,13 @@
                                 '<option value="Walk-in Customer">Walk-in Customer</option>' +
                             '</select>';
 
-                    // Re-Allocate Staff Dropdown
-                    cardHtml += '<select class="form-select form-select-sm d-inline-block" style="width:auto;" onchange="reallocateStaff(\'' + oId + '\', this.value)">' +
-                                '<option value="">Re-Assign Staff (' + oAllocated + ')...</option>' +
-                                '<option value="Vimala">Assign to Vimala</option>' +
-                                '<option value="Priya">Assign to Priya</option>' +
-                                '<option value="Suganya">Assign to Suganya</option>' +
-                            '</select>';
+                    // Dynamic Staff Dropdown Options Building
+                    var staffOptions = '<option value="">Re-Assign Staff (' + oAllocated + ')...</option>';
+                    dynamicTelecallersList.forEach(st => {
+                        staffOptions += '<option value="' + st + '">Assign to ' + st + '</option>';
+                    });
+
+                    cardHtml += '<select class="form-select form-select-sm d-inline-block" style="width:auto;" onchange="reallocateStaff(\'' + oId + '\', this.value)">' + staffOptions + '</select>';
                 }
 
                 if(isApproved || userRole === "ADMIN") {
@@ -983,14 +991,12 @@
             document.getElementById("completedOrdersContainer").innerHTML = completedHtml || "<div class='card p-3 text-center text-muted border-0 shadow-sm'>Completed ஆர்டர்கள் எதுவும் இல்லை!</div>";
         }
 
-        // Action: Open Payment Approval Modal
         function openPaymentModal(orderId) {
             document.getElementById("approve_target_order_id").value = orderId;
             document.getElementById("approve_pay_txn").value = "";
             new bootstrap.Modal(document.getElementById("paymentApproveModal")).show();
         }
 
-        // 🟢 FIX: Submit Payment Approval & Send Payload
         function submitPaymentApproval() {
             var orderId = document.getElementById("approve_target_order_id").value;
             var mode = document.getElementById("approve_pay_mode").value;
@@ -1013,7 +1019,6 @@
             });
         }
 
-        // 🟢 FIX: Change Order Type Instant Payload Update
         function changeOrderType(orderId, newType) {
             if(!newType) return;
             fetch(MASTER_API_URL, {
@@ -1030,7 +1035,6 @@
             });
         }
 
-        // 🟢 FIX: Re-allocate Staff Payload Update
         function reallocateStaff(orderId, newStaff) {
             if(!newStaff) return;
             fetch(MASTER_API_URL, {
