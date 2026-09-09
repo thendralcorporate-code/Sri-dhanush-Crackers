@@ -869,7 +869,7 @@
             document.getElementById("statApprovedOrders").innerText = approvedCount;
         }
 
-        // 🟢 FIX: Correct Staff Name Display Logic (Fixes 'Unassigned' Typo Bug)
+        // 🟢 FIX: Correct Staff Name Variable Rendering on Card Header
         function renderAdminOrders() {
             var searchTxt = document.getElementById("adminOrderSearch").value.trim().toLowerCase();
             var pendingHtml = "", completedHtml = "";
@@ -906,7 +906,7 @@
                 var oOrdStatus = o.orderStatus || o.OrderStatus || "Order Received";
                 var oType = o.orderType || o.OrderType || "Online Customer";
                 
-                // Real Staff Name Logic from Google Sheet Data
+                // Real Staff Name Logic (Fixes the Unassigned Typo)
                 var oAllocated = o.allocatedStaff || o.AllocatedStaff || "Priya";
                 var oTxnDetails = o.txnDetails || o.TxnDetails || "";
                 var oTotal = parseFloat(o.total || o.Total || 0);
@@ -1175,7 +1175,7 @@
                             "<td><button class='btn btn-sm btn-primary fw-bold py-0' onclick='saveSingleProduct(" + p.id + ")'>💾 Save</button></td>" +
                         "</tr>";
             });
-            html += "</tbody>mtable>";
+            html += "</tbody></table>";
             document.getElementById("productListEditContainer").innerHTML = html;
             new bootstrap.Modal(document.getElementById("productEditModal")).show();
         }
