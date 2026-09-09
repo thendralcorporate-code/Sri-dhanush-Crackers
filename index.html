@@ -733,7 +733,7 @@
         var dist = (o.district || o.District || o.address || "").toString().toLowerCase();
 
         return id.includes(searchTxt) || mob.includes(searchTxt) || nm.includes(searchTxt) || dist.includes(searchTxt);
-    });
+    };
 
     filteredOrders.forEach(o => {
         var oId = o.orderId || o.OrderId || o.orderid || "N/A";
