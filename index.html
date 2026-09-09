@@ -421,30 +421,32 @@
         };
 
         function loadShopSettingsAndProducts() {
-            fetch(`${API_BASE}/products`)
-            .then(r => r.json())
-            .then(data => {
-                rawProducts = data.map(p => ({
-                    id: p.id,
-                    category: p.category,
-                    eng: p.eng_name,
-                    tam: p.tam_name,
-                    per: p.per_unit,
-                    rate: parseFloat(p.rate),
-                    stock: p.stock_qty,
-                    isOutOfStock: (p.status === 'Out of Stock' || p.stock_qty <= 0)
-                }));
-                document.getElementById("loaderScreen").style.display = "none";
-                setupPriceSliderRange();
-                populateCategoryDropdown();
-                renderProducts();
-            })
-            .catch(err => {
-                console.error("Error loading products:", err);
-                document.getElementById("loaderScreen").style.display = "none";
-            });
-        }
-
+    fetch(`${API_BASE}/products`)
+    .then(r => r.json())
+    .then(data => {
+        rawProducts = data.map(p => {
+            var stQty = p.stock_qty !== undefined ? parseInt(p.stock_qty) : (p.stock !== undefined ? parseInt(p.stock) : 100);
+            return {
+                id: p.id,
+                category: p.category || 'General',
+                eng: p.eng_name || p.name || p.eng || '',
+                tam: p.tam_name || p.tamil || p.tam || '',
+                per: p.per_unit || p.unit || p.per || 'pkt',
+                rate: parseFloat(p.rate) || 0,
+                stock: stQty,
+                isOutOfStock: (p.status === 'Out of Stock' || stQty <= 0)
+            };
+        });
+        document.getElementById("loaderScreen").style.display = "none";
+        setupPriceSliderRange();
+        populateCategoryDropdown();
+        renderProducts();
+    })
+    .catch(err => {
+        console.error("Error loading products:", err);
+        document.getElementById("loaderScreen").style.display = "none";
+    });
+}
         function setupPriceSliderRange() {
             if(rawProducts.length === 0) return;
             var maxRate = Math.max(...rawProducts.map(p => parseFloat(p.rate) || 0));
