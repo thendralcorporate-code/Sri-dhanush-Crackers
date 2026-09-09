@@ -8,7 +8,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- 📊 Chart.js Included for Beautiful Visual Pie & Bar Charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary-color: #8c1d1d; --accent-color: #ffeb3b; }
@@ -38,7 +37,9 @@
         .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 12px 15px 25px 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.15); border-top: 3px solid var(--primary-color); display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
         .loader-screen { position: fixed; top:0; left:0; right:0; bottom:0; background: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 
-        /* Hidden PDF Render Container */
+        .out-of-stock-card { opacity: 0.6; background: #fff5f5; }
+        .out-of-stock-badge { background: #e53e3e; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+
         #hiddenBillWrap { position: absolute; left: -9999px; top: 0; width: 750px; background: white; }
     </style>
 </head>
@@ -125,7 +126,7 @@
         </div>
     </div>
 
-    <!-- 🚀 Modern Admin Panel Dashboard with Analytics -->
+    <!-- Admin Panel View -->
     <div id="adminPanelView" class="p-3" style="display:none; background: #f8fafc; min-height: 100vh;">
         <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded-3 shadow-sm text-white" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
             <div class="d-flex align-items-center gap-2">
@@ -138,7 +139,6 @@
             </div>
         </div>
 
-        <!-- Admin Navigation Tabs -->
         <ul class="nav nav-pills mb-3 bg-white p-2 rounded-3 shadow-sm" id="adminTab">
             <li class="nav-item">
                 <button class="nav-link active fw-bold" id="tabOrdersBtn" onclick="switchAdminTab('orders')">📦 Orders Management</button>
@@ -148,7 +148,6 @@
             </li>
         </ul>
 
-        <!-- TAB 1: Orders List -->
         <div id="adminOrdersSection">
             <div class="row g-3 mb-3">
                 <div class="col-6 col-md-3">
@@ -187,9 +186,7 @@
             <div id="ordersListContainer"></div>
         </div>
 
-        <!-- TAB 2: Advanced Analytics & Staff Performance -->
         <div id="adminAnalyticsSection" style="display:none;">
-            <!-- Date Filter with Apply Button -->
             <div class="card border-0 shadow-sm p-3 mb-3">
                 <div class="row g-2 align-items-end">
                     <div class="col-12 col-md-4">
@@ -208,7 +205,6 @@
             </div>
 
             <div class="row g-3 mb-3">
-                <!-- Pie Chart: Category Sales -->
                 <div class="col-12 col-md-6">
                     <div class="card border-0 shadow-sm p-3 h-100 text-center">
                         <h6 class="fw-bold text-danger border-bottom pb-2"><i class="fas fa-chart-pie me-1"></i>Category Sales Distribution</h6>
@@ -217,7 +213,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Staff Performance Card -->
                 <div class="col-12 col-md-6">
                     <div class="card border-0 shadow-sm p-3 h-100">
                         <h6 class="fw-bold text-danger border-bottom pb-2"><i class="fas fa-user-check me-1"></i>Staff Performance & Billing</h6>
@@ -226,7 +221,6 @@
                 </div>
             </div>
 
-            <!-- Detailed Item-wise Sales Table -->
             <div class="card border-0 shadow-sm p-3 mb-3">
                 <h6 class="fw-bold text-danger border-bottom pb-2"><i class="fas fa-fire me-1"></i>Item-wise Sales Breakdown</h6>
                 <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
@@ -261,6 +255,39 @@
         </div>
     </div>
 
+    <!-- 🏷️ Advanced Product Stock & Rate Management Modal -->
+    <div class="modal fade" id="productEditModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content p-3">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                    <h5 class="fw-bold text-danger mb-0">🏷️ Inventory & Rate Management</h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-success fw-bold" onclick="downloadCSVTemplate()">📥 Download Template</button>
+                        <label class="btn btn-sm btn-success fw-bold mb-0">
+                            📤 Bulk Upload CSV <input type="file" id="bulkCsvInput" accept=".csv" style="display:none;" onchange="handleBulkCSVUpload(this)">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Single Item Addition Form -->
+                <div class="card p-3 bg-light border-0 mb-3">
+                    <h6 class="fw-bold text-dark mb-2">➕ Add Single New Product</h6>
+                    <div class="row g-2">
+                        <div class="col-md-3"><input type="text" id="new_cat" class="form-control form-control-sm" placeholder="Category (e.g. SPARKLERS)"></div>
+                        <div class="col-md-3"><input type="text" id="new_eng" class="form-control form-control-sm" placeholder="English Name"></div>
+                        <div class="col-md-2"><input type="text" id="new_tam" class="form-control form-control-sm" placeholder="Tamil Name"></div>
+                        <div class="col-md-2"><input type="number" id="new_rate" class="form-control form-control-sm" placeholder="Rate (₹)"></div>
+                        <div class="col-md-2"><button class="btn btn-sm btn-danger w-100 fw-bold" onclick="addSingleNewProduct()">Save Item</button></div>
+                    </div>
+                </div>
+
+                <!-- Products Table with No Stock Toggle -->
+                <div id="productListEditContainer" style="max-height:350px; overflow-y:auto;"></div>
+                <button class="btn btn-secondary btn-sm w-100 fw-bold mt-2" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Order Items Detail Modal -->
     <div class="modal fade" id="orderDetailsModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -268,17 +295,6 @@
                 <h5 class="fw-bold text-danger border-bottom pb-2" id="modalOrderTitle">Order Details</h5>
                 <div id="modalOrderCustomerInfo" class="small mb-2"></div>
                 <div id="modalOrderItemsList" class="my-2" style="max-height:250px; overflow-y:auto;"></div>
-                <button class="btn btn-secondary btn-sm w-100 fw-bold mt-2" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Product Edit Modal -->
-    <div class="modal fade" id="productEditModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content p-3">
-                <h5 class="fw-bold text-danger border-bottom pb-2">🏷️ Stock & Rate Management</h5>
-                <div id="productListEditContainer" style="max-height:350px; overflow-y:auto;"></div>
                 <button class="btn btn-secondary btn-sm w-100 fw-bold mt-2" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -296,7 +312,7 @@
         </div>
     </div>
 
-    <!-- Printable PDF Professional Layout -->
+    <!-- Printable PDF Layout -->
     <div id="hiddenBillWrap">
         <div id="printableBill" style="padding: 20px; font-family: 'Helvetica', 'Arial', sans-serif; color: #2d3748; background: #ffffff;">
             <div style="text-align: center; border-bottom: 2px solid #8c1d1d; padding-bottom: 10px; margin-bottom: 15px;">
@@ -521,11 +537,15 @@
 
                 var q = selectedQty[item.id] || 0;
                 var rowTot = q * item.rate;
+                var isOutOfStock = (item.isOutOfStock === true || item.stock === 0 || item.stock === "0");
 
-                html += '<div class="item-card">' +
-                            '<div><b>' + titleDisplay + '</b><br><small class="text-muted">₹ ' + item.rate + ' / ' + (item.per || 'pkt') + '</small></div>' +
+                html += '<div class="item-card ' + (isOutOfStock ? 'out-of-stock-card' : '') + '">' +
+                            '<div>' +
+                                '<b>' + titleDisplay + '</b> ' + (isOutOfStock ? '<span class="out-of-stock-badge me-1">OUT OF STOCK</span>' : '') + '<br>' +
+                                '<small class="text-muted">₹ ' + item.rate + ' / ' + (item.per || 'pkt') + '</small>' +
+                            '</div>' +
                             '<div class="d-flex align-items-center gap-2">' +
-                                '<input type="number" min="0" id="input_qty_' + item.id + '" class="qty-input" value="' + (q || '') + '" oninput="updateQtyOnly(' + item.id + ', this.value)">' +
+                                '<input type="number" min="0" id="input_qty_' + item.id + '" class="qty-input" value="' + (q || '') + '" ' + (isOutOfStock ? 'disabled placeholder="0"' : 'oninput="updateQtyOnly(' + item.id + ', this.value)"') + '>' +
                                 '<span class="row-total" id="tot_' + item.id + '">₹ ' + rowTot + '</span>' +
                             '</div>' +
                         '</div>';
@@ -838,7 +858,7 @@
             document.getElementById("ordersListContainer").innerHTML = html || "<div class='card p-4 text-center text-muted border-0 shadow-sm'>எந்த ஆர்டர்களும் கிடைக்கவில்லை! (No Orders Found)</div>";
         }
 
-        /* 📊 ADVANCED ANALYTICS & STAFF PERFORMANCE ENGINE */
+        /* 📊 ADVANCED ANALYTICS ENGINE */
         function switchAdminTab(tab) {
             if(tab === 'orders') {
                 document.getElementById("adminOrdersSection").style.display = "block";
@@ -878,7 +898,6 @@
                 var items = [];
                 try { items = JSON.parse(o.items || o.Items); } catch(e){}
                 
-                // Staff Performance Extraction
                 var staffName = o.staff || o.Staff || o.createdBy || o.orderStatus || "Online Direct";
                 var totVal = parseFloat(o.total || o.Total || 0);
 
@@ -901,7 +920,6 @@
                 });
             });
 
-            // 1. Render Chart.js Pie/Doughnut Chart for Categories
             var catLabels = Object.keys(catSales);
             var catData = Object.values(catSales);
 
@@ -924,7 +942,6 @@
                 }
             });
 
-            // 2. Render Staff Performance UI List
             var staffHtml = "<ul class='list-group list-group-flush'>";
             Object.keys(staffSales).forEach(s => {
                 staffHtml += "<li class='list-group-item d-flex justify-content-between align-items-center py-2'>" +
@@ -937,7 +954,6 @@
             });
             document.getElementById("staffPerformanceContainer").innerHTML = staffHtml + "</ul>" || "<div class='text-muted'>No Staff Activity</div>";
 
-            // 3. Render Detailed Item Sales Table
             var itemHtml = "", sno = 1;
             var sortedItems = Object.keys(itemSales).sort((a,b) => itemSales[b].qty - itemSales[a].qty);
             sortedItems.forEach(k => {
@@ -950,6 +966,123 @@
                 sno++;
             });
             document.getElementById("itemSalesTableBody").innerHTML = itemHtml || "<tr><td colspan='4' class='text-center text-muted'>No Sales Recorded</td></tr>";
+        }
+
+        /* 🏷️ INVENTORY STOCK & RATE EDIT FUNCTIONS */
+        function openProductEditModal() {
+            var html = "<table class='table table-sm table-striped align-middle'>" +
+                        "<thead class='table-dark'><tr><th>Item Name</th><th>Rate (₹)</th><th>Stock Status</th><th>Action</th></tr></thead><tbody>";
+            rawProducts.forEach(p => {
+                var isOutOfStock = (p.isOutOfStock === true || p.stock === 0 || p.stock === "0");
+                html += "<tr>" +
+                            "<td><b>" + (p.eng || p.name) + "</b><br><small class='text-muted'>" + (p.category || 'General') + "</small></td>" +
+                            "<td><input type='number' id='rt_" + p.id + "' class='form-control form-control-sm' style='width:80px;' value='" + p.rate + "'></td>" +
+                            "<td>" +
+                                "<div class='form-check form-switch'>" +
+                                    "<input class='form-check-input' type='checkbox' id='stk_toggle_" + p.id + "' " + (isOutOfStock ? '' : 'checked') + ">" +
+                                    "<label class='form-check-label small fw-bold " + (isOutOfStock ? 'text-danger' : 'text-success') + "' for='stk_toggle_" + p.id + "'>" +
+                                        (isOutOfStock ? 'OUT OF STOCK' : 'IN STOCK') +
+                                    "</label>" +
+                                "</div>" +
+                            "</td>" +
+                            "<td><button class='btn btn-sm btn-primary fw-bold py-0' onclick='saveSingleProduct(" + p.id + ")'>💾 Save</button></td>" +
+                        "</tr>";
+            });
+            html += "</tbody></table>";
+            document.getElementById("productListEditContainer").innerHTML = html;
+            new bootstrap.Modal(document.getElementById("productEditModal")).show();
+        }
+
+        function saveSingleProduct(pId) {
+            var newRate = document.getElementById("rt_" + pId).value;
+            var isInStock = document.getElementById("stk_toggle_" + pId).checked;
+            var isOutOfStock = !isInStock;
+
+            fetch(MASTER_API_URL, {
+                method: "POST", 
+                body: JSON.stringify({ 
+                    action: "updateProduct", 
+                    clientSheetId: shopConfig.clientSheetId, 
+                    productId: pId, 
+                    newRate: newRate, 
+                    isOutOfStock: isOutOfStock 
+                })
+            })
+            .then(r => r.text()).then(() => {
+                alert("✅ Item Stock / Rate Updated Successfully!");
+                location.reload();
+            });
+        }
+
+        function addSingleNewProduct() {
+            var cat = document.getElementById("new_cat").value.trim();
+            var eng = document.getElementById("new_eng").value.trim();
+            var tam = document.getElementById("new_tam").value.trim();
+            var rate = document.getElementById("new_rate").value.trim();
+
+            if(!cat || !eng || !rate) { alert("⚠️ Please fill Category, English Name and Rate!"); return; }
+
+            var newObj = { category: cat, eng: eng, tam: tam, rate: parseFloat(rate), per: 'pkt', stock: 100, isOutOfStock: false };
+
+            fetch(MASTER_API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "addProduct", clientSheetId: shopConfig.clientSheetId, productObj: newObj })
+            })
+            .then(r => r.text()).then(() => {
+                alert("✅ New Product Added Successfully!");
+                location.reload();
+            });
+        }
+
+        function downloadCSVTemplate() {
+            var csvContent = "data:text/csv;charset=utf-8,Category,English_Name,Tamil_Name,Rate,Unit\n" +
+                             "ONE SOUND CRACKERS,3 1/2 Lakshmi,3 1/2 லட்சுமி,25,pkt\n" +
+                             "SPARKLERS,10cm Electric Sparklers,10 செ.மீ கம்பிமத்தாப்பு,40,box";
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Crackers_Product_Import_Template.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+
+        function handleBulkCSVUpload(input) {
+            var file = input.files[0];
+            if(!file) return;
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var text = e.target.result;
+                var lines = text.split("\n");
+                var productsArray = [];
+
+                for(var i=1; i<lines.length; i++) {
+                    var cols = lines[i].split(",");
+                    if(cols.length >= 4) {
+                        productsArray.push({
+                            category: cols[0].trim(),
+                            eng: cols[1].trim(),
+                            tam: cols[2].trim(),
+                            rate: parseFloat(cols[3].trim()) || 0,
+                            per: cols[4] ? cols[4].trim() : 'pkt',
+                            stock: 100,
+                            isOutOfStock: false
+                        });
+                    }
+                }
+
+                if(productsArray.length === 0) { alert("⚠️ Invalid CSV Format!"); return; }
+
+                fetch(MASTER_API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "bulkAddProducts", clientSheetId: shopConfig.clientSheetId, productsArray: productsArray })
+                })
+                .then(r => r.text()).then(() => {
+                    alert("✅ " + productsArray.length + " Products Bulk Imported Successfully!");
+                    location.reload();
+                });
+            };
+            reader.readAsText(file);
         }
 
         function viewOrderItems(orderId) {
@@ -981,30 +1114,6 @@
                 method: "POST", body: JSON.stringify({ action: "updateOrderStatus", clientSheetId: shopConfig.clientSheetId, orderId: orderId, newStatus: newStatus })
             })
             .then(r => r.text()).then(() => { alert("Status Updated!"); loadAdminOrders(); });
-        }
-
-        function openProductEditModal() {
-            var html = "<table class='table table-sm'><thead><tr><th>Item</th><th>Stock</th><th>Rate</th><th>Save</th></tr></thead><tbody>";
-            rawProducts.forEach(p => {
-                html += "<tr>" +
-                            "<td><small>" + (p.eng || p.name) + "</small></td>" +
-                            "<td><input type='number' id='stk_" + p.id + "' class='form-control form-control-sm' style='width:60px;' value='" + p.stock + "'></td>" +
-                            "<td><input type='number' id='rt_" + p.id + "' class='form-control form-control-sm' style='width:65px;' value='" + p.rate + "'></td>" +
-                            "<td><button class='btn btn-sm btn-primary py-0' onclick='saveSingleProduct(" + p.id + ")'>💾</button></td>" +
-                        "</tr>";
-            });
-            html += "</tbody></table>";
-            document.getElementById("productListEditContainer").innerHTML = html;
-            new bootstrap.Modal(document.getElementById("productEditModal")).show();
-        }
-
-        function saveSingleProduct(pId) {
-            var newStock = document.getElementById("stk_" + pId).value;
-            var newRate = document.getElementById("rt_" + pId).value;
-            fetch(MASTER_API_URL, {
-                method: "POST", body: JSON.stringify({ action: "updateProduct", clientSheetId: shopConfig.clientSheetId, productId: pId, newStock: newStock, newRate: newRate })
-            })
-            .then(r => r.text()).then(() => alert("Product Updated!"));
         }
     </script>
 </body>
