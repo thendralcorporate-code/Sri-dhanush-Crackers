@@ -192,30 +192,6 @@
         </div>
     </div>
 
-    <!-- Franchise Popup Modal -->
-    <div class="modal fade" id="franchiseModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content p-3 border-danger">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="fw-bold text-danger" id="franTitle">💥 பட்டாசு கடை ஆரம்பிக்க விருப்பமா?</h5>
-                </div>
-                <div class="modal-body text-center">
-                    <p class="small text-muted" id="franDesc">சொந்தமாகப் பட்டாசு வியாபாரம் செய்ய விரும்புகிறீர்களா? மொத்த விலையில் பட்டாசு பெற எங்கள் குழுவைத் தொடர்புகொள்ள விருப்பமா?</p>
-                    <div class="bg-light p-2 rounded mb-3 text-start small">
-                        <div><b>Name:</b> <span id="popCustName">-</span></div>
-                        <div><b>Mobile:</b> <span id="popCustMobile">-</span></div>
-                        <div><b>City:</b> <span id="popCustCity">-</span></div>
-                    </div>
-                    
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-outline-secondary w-50 fw-bold" onclick="handleFranchiseChoice(false)">இல்லை (No) ❌</button>
-                        <button class="btn btn-danger w-50 fw-bold" id="btnFranSubmit" onclick="handleFranchiseChoice(true)">ஆம் (Yes) ➔</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Order Items Detail Modal -->
     <div class="modal fade" id="orderDetailsModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -545,47 +521,15 @@
             new bootstrap.Modal(document.getElementById("reviewModal")).show();
         }
 
+        // 🟢 FIX: Directly proceed to Order Processing (No popup interruption for online orders)
         function finalizeOrder() {
             var revModal = bootstrap.Modal.getInstance(document.getElementById("reviewModal"));
             if(revModal) revModal.hide();
-            
-            if(currentSessionType === "Online Customer") {
-                document.getElementById("popCustName").innerText = document.getElementById("cust_name").value.trim();
-                document.getElementById("popCustMobile").innerText = document.getElementById("cust_mobile").value.trim();
-                document.getElementById("popCustCity").innerText = document.getElementById("cust_district").value.trim() || "Local";
-
-                var franM = new bootstrap.Modal(document.getElementById("franchiseModal"));
-                franM.show();
-            } else {
-                processFinalOrderSave(false);
-            }
+            processFinalOrderSave();
         }
 
-        function handleFranchiseChoice(isInterested) {
-            var franM = bootstrap.Modal.getInstance(document.getElementById("franchiseModal"));
-            if(franM) franM.hide();
-            
-            if(isInterested) {
-                var fn = document.getElementById("cust_name").value.trim();
-                var fm = document.getElementById("cust_mobile").value.trim();
-                var fc = document.getElementById("cust_district").value.trim() || "Local";
-
-                var adminLeadMsg = "💥 *NEW FRANCHISE / WHOLESALE ENQUIRY* 💥\n" +
-                                   "----------------------------------------\n" +
-                                   "👤 *Name:* " + fn + "\n" +
-                                   "📞 *Mobile:* " + fm + "\n" +
-                                   "📍 *City:* " + fc + "\n" +
-                                   "----------------------------------------\n" +
-                                   "ℹ️ *Customer is interested in wholesale cracker business.*";
-
-                window.open("https://api.whatsapp.com/send?phone=" + targetShopWhatsApp + "&text=" + encodeURIComponent(adminLeadMsg), "_blank");
-            }
-
-            processFinalOrderSave(isInterested);
-        }
-
-        // 🟢 FIX: Dual WhatsApp Routing (Online Order -> Shop | POS Order -> Customer)
-        function processFinalOrderSave(hasFranchiseLead) {
+        // 🟢 FIX: Clean & Dual WhatsApp Message Routing System
+        function processFinalOrderSave() {
             var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
             var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
             var name = document.getElementById("cust_name").value.trim();
@@ -646,7 +590,7 @@
             document.getElementById("billItemsBody").innerHTML = pdfTableRows;
             document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN') + ".00";
 
-            // Trigger PDF Download
+            // Trigger Local PDF Download
             setTimeout(function() {
                 var element = document.getElementById('printableBill');
                 var opt = {
@@ -670,14 +614,14 @@
                 method: "POST", body: JSON.stringify({ action: "saveOrder", clientSheetId: shopConfig.clientSheetId, payload: payload })
             })
             .then(r => r.text()).then(() => {
-                // 🔀 DUAL WHATSAPP TARGET LOGIC:
-                // 1. Online Customer -> Send order to SHOP WHATSAPP
-                // 2. POS Counter Billing -> Send bill to CUSTOMER WHATSAPP
+                // 🔀 DUAL WHATSAPP ROUTING:
+                // 1. Online Customer -> Message goes to SHOP WHATSAPP
+                // 2. POS Billing -> Message goes to CUSTOMER WHATSAPP
                 var sendTargetPhone = (currentSessionType === "Online Customer") ? targetShopWhatsApp : custMobileFormatted;
                 var waUrl = "https://api.whatsapp.com/send?phone=" + sendTargetPhone + "&text=" + encodeURIComponent(waMessage);
 
                 setTimeout(function() {
-                    if (confirm("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது! PDF Bill டவுன்லோட் செய்யப்பட்டது.\n\nWhatsApp-ல் மெசேஜ் அனுப்ப 'OK' அழுத்தவும்.")) {
+                    if (confirm("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது! PDF Bill டவுன்லோட் செய்யப்பட்டது.\n\nWhatsApp-ல் பில் மெசேஜ் அனுப்ப 'OK' அழுத்தவும்.")) {
                         window.location.href = waUrl;
                     } else {
                         location.reload();
