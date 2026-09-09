@@ -642,16 +642,69 @@
         function openLoginModal() { new bootstrap.Modal(document.getElementById("loginModal")).show(); }
 
         function processLogin() {
-    var u = document.getElementById("login_user").value.trim();
-    var p = document.getElementById("login_pass").value.trim();
+    var u = (document.getElementById("login_user").value || "").trim();
+    var p = (document.getElementById("login_pass").value || "").trim();
 
-    // Default Admin Login Fallback
-    if(u === "admin" && p === "admin123") {
-        userRole = "ADMIN";
-        loggedInUsername = u;
-        showAdminPanel();
+    if(!u || !p) {
+        alert("⚠️ பயனர்பெயர் மற்றும் பாஸ்வேர்டை உள்ளிடவும்!");
         return;
     }
+
+    // Static Admin Fallback
+    if(u.toLowerCase() === "admin" && p === "admin123") {
+        showAdminView("ADMIN", u);
+        return;
+    }
+
+    // Direct Supabase Rest API Call (No Vercel backend needed)
+    var supabaseUrl = "https://uviquxhyywthznpnqmnx.supabase.co";
+    var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aXF1eGh5eXd0aHpucG5xbW54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTU2OTY1NTQsImV4cCI6MjAzMTI3MjU1NH0.G7iF9P"; // Your public key
+
+    var fetchUrl = `${supabaseUrl}/rest/v1/staff?select=*&username=eq.${encodeURIComponent(u)}&password_hash=eq.${encodeURIComponent(p)}`;
+
+    fetch(fetchUrl, {
+        headers: {
+            'apikey': supabaseKey,
+            'Authorization': 'Bearer ' + supabaseKey
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(Array.isArray(data) && data.length > 0) {
+            var userObj = data[0];
+            showAdminView(userObj.role || "STAFF", userObj.username);
+        } else {
+            alert("❌ தவறான Username அல்லது Password!");
+        }
+    })
+    .catch(err => {
+        console.error("Login Error:", err);
+        alert("❌ லாகின் செய்வதில் பிழை!");
+    });
+}
+
+function showAdminView(role, username) {
+    userRole = role;
+    loggedInUsername = username;
+
+    document.getElementById("customerStoreView").style.display = "none";
+    document.getElementById("adminPanelView").style.display = "block";
+    
+    var currentBadge = document.getElementById("currentUserBadge");
+    if(currentBadge) currentBadge.innerText = "Role: " + role;
+    var userBadge = document.getElementById("currentUsernameBadge");
+    if(userBadge) userBadge.innerText = "User: " + username;
+
+    var modalElem = document.getElementById("loginModal");
+    if(modalElem) {
+        var modalInst = bootstrap.Modal.getInstance(modalElem);
+        if(modalInst) modalInst.hide();
+    }
+
+    if(typeof loadAdminOrders === 'function') {
+        loadAdminOrders();
+    }
+}
 
     // Supabase Staff Table Check
     fetch(`${API_BASE}/staff_login?user=${u}&pass=${p}`)
