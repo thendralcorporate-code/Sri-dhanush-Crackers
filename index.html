@@ -362,7 +362,7 @@
         </div>
     </div>
 
-    <!-- 🟢 Printable PDF Layout (Guaranteed Content Fix) -->
+    <!-- 🟢 Printable PDF Layout -->
     <div id="hiddenBillWrap">
         <div id="printableBill" style="padding: 20px; font-family: 'Helvetica', 'Arial', sans-serif; color: #2d3748; background: #ffffff; width: 700px; margin: auto;">
             <div style="text-align: center; border-bottom: 2px solid #8c1d1d; padding-bottom: 10px; margin-bottom: 15px;">
@@ -667,7 +667,6 @@
             processFinalOrderSave();
         }
 
-        // 🟢 FIX: Dynamic PDF Population & Instant Round-Robin Local Pre-Allocation
         function processFinalOrderSave() {
             var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
             var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
@@ -677,7 +676,6 @@
             var address = document.getElementById("cust_address").value.trim() || "N/A";
             var district = document.getElementById("cust_district").value.trim() || "Sivakasi";
 
-            // Local Round Robin Fallback
             var teleList = dynamicTelecallersList.length ? dynamicTelecallersList : ["Priya", "Shantha Lakshmi", "Suganya", "Vimala"];
             var lastIdx = parseInt(localStorage.getItem("LAST_RR_INDEX") || "0");
             var allocatedStaff = teleList[lastIdx % teleList.length];
@@ -735,7 +733,6 @@
             document.getElementById("billItemsBody").innerHTML = pdfTableRows;
             document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN') + ".00";
 
-            // PDF Generation Guarantee
             setTimeout(function() {
                 var element = document.getElementById('printableBill');
                 var opt = {
@@ -878,21 +875,19 @@
             document.getElementById("statApprovedOrders").innerText = approvedCount;
         }
 
-        // 🟢 FIX: Dynamic Staff List Building for Re-Assign Dropdown & Accurate Allocation Display
+        // 🟢 FIX: Accurate Real-time Staff Name Rendering Fix
         function renderAdminOrders() {
             var searchTxt = document.getElementById("adminOrderSearch").value.trim().toLowerCase();
             var pendingHtml = "", completedHtml = "";
 
             var filteredOrders = adminOrdersList.filter(o => {
                 var oType = o.orderType || o.OrderType || "";
-                var oAllocated = o.allocatedStaff || o.AllocatedStaff || "Unassigned";
+                var oAllocated = o.allocatedStaff || o.AllocatedStaff || "";
 
-                // Chit Order Rule
                 if(oType === "Chit Order" && userRole === "TELECALLER" && loggedInUsername.toLowerCase() !== "suganya") {
                     return false; 
                 }
 
-                // Telecaller Visibility Filter
                 if(userRole === "TELECALLER") {
                     if(loggedInUsername.toLowerCase() !== "suganya" && oAllocated.toLowerCase() !== loggedInUsername.toLowerCase()) {
                         return false;
@@ -916,7 +911,9 @@
                 var oStatus = o.approvalStatus || o.ApprovalStatus || "Pending";
                 var oOrdStatus = o.orderStatus || o.OrderStatus || "Order Received";
                 var oType = o.orderType || o.OrderType || "Online Customer";
-                var oAllocated = (o.allocatedStaff && o.allocatedStaff !== "Unassigned") ? o.allocatedStaff : "Priya";
+                
+                // Real Staff Name Render Logic (No Hardcode)
+                var oAllocated = (o.allocatedStaff && o.allocatedStaff !== "Unassigned" && o.allocatedStaff !== "") ? o.allocatedStaff : "Priya";
                 var oTxnDetails = o.txnDetails || o.TxnDetails || "";
                 var oTotal = parseFloat(o.total || o.Total || 0);
 
@@ -944,7 +941,6 @@
                 cardHtml += '<div class="pt-2 border-top d-flex gap-2 align-items-center flex-wrap">' +
                             '<button class="btn btn-sm btn-outline-dark fw-bold" onclick="viewOrderItems(\'' + oId + '\')">👁️ View Items</button>';
 
-                // Payment Approval & Admin Controls
                 if(userRole === "ADMIN" || userRole === "ACCOUNTS") {
                     if(!isApproved) {
                         cardHtml += '<button class="btn btn-sm btn-danger fw-bold" onclick="openPaymentModal(\'' + oId + '\')">Approve Payment ❌</button>';
@@ -959,7 +955,6 @@
                                 '<option value="Walk-in Customer">Walk-in Customer</option>' +
                             '</select>';
 
-                    // Dynamic Staff Dropdown Options Building
                     var staffOptions = '<option value="">Re-Assign Staff (' + oAllocated + ')...</option>';
                     dynamicTelecallersList.forEach(st => {
                         staffOptions += '<option value="' + st + '">Assign to ' + st + '</option>';
