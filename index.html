@@ -40,8 +40,8 @@
         .order-card.pending { border-left-color: #e53e3e; background: #fff5f5; }
         .order-card.approved { border-left-color: #38a169; background: #ffffff; }
 
-        /* PDF Layout Render Fix */
-        #hiddenBillWrap { position: fixed; top: 0; left: 0; width: 700px; z-index: -9999; opacity: 0; pointer-events: none; background: white; }
+        /* Hidden PDF Render Container */
+        #hiddenBillWrap { position: absolute; left: -9999px; top: 0; width: 750px; background: white; }
     </style>
 </head>
 <body>
@@ -127,9 +127,8 @@
         </div>
     </div>
 
-    <!-- 🚀 Modern Admin Panel Dashboard -->
+    <!-- Modern Admin Panel Dashboard -->
     <div id="adminPanelView" class="p-3" style="display:none; background: #f8fafc; min-height: 100vh;">
-        <!-- Admin Header Navigation Bar -->
         <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded-3 shadow-sm text-white" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
             <div class="d-flex align-items-center gap-2">
                 <span id="currentUserBadge" class="badge bg-warning text-dark fw-bold px-3 py-2 fs-6">Role: ADMIN</span>
@@ -141,7 +140,6 @@
             </div>
         </div>
 
-        <!-- 📊 Quick Stats Analytics Cards -->
         <div class="row g-3 mb-3">
             <div class="col-6 col-md-3">
                 <div class="card border-0 shadow-sm p-3 text-center" style="background: #ffffff; border-left: 4px solid #3b82f6 !important;">
@@ -169,7 +167,6 @@
             </div>
         </div>
 
-        <!-- 🔍 Search Bar -->
         <div class="card border-0 shadow-sm p-3 mb-3">
             <div class="input-group">
                 <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
@@ -177,7 +174,6 @@
             </div>
         </div>
 
-        <!-- Orders List Container -->
         <div id="ordersListContainer"></div>
     </div>
 
@@ -196,7 +192,7 @@
         </div>
     </div>
 
-    <!-- 💥 Franchise Popup Modal (Auto Filled from Step 1) -->
+    <!-- Franchise Popup Modal -->
     <div class="modal fade" id="franchiseModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3 border-danger">
@@ -264,17 +260,21 @@
                 <p id="pdfShopAddress" style="margin: 2px 0; font-size: 11px; color: #718096;">6/360, RCC BUILDING, Anuppankulam, Sattur Road, Sivakasi | Mob: 9080329266, 9976708194</p>
             </div>
 
-            <div style="background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 15px; margin-bottom: 15px; display: flex; justify-content: space-between; font-size: 12px;">
-                <div>
-                    <p style="margin: 3px 0;"><b>Order ID:</b> <span id="billOrderId"></span></p>
-                    <p style="margin: 3px 0;"><b>Customer Name:</b> <span id="billCustName"></span></p>
-                    <p style="margin: 3px 0;"><b>Mobile Number:</b> <span id="billCustPhone"></span></p>
-                </div>
-                <div style="text-align: right;">
-                    <p style="margin: 3px 0;"><b>Date:</b> <span id="billDate"></span></p>
-                    <p style="margin: 3px 0;"><b>Order Mode:</b> <span id="billOrderType">Online Order</span></p>
-                    <p style="margin: 3px 0;"><b>Address:</b> <span id="billCustAddress"></span></p>
-                </div>
+            <div style="background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 15px; margin-bottom: 15px; font-size: 12px;">
+                <table style="width: 100%;">
+                    <tr>
+                        <td><b>Order ID:</b> <span id="billOrderId"></span></td>
+                        <td style="text-align: right;"><b>Date:</b> <span id="billDate"></span></td>
+                    </tr>
+                    <tr>
+                        <td><b>Customer Name:</b> <span id="billCustName"></span></td>
+                        <td style="text-align: right;"><b>Order Mode:</b> <span id="billOrderType">Online Order</span></td>
+                    </tr>
+                    <tr>
+                        <td><b>Mobile Number:</b> <span id="billCustPhone"></span></td>
+                        <td style="text-align: right;"><b>Address:</b> <span id="billCustAddress"></span></td>
+                    </tr>
+                </table>
             </div>
 
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
@@ -287,7 +287,9 @@
                         <th style="padding: 8px; border: 1px solid #8c1d1d; width: 90px; text-align: right;">Total (Rs)</th>
                     </tr>
                 </thead>
-                <tbody id="billItemsBody"></tbody>
+                <tbody id="billItemsBody">
+                    <!-- PDF Table Content Injected Dynamically -->
+                </tbody>
             </table>
 
             <div style="text-align: right; margin-top: 15px; padding-top: 10px; border-top: 2px dashed #cbd5e0;">
@@ -447,7 +449,9 @@
             var filtered = rawProducts.filter(item => {
                 if(selectedCat !== "ALL" && item.category !== selectedCat) return false;
                 if(item.rate > maxPriceLimit) return false;
-                return (item.eng && item.eng.toLowerCase().includes(searchTxt)) || (item.tam && item.tam.includes(searchTxt));
+                var engName = (item.eng || item.name || "").toString().toLowerCase();
+                var tamName = (item.tam || item.tamil || "").toString();
+                return engName.includes(searchTxt) || tamName.includes(searchTxt);
             });
 
             if(sortVal === "LOW_HIGH") filtered.sort((a, b) => a.rate - b.rate);
@@ -460,20 +464,23 @@
                     html += '<div class="cat-title">' + currCat + '</div>';
                 }
                 
-                var titleDisplay = item.eng;
+                var pNameEng = item.eng || item.name || "Item";
+                var pNameTam = item.tam || item.tamil || "";
+
+                var titleDisplay = pNameEng;
                 if(currentLang === "ta") {
-                    titleDisplay = item.tam || item.eng;
+                    titleDisplay = pNameTam || pNameEng;
                 } else if(currentLang === "en") {
-                    titleDisplay = item.eng;
+                    titleDisplay = pNameEng;
                 } else if(currentLang === "both") {
-                    titleDisplay = item.eng + (item.tam ? ' <small class="text-muted">(' + item.tam + ')</small>' : '');
+                    titleDisplay = pNameEng + (pNameTam ? ' <small class="text-muted">(' + pNameTam + ')</small>' : '');
                 }
 
                 var q = selectedQty[item.id] || 0;
                 var rowTot = q * item.rate;
 
                 html += '<div class="item-card">' +
-                            '<div><b>' + titleDisplay + '</b><br><small class="text-muted">₹ ' + item.rate + ' / ' + item.per + '</small></div>' +
+                            '<div><b>' + titleDisplay + '</b><br><small class="text-muted">₹ ' + item.rate + ' / ' + (item.per || 'pkt') + '</small></div>' +
                             '<div class="d-flex align-items-center gap-2">' +
                                 '<input type="number" min="0" id="input_qty_' + item.id + '" class="qty-input" value="' + (q || '') + '" oninput="updateQtyOnly(' + item.id + ', this.value)">' +
                                 '<span class="row-total" id="tot_' + item.id + '">₹ ' + rowTot + '</span>' +
@@ -520,8 +527,9 @@
             rawProducts.forEach(p => {
                 var q = selectedQty[p.id] || 0;
                 if(q > 0) {
+                    var itemName = p.eng || p.name || "Item";
                     var t = q * p.rate; tot += t;
-                    html += "<tr><td>" + p.eng + " x " + q + "</td><td class='text-end'>₹" + t + "</td></tr>";
+                    html += "<tr><td>" + itemName + " x " + q + "</td><td class='text-end'>₹" + t + "</td></tr>";
                 }
             });
             html += "</table>";
@@ -585,19 +593,24 @@
             rawProducts.forEach(p => {
                 var q = selectedQty[p.id] || 0;
                 if(q > 0) {
-                    var tot = q * p.rate;
-                    itemsObj.push({ id: p.id, name: p.eng, qty: q, rate: p.rate, total: tot });
-                    waMessage += sno + ". " + p.eng + " x " + q + " = ₹" + tot + "\n";
+                    var itemName = p.eng || p.name || "Cracker Item";
+                    var rateVal = parseFloat(p.rate) || 0;
+                    var tot = q * rateVal;
+                    
+                    itemsObj.push({ id: p.id, name: itemName, qty: q, rate: rateVal, total: tot });
+                    waMessage += sno + ". " + itemName + " x " + q + " = ₹" + tot + "\n";
+                    
                     pdfTableRows += '<tr style="border-bottom: 1px solid #e2e8f0;">' +
-                        '<td style="padding: 6px; text-align: center;">' + sno + '</td>' +
-                        '<td style="padding: 6px;"><b>' + p.eng + '</b></td>' +
-                        '<td style="padding: 6px; text-align: center;">' + q + '</td>' +
-                        '<td style="padding: 6px; text-align: right;">Rs. ' + p.rate.toFixed(2) + '</td>' +
-                        '<td style="padding: 6px; text-align: right;">Rs. ' + tot.toFixed(2) + '</td>' +
+                        '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + sno + '</td>' +
+                        '<td style="padding: 6px; border: 1px solid #cbd5e0;"><b>' + itemName + '</b></td>' +
+                        '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + q + '</td>' +
+                        '<td style="padding: 6px; text-align: right; border: 1px solid #cbd5e0;">Rs. ' + rateVal.toFixed(2) + '</td>' +
+                        '<td style="padding: 6px; text-align: right; border: 1px solid #cbd5e0;">Rs. ' + tot.toFixed(2) + '</td>' +
                     '</tr>';
                     sno++;
                 }
             });
+
             waMessage += "\n*ESTIMATE TOTAL: ₹" + total.toLocaleString('en-IN') + "*\n\n*** Thank you for your order! Wish you a happy Diwali! ***";
 
             document.getElementById("billOrderId").innerText = orderId;
@@ -607,7 +620,7 @@
             document.getElementById("billCustAddress").innerText = address;
             document.getElementById("billOrderType").innerText = currentSessionType;
             document.getElementById("billItemsBody").innerHTML = pdfTableRows;
-            document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN');
+            document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN') + ".00";
 
             setTimeout(function() {
                 var element = document.getElementById('printableBill');
@@ -615,11 +628,11 @@
                     margin:       0.3,
                     filename:     'Sri_Dhanush_Crackers_Estimate_' + orderId + '.pdf',
                     image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2, logging: false },
+                    html2canvas:  { scale: 2, logging: false, useCORS: true },
                     jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
                 };
                 html2pdf().set(opt).from(element).save();
-            }, 300);
+            }, 500);
 
             var payload = {
                 shopId: shopConfig.shopId, shopName: shopConfig.shopName,
@@ -633,11 +646,13 @@
             })
             .then(r => r.text()).then(() => {
                 var waUrl = "https://api.whatsapp.com/send?phone=" + custMobileFormatted + "&text=" + encodeURIComponent(waMessage);
-                if (confirm("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது! PDF Bill டவுன்லோட் செய்யப்பட்டது.\n\nWhatsApp-ல் பில் அனுப்ப 'OK' அழுத்தவும்.")) {
-                    window.location.href = waUrl;
-                } else {
-                    location.reload();
-                }
+                setTimeout(function() {
+                    if (confirm("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது! PDF Bill டவுன்லோட் செய்யப்பட்டது.\n\nWhatsApp-ல் பில் அனுப்ப 'OK' அழுத்தவும்.")) {
+                        window.location.href = waUrl;
+                    } else {
+                        location.reload();
+                    }
+                }, 1000);
             });
         }
 
@@ -816,7 +831,7 @@
             var html = "<table class='table table-sm'><thead><tr><th>Item</th><th>Stock</th><th>Rate</th><th>Save</th></tr></thead><tbody>";
             rawProducts.forEach(p => {
                 html += "<tr>" +
-                            "<td><small>" + p.eng + "</small></td>" +
+                            "<td><small>" + (p.eng || p.name) + "</small></td>" +
                             "<td><input type='number' id='stk_" + p.id + "' class='form-control form-control-sm' style='width:60px;' value='" + p.stock + "'></td>" +
                             "<td><input type='number' id='rt_" + p.id + "' class='form-control form-control-sm' style='width:65px;' value='" + p.rate + "'></td>" +
                             "<td><button class='btn btn-sm btn-primary py-0' onclick='saveSingleProduct(" + p.id + ")'>💾</button></td>" +
