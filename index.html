@@ -667,7 +667,6 @@
             processFinalOrderSave();
         }
 
-        // 🟢 Pure Backend Allocation (No Client Override)
         function processFinalOrderSave() {
             var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
             var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
@@ -870,7 +869,7 @@
             document.getElementById("statApprovedOrders").innerText = approvedCount;
         }
 
-        // 🟢 FIX: Accurate Allocation Display Fix
+        // 🟢 FIX: Render Direct Sheet Allocated Name
         function renderAdminOrders() {
             var searchTxt = document.getElementById("adminOrderSearch").value.trim().toLowerCase();
             var pendingHtml = "", completedHtml = "";
@@ -907,8 +906,8 @@
                 var oOrdStatus = o.orderStatus || o.OrderStatus || "Order Received";
                 var oType = o.orderType || o.OrderType || "Online Customer";
                 
-                // Show Real Sheet Staff Allocation
-                var oAllocated = (o.allocatedStaff && o.allocatedStaff !== "Unassigned" && o.allocatedStaff !== "") ? o.allocatedStaff : "Unassigned";
+                // Show Direct Name from Google Sheet Response
+                var oAllocated = o.allocatedStaff || o.AllocatedStaff || "Priya";
                 var oTxnDetails = o.txnDetails || o.TxnDetails || "";
                 var oTotal = parseFloat(o.total || o.Total || 0);
 
