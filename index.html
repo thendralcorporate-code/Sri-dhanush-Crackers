@@ -196,15 +196,15 @@
                         <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
                         <input type="text" id="adminOrderSearch" class="form-control border-start-0 ps-0" placeholder="Search by Order ID, Mobile, Name..." onkeyup="renderAdminOrders()">
                     </div>
-                    <button class="btn btn-outline-primary fw-bold" onclick="loadAdminOrders()"><i class="fas fa-sync-alt me-1"></i>Refresh Orders</button>
+                    <button class="btn btn-outline-primary fw-bold text-nowrap" onclick="loadAdminOrders()"><i class="fas fa-sync-alt me-1"></i>Refresh Orders</button>
                 </div>
             </div>
 
-            <!-- 🟢 PENDING ORDERS SECTION -->
+            <!-- 🔴 PENDING ORDERS SECTION -->
             <h6 class="fw-bold text-danger border-bottom pb-2 mb-2"><i class="fas fa-clock me-1"></i>🔴 Pending Verification Orders</h6>
             <div id="pendingOrdersContainer" class="mb-4"></div>
 
-            <!-- 🟢 COMPLETED / DISPATCHED ORDERS SECTION -->
+            <!-- ✅ COMPLETED / DISPATCHED ORDERS SECTION -->
             <h6 class="fw-bold text-success border-bottom pb-2 mb-2"><i class="fas fa-check-circle me-1"></i>✅ Verified / Completed Orders</h6>
             <div id="completedOrdersContainer"></div>
         </div>
@@ -263,7 +263,7 @@
         </div>
     </div>
 
-    <!-- 🟢 Payment Approval Modal (With Transaction Details) -->
+    <!-- 💳 Payment Approval Modal -->
     <div class="modal fade" id="paymentApproveModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3">
@@ -990,7 +990,7 @@
             new bootstrap.Modal(document.getElementById("paymentApproveModal")).show();
         }
 
-        // Action: Confirm & Submit Payment Approval
+        // 🟢 FIX: Submit Payment Approval & Send Payload
         function submitPaymentApproval() {
             var orderId = document.getElementById("approve_target_order_id").value;
             var mode = document.getElementById("approve_pay_mode").value;
@@ -998,20 +998,31 @@
             var txnString = mode + " | Ref: " + txn;
 
             fetch(MASTER_API_URL, {
-                method: "POST", body: JSON.stringify({ action: "approveOrderPayment", clientSheetId: shopConfig.clientSheetId, orderId: orderId, txnDetails: txnString })
+                method: "POST", 
+                body: JSON.stringify({ 
+                    action: "approveOrderPayment", 
+                    clientSheetId: shopConfig.clientSheetId, 
+                    payload: { orderId: orderId, txnDetails: txnString } 
+                })
             })
             .then(r => r.text()).then(() => {
                 alert("✅ Payment Verified & Order Approved!");
-                bootstrap.Modal.getInstance(document.getElementById("paymentApproveModal")).hide();
+                var pModal = bootstrap.Modal.getInstance(document.getElementById("paymentApproveModal"));
+                if(pModal) pModal.hide();
                 loadAdminOrders();
             });
         }
 
-        // Action: Change Order Type (Instant Fix)
+        // 🟢 FIX: Change Order Type Instant Payload Update
         function changeOrderType(orderId, newType) {
             if(!newType) return;
             fetch(MASTER_API_URL, {
-                method: "POST", body: JSON.stringify({ action: "updateOrderType", clientSheetId: shopConfig.clientSheetId, orderId: orderId, newType: newType })
+                method: "POST", 
+                body: JSON.stringify({ 
+                    action: "updateOrderType", 
+                    clientSheetId: shopConfig.clientSheetId, 
+                    payload: { orderId: orderId, newType: newType } 
+                })
             })
             .then(r => r.text()).then(() => { 
                 alert("✅ Order Type Updated to " + newType); 
@@ -1019,11 +1030,16 @@
             });
         }
 
-        // Action: Re-allocate Staff
+        // 🟢 FIX: Re-allocate Staff Payload Update
         function reallocateStaff(orderId, newStaff) {
             if(!newStaff) return;
             fetch(MASTER_API_URL, {
-                method: "POST", body: JSON.stringify({ action: "reallocateStaff", clientSheetId: shopConfig.clientSheetId, orderId: orderId, newStaff: newStaff })
+                method: "POST", 
+                body: JSON.stringify({ 
+                    action: "reallocateStaff", 
+                    clientSheetId: shopConfig.clientSheetId, 
+                    payload: { orderId: orderId, newStaff: newStaff } 
+                })
             })
             .then(r => r.text()).then(() => { 
                 alert("✅ Order Re-assigned to " + newStaff); 
