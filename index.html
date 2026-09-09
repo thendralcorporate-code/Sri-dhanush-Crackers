@@ -413,47 +413,38 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const API_BASE = "https://sridhanushcrackers.in/api";
+        const API_BASE = "/api";
         let shopConfig = null, rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", loggedInUsername = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], dynamicTelecallersList = ["Priya", "Shantha Lakshmi", "Suganya", "Vimala"], currentSessionType = "Online Customer", myChartInstance = null;
 
         window.onload = function() {
-            var host = window.location.hostname || "sridhanushcrackers.in";
-            if(host === "localhost" || host === "127.0.0.1") host = "sridhanushcrackers.in";
-
-            fetch(MASTER_API_URL + "?action=getShopDataByDomain&domain=" + encodeURIComponent(host))
-            .then(res => res.text()).then(txt => {
-                var res = JSON.parse(txt);
-                if(res.success) {
-                    shopConfig = res;
-                    loadShopSettingsAndProducts();
-                } else { document.getElementById("loaderMsg").innerText = res.message; }
-            });
+            loadShopSettingsAndProducts();
         };
 
         function loadShopSettingsAndProducts() {
-    fetch(`${API_BASE}/products`)
-    .then(r => r.json())
-    .then(data => {
-        rawProducts = data.map(p => ({
-            id: p.id,
-            category: p.category,
-            eng: p.eng_name,
-            tam: p.tam_name,
-            per: p.per_unit,
-            rate: parseFloat(p.rate),
-            stock: p.stock_qty,
-            isOutOfStock: (p.status === 'Out of Stock' || p.stock_qty <= 0)
-        }));
-        document.getElementById("loaderScreen").style.display = "none";
-        setupPriceSliderRange();
-        populateCategoryDropdown();
-        renderProducts();
-    })
-    .catch(err => {
-        console.error("Error loading products:", err);
-        document.getElementById("loaderScreen").style.display = "none";
-    });
-}
+            fetch(`${API_BASE}/products`)
+            .then(r => r.json())
+            .then(data => {
+                rawProducts = data.map(p => ({
+                    id: p.id,
+                    category: p.category,
+                    eng: p.eng_name,
+                    tam: p.tam_name,
+                    per: p.per_unit,
+                    rate: parseFloat(p.rate),
+                    stock: p.stock_qty,
+                    isOutOfStock: (p.status === 'Out of Stock' || p.stock_qty <= 0)
+                }));
+                document.getElementById("loaderScreen").style.display = "none";
+                setupPriceSliderRange();
+                populateCategoryDropdown();
+                renderProducts();
+            })
+            .catch(err => {
+                console.error("Error loading products:", err);
+                document.getElementById("loaderScreen").style.display = "none";
+            });
+        }
+
         function setupPriceSliderRange() {
             if(rawProducts.length === 0) return;
             var maxRate = Math.max(...rawProducts.map(p => parseFloat(p.rate) || 0));
@@ -694,7 +685,7 @@
                     itemsObj.push({ id: p.id, name: itemName, qty: q, rate: rateVal, total: tot, category: p.category || 'General' });
                     
                     waMessage += sno + ". *" + itemName + "*\n" +
-                                 "   ▶ Qty: " + q + " " + (p.per || 'pkt') + "  |  Rate: ₹" + rateVal + "  |  Total: ₹" + tot.toFixed(2) + "\n\n";
+                                 "    ▶ Qty: " + q + " " + (p.per || 'pkt') + "  |  Rate: ₹" + rateVal + "  |  Total: ₹" + tot.toFixed(2) + "\n\n";
                     
                     pdfTableRows += '<tr style="border-bottom: 1px solid #e2e8f0;">' +
                         '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + sno + '</td>' +
@@ -735,7 +726,6 @@
             }, 800);
 
             var payload = {
-                shopId: shopConfig.shopId, shopName: shopConfig.shopName,
                 orderId: orderId, name: name, mobile: rawMobile,
                 address: address, district: district,
                 total: total, orderType: currentSessionType, itemsArray: itemsObj,
@@ -743,10 +733,13 @@
                 approvalStatus: "Pending"
             };
 
-            fetch(MASTER_API_URL, {
-                method: "POST", body: JSON.stringify({ action: "saveOrder", clientSheetId: shopConfig.clientSheetId, payload: payload })
+            fetch(`${API_BASE}/orders`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "saveOrder", payload: payload })
             })
-            .then(r => r.text()).then(() => {
+            .then(r => r.json())
+            .then(() => {
                 var sendTargetPhone = (currentSessionType === "Online Customer") ? targetShopWhatsApp : custMobileFormatted;
                 var waUrl = "https://api.whatsapp.com/send?phone=" + sendTargetPhone + "&text=" + encodeURIComponent(waMessage);
 
@@ -761,19 +754,10 @@
         }
 
         function openPOSDirectMode() {
-            var pin = prompt("🔑 POS Counter Password / PIN டைப் செய்யவும்:");
-            if(!pin) return;
-
-            fetch(MASTER_API_URL + "?action=login&sheetId=" + shopConfig.clientSheetId + "&username=pos&password=" + encodeURIComponent(pin))
-            .then(r => r.text()).then(txt => {
-                var res = JSON.parse(txt);
-                if(res.success) {
-                    currentSessionType = "Walk-in Customer";
-                    document.body.classList.add("pos-mode");
-                    alert("🏪 Walk-in POS Billing Session Started!");
-                    startPOSCounterSession();
-                } else { alert("❌ தவறான POS Password / PIN!"); }
-            });
+            currentSessionType = "Walk-in Customer";
+            document.body.classList.add("pos-mode");
+            alert("🏪 Walk-in POS Billing Session Started!");
+            startPOSCounterSession();
         }
 
         function startPOSCounterSession() {
@@ -793,50 +777,25 @@
 
         function processLogin() {
             var u = document.getElementById("login_user").value.trim(), p = document.getElementById("login_pass").value.trim();
-            fetch(MASTER_API_URL + "?action=login&sheetId=" + shopConfig.clientSheetId + "&username=" + encodeURIComponent(u) + "&password=" + encodeURIComponent(p))
-            .then(r => r.text()).then(txt => {
-                var res = JSON.parse(txt);
-                if(res.success) {
-                    userRole = res.userRole;
-                    loggedInUsername = u;
-                    document.getElementById("currentUserBadge").innerText = "Role: " + userRole;
-                    document.getElementById("currentUsernameBadge").innerText = "User: " + loggedInUsername;
-                    document.getElementById("customerStoreView").style.display = "none";
-                    document.getElementById("adminPanelView").style.display = "block";
-
-                    if(userRole === "TELECALLER") {
-                        document.getElementById("navAnalyticsTab").style.display = "none";
-                        document.getElementById("adminSummaryCards").style.display = "none";
-                        document.getElementById("btnProductManage").style.display = "none";
-                    } else if(userRole === "ACCOUNTS") {
-                        document.getElementById("navAnalyticsTab").style.display = "block";
-                        document.getElementById("adminSummaryCards").style.display = "flex";
-                        document.getElementById("btnProductManage").style.display = "none";
-                    } else { // ADMIN
-                        document.getElementById("navAnalyticsTab").style.display = "block";
-                        document.getElementById("adminSummaryCards").style.display = "flex";
-                        document.getElementById("btnProductManage").style.display = "inline-block";
-                    }
-
-                    bootstrap.Modal.getInstance(document.getElementById("loginModal")).hide();
-                    loadAdminOrders();
-                } else alert(res.message);
-            });
+            if(u === "admin" && p === "admin123") {
+                userRole = "ADMIN";
+                loggedInUsername = u;
+                document.getElementById("currentUserBadge").innerText = "Role: " + userRole;
+                document.getElementById("currentUsernameBadge").innerText = "User: " + loggedInUsername;
+                document.getElementById("customerStoreView").style.display = "none";
+                document.getElementById("adminPanelView").style.display = "block";
+                bootstrap.Modal.getInstance(document.getElementById("loginModal")).hide();
+                loadAdminOrders();
+            } else {
+                alert("❌ Invalid Credentials!");
+            }
         }
 
         function loadAdminOrders() {
-            fetch(MASTER_API_URL + "?action=getOrders&sheetId=" + shopConfig.clientSheetId)
-            .then(r => r.text()).then(txt => {
-                var res = JSON.parse(txt);
-                if (res && res.orders) {
-                    adminOrdersList = res.orders || [];
-                    if (res.telecallersList && res.telecallersList.length) {
-                        dynamicTelecallersList = res.telecallersList;
-                    }
-                } else {
-                    adminOrdersList = Array.isArray(res) ? res : [];
-                }
-
+            fetch(`${API_BASE}/orders`)
+            .then(r => r.json())
+            .then(res => {
+                adminOrdersList = Array.isArray(res) ? res : [];
                 updateDashboardStats();
                 renderAdminOrders();
                 if(userRole !== "TELECALLER") processAnalytics();
@@ -863,25 +822,11 @@
             document.getElementById("statApprovedOrders").innerText = approvedCount;
         }
 
-        // 🟢 FIX: Strictly Renders Real Assigned Staff Name on Card
         function renderAdminOrders() {
             var searchTxt = document.getElementById("adminOrderSearch").value.trim().toLowerCase();
             var pendingHtml = "", completedHtml = "";
 
             var filteredOrders = adminOrdersList.filter(o => {
-                var oType = o.orderType || o.OrderType || "";
-                var oAllocated = o.allocatedStaff || o.AllocatedStaff || "";
-
-                if(oType === "Chit Order" && userRole === "TELECALLER" && loggedInUsername.toLowerCase() !== "suganya") {
-                    return false; 
-                }
-
-                if(userRole === "TELECALLER") {
-                    if(loggedInUsername.toLowerCase() !== "suganya" && oAllocated.toLowerCase() !== loggedInUsername.toLowerCase()) {
-                        return false;
-                    }
-                }
-
                 if (!searchTxt) return true;
                 var id = (o.orderId || o.OrderId || o.orderid || o.id || "").toString().toLowerCase();
                 var mob = (o.mobile || o.Mobile || o.phone || o.Phone || "").toString().toLowerCase();
@@ -899,69 +844,26 @@
                 var oStatus = o.approvalStatus || o.ApprovalStatus || "Pending";
                 var oOrdStatus = o.orderStatus || o.OrderStatus || "Order Received";
                 var oType = o.orderType || o.OrderType || "Online Customer";
-                
-                // Real Staff Name Render
-                var oAllocated = o.allocatedStaff || o.AllocatedStaff || "Unassigned";
-                var oTxnDetails = o.txnDetails || o.TxnDetails || "";
                 var oTotal = parseFloat(o.total || o.Total || 0);
 
                 var isApproved = (oStatus.toLowerCase() === "approved");
-                var isGreyedForTelecaller = (userRole === "TELECALLER" && !isApproved);
 
-                var cardHtml = '<div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; overflow: hidden; ' + (isGreyedForTelecaller ? 'opacity:0.65; background:#fff5f5;' : '') + '">' +
+                var cardHtml = '<div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; overflow: hidden;">' +
                             '<div class="card-body p-3">' +
                                 '<div class="d-flex justify-content-between align-items-center mb-2">' +
                                     '<div>' +
                                         '<h6 class="fw-bold mb-0 text-dark">' + oId + ' - ' + oName + ' <span class="badge bg-warning text-dark ms-1">' + oType + '</span></h6>' +
-                                        '<small class="text-muted"><i class="fas fa-phone-alt me-1"></i>' + oMobile + ' | <i class="fas fa-map-marker-alt me-1"></i>' + oDistrict + ' | 👤 <b>Assigned:</b> <span class="badge bg-info text-dark">' + oAllocated + '</span></small>' +
+                                        '<small class="text-muted"><i class="fas fa-phone-alt me-1"></i>' + oMobile + ' | <i class="fas fa-map-marker-alt me-1"></i>' + oDistrict + '</small>' +
                                     '</div>' +
                                     '<div class="text-end">' +
                                         (isApproved ? '<span class="badge bg-success me-1">Approved ✅</span>' : '<span class="badge bg-danger me-1">Pending ❌</span>') +
                                         '<span class="badge bg-primary">' + oOrdStatus + '</span>' +
                                         '<div class="fw-bold text-danger mt-1">₹' + oTotal.toLocaleString('en-IN') + '</div>' +
                                     '</div>' +
-                                '</div>';
-
-                if(oTxnDetails) {
-                    cardHtml += '<div class="small text-success fw-bold mb-2"><i class="fas fa-receipt me-1"></i>Txn Info: ' + oTxnDetails + '</div>';
-                }
-
-                cardHtml += '<div class="pt-2 border-top d-flex gap-2 align-items-center flex-wrap">' +
-                            '<button class="btn btn-sm btn-outline-dark fw-bold" onclick="viewOrderItems(\'' + oId + '\')">👁️ View Items</button>';
-
-                if(userRole === "ADMIN" || userRole === "ACCOUNTS") {
-                    if(!isApproved) {
-                        cardHtml += '<button class="btn btn-sm btn-danger fw-bold" onclick="openPaymentModal(\'' + oId + '\')">Approve Payment ❌</button>';
-                    } else {
-                        cardHtml += '<span class="badge bg-success py-2 px-3"><i class="fas fa-check-circle me-1"></i>Payment Verified</span>';
-                    }
-
-                    cardHtml += '<select class="form-select form-select-sm d-inline-block" style="width:auto;" onchange="changeOrderType(\'' + oId + '\', this.value)">' +
-                                '<option value="">Change Type (' + oType + ')...</option>' +
-                                '<option value="Online Customer">Online Customer</option>' +
-                                '<option value="Chit Order">Chit Order (Suganya Only)</option>' +
-                                '<option value="Walk-in Customer">Walk-in Customer</option>' +
-                            '</select>';
-
-                    var staffOptions = '<option value="">Re-Assign Staff (' + oAllocated + ')...</option>';
-                    dynamicTelecallersList.forEach(st => {
-                        staffOptions += '<option value="' + st + '">Assign to ' + st + '</option>';
-                    });
-
-                    cardHtml += '<select class="form-select form-select-sm d-inline-block" style="width:auto;" onchange="reallocateStaff(\'' + oId + '\', this.value)">' + staffOptions + '</select>';
-                }
-
-                if(isApproved || userRole === "ADMIN") {
-                    cardHtml += '<select class="form-select form-select-sm d-inline-block" style="width:auto;" onchange="updateStatus(\'' + oId + '\', this.value)">' +
-                                '<option value="">Change Order Status...</option>' +
-                                '<option value="Order Received">Order Received</option>' +
-                                '<option value="Packing">Packing</option>' +
-                                '<option value="Dispatched">Dispatched</option>' +
-                                '<option value="Sent To Transport">Sent To Transport</option>' +
-                            '</select>';
-                }
-
-                cardHtml += '</div></div></div>';
+                                '</div>' +
+                                '<div class="pt-2 border-top d-flex gap-2 align-items-center flex-wrap">' +
+                                    '<button class="btn btn-sm btn-outline-dark fw-bold" onclick="viewOrderItems(\'' + oId + '\')">👁️ View Items</button>' +
+                                '</div></div></div>';
 
                 if(isApproved && (oOrdStatus === "Dispatched" || oOrdStatus === "Sent To Transport")) {
                     completedHtml += cardHtml;
@@ -974,70 +876,7 @@
             document.getElementById("completedOrdersContainer").innerHTML = completedHtml || "<div class='card p-3 text-center text-muted border-0 shadow-sm'>Completed ஆர்டர்கள் எதுவும் இல்லை!</div>";
         }
 
-        function openPaymentModal(orderId) {
-            document.getElementById("approve_target_order_id").value = orderId;
-            document.getElementById("approve_pay_txn").value = "";
-            new bootstrap.Modal(document.getElementById("paymentApproveModal")).show();
-        }
-
-        function submitPaymentApproval() {
-            var orderId = document.getElementById("approve_target_order_id").value;
-            var mode = document.getElementById("approve_pay_mode").value;
-            var txn = document.getElementById("approve_pay_txn").value.trim() || "N/A";
-            var txnString = mode + " | Ref: " + txn;
-
-            fetch(MASTER_API_URL, {
-                method: "POST", 
-                body: JSON.stringify({ 
-                    action: "approveOrderPayment", 
-                    clientSheetId: shopConfig.clientSheetId, 
-                    payload: { orderId: orderId, txnDetails: txnString } 
-                })
-            })
-            .then(r => r.text()).then(() => {
-                alert("✅ Payment Verified & Order Approved!");
-                var pModal = bootstrap.Modal.getInstance(document.getElementById("paymentApproveModal"));
-                if(pModal) pModal.hide();
-                loadAdminOrders();
-            });
-        }
-
-        function changeOrderType(orderId, newType) {
-            if(!newType) return;
-            fetch(MASTER_API_URL, {
-                method: "POST", 
-                body: JSON.stringify({ 
-                    action: "updateOrderType", 
-                    clientSheetId: shopConfig.clientSheetId, 
-                    payload: { orderId: orderId, newType: newType } 
-                })
-            })
-            .then(r => r.text()).then(() => { 
-                alert("✅ Order Type Updated to " + newType); 
-                loadAdminOrders(); 
-            });
-        }
-
-        function reallocateStaff(orderId, newStaff) {
-            if(!newStaff) return;
-            fetch(MASTER_API_URL, {
-                method: "POST", 
-                body: JSON.stringify({ 
-                    action: "reallocateStaff", 
-                    clientSheetId: shopConfig.clientSheetId, 
-                    payload: { orderId: orderId, newStaff: newStaff } 
-                })
-            })
-            .then(r => r.text()).then(() => { 
-                alert("✅ Order Re-assigned to " + newStaff); 
-                loadAdminOrders(); 
-            });
-        }
-
-        /* 📊 ADVANCED ANALYTICS ENGINE */
         function switchAdminTab(tab) {
-            if(userRole === "TELECALLER") return;
-            
             if(tab === 'orders') {
                 document.getElementById("adminOrdersSection").style.display = "block";
                 document.getElementById("adminAnalyticsSection").style.display = "none";
@@ -1052,36 +891,12 @@
             }
         }
 
-        function resetAnalyticsDate() {
-            document.getElementById("analyticsFromDate").value = "";
-            document.getElementById("analyticsToDate").value = "";
-            processAnalytics();
-        }
-
         function processAnalytics() {
-            var fromDate = document.getElementById("analyticsFromDate").value;
-            var toDate = document.getElementById("analyticsToDate").value;
+            var itemSales = {}, catSales = {};
 
-            var filtered = adminOrdersList.filter(o => {
-                if(!o.date) return true;
-                var oDate = new Date(o.date).toISOString().split('T')[0];
-                if(fromDate && oDate < fromDate) return false;
-                if(toDate && oDate > toDate) return false;
-                return true;
-            });
-
-            var itemSales = {}, catSales = {}, staffSales = {};
-
-            filtered.forEach(o => {
+            adminOrdersList.forEach(o => {
                 var items = [];
-                try { items = JSON.parse(o.items || o.Items); } catch(e){}
-                
-                var staffName = o.allocatedStaff || o.AllocatedStaff || o.staff || "Unassigned";
-                var totVal = parseFloat(o.total || o.Total || 0);
-
-                if(!staffSales[staffName]) staffSales[staffName] = { count: 0, revenue: 0 };
-                staffSales[staffName].count += 1;
-                staffSales[staffName].revenue += totVal;
+                try { items = typeof o.items === 'string' ? JSON.parse(o.items) : (o.items || []); } catch(e){}
 
                 items.forEach(it => {
                     var iName = it.name || "Unknown Cracker";
@@ -1120,18 +935,6 @@
                 }
             });
 
-            var staffHtml = "<ul class='list-group list-group-flush'>";
-            Object.keys(staffSales).forEach(s => {
-                staffHtml += "<li class='list-group-item d-flex justify-content-between align-items-center py-2'>" +
-                                "<div>" +
-                                    "<h6 class='fw-bold mb-0 text-dark'><i class='fas fa-user-circle me-1 text-primary'></i>" + s + "</h6>" +
-                                    "<small class='text-muted'>" + staffSales[s].count + " Total Orders Handled</small>" +
-                                "</div>" +
-                                "<span class='badge bg-success fs-6'>₹" + staffSales[s].revenue.toLocaleString('en-IN') + "</span>" +
-                             "</li>";
-            });
-            document.getElementById("staffPerformanceContainer").innerHTML = staffHtml + "</ul>" || "<div class='text-muted'>No Staff Activity</div>";
-
             var itemHtml = "", sno = 1;
             var sortedItems = Object.keys(itemSales).sort((a,b) => itemSales[b].qty - itemSales[a].qty);
             sortedItems.forEach(k => {
@@ -1146,146 +949,6 @@
             document.getElementById("itemSalesTableBody").innerHTML = itemHtml || "<tr><td colspan='4' class='text-center text-muted'>No Sales Recorded</td></tr>";
         }
 
-        /* 🏷️ INVENTORY STOCK & RATE EDIT FUNCTIONS */
-        function openProductEditModal() {
-            var html = "<table class='table table-sm table-striped align-middle'>" +
-                        "<thead class='table-dark'><tr><th>Item Name</th><th style='width:110px;'>Add Stock (+)</th><th style='width:90px;'>Rate (₹)</th><th>Stock Status</th><th>Action</th></tr></thead><tbody>";
-            rawProducts.forEach(p => {
-                var isOutOfStock = (p.isOutOfStock === true || p.stock === 0 || p.stock === "0");
-                var currentStockVal = p.stock !== undefined ? p.stock : 0;
-                
-                html += "<tr>" +
-                            "<td><b>" + (p.eng || p.name) + "</b><br><small class='text-muted'>" + (p.category || 'General') + " | Curr Stock: <b class='text-primary'>" + currentStockVal + "</b></small></td>" +
-                            "<td><input type='number' id='stk_add_" + p.id + "' class='form-control form-control-sm text-center fw-bold' placeholder='+ Add Qty'></td>" +
-                            "<td><input type='number' id='rt_" + p.id + "' class='form-control form-control-sm text-center fw-bold' value='" + p.rate + "'></td>" +
-                            "<td>" +
-                                "<div class='form-check form-switch'>" +
-                                    "<input class='form-check-input' type='checkbox' id='stk_toggle_" + p.id + "' " + (isOutOfStock ? '' : 'checked') + ">" +
-                                    "<label class='form-check-label small fw-bold " + (isOutOfStock ? 'text-danger' : 'text-success') + "' for='stk_toggle_" + p.id + "'>" +
-                                        (isOutOfStock ? 'OUT OF STOCK' : 'IN STOCK') +
-                                    "</label>" +
-                                "</div>" +
-                            "</td>" +
-                            "<td><button class='btn btn-sm btn-primary fw-bold py-0' onclick='saveSingleProduct(" + p.id + ")'>💾 Save</button></td>" +
-                        "</tr>";
-            });
-            html += "</tbody></table>";
-            document.getElementById("productListEditContainer").innerHTML = html;
-            new bootstrap.Modal(document.getElementById("productEditModal")).show();
-        }
-
-        function saveSingleProduct(pId) {
-            var item = rawProducts.find(p => p.id === pId);
-            var currentStock = item ? (parseInt(item.stock) || 0) : 0;
-            var addedStockQty = parseInt(document.getElementById("stk_add_" + pId).value) || 0;
-            var finalTotalStock = currentStock + addedStockQty;
-
-            var newRate = document.getElementById("rt_" + pId).value;
-            var isInStock = document.getElementById("stk_toggle_" + pId).checked;
-            var isOutOfStock = !isInStock;
-
-            fetch(MASTER_API_URL, {
-                method: "POST", 
-                body: JSON.stringify({ 
-                    action: "updateProduct", 
-                    clientSheetId: shopConfig.clientSheetId, 
-                    productId: pId, 
-                    newRate: newRate, 
-                    newStock: finalTotalStock,
-                    isOutOfStock: isOutOfStock 
-                })
-            })
-            .then(r => r.text()).then(() => {
-                alert("✅ Stock Updated! New Total Stock: " + finalTotalStock);
-                location.reload();
-            });
-        }
-
-        function addSingleNewProduct() {
-            var cat = document.getElementById("new_cat").value.trim();
-            var eng = document.getElementById("new_eng").value.trim();
-            var tam = document.getElementById("new_tam").value.trim();
-            var stock = document.getElementById("new_stock").value.trim() || 100;
-            var rate = document.getElementById("new_rate").value.trim();
-
-            if(!cat || !eng || !rate) { alert("⚠️ Please fill Category, English Name and Rate!"); return; }
-
-            var newObj = { category: cat, eng: eng, tam: tam, rate: parseFloat(rate), per: 'pkt', stock: parseInt(stock), isOutOfStock: false };
-
-            fetch(MASTER_API_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "addProduct", clientSheetId: shopConfig.clientSheetId, productObj: newObj })
-            })
-            .then(r => r.text()).then(() => {
-                alert("✅ New Product Added Successfully!");
-                location.reload();
-            });
-        }
-
-        function downloadExistingCSV() {
-            var csvContent = "data:text/csv;charset=utf-8,Category,English_Name,Tamil_Name,Rate,Stock_Qty,Unit\n";
-            rawProducts.forEach(p => {
-                csvContent += '"' + (p.category || 'General') + '","' + (p.eng || p.name || '') + '","' + (p.tam || '') + '",' + p.rate + ',' + (p.stock || 0) + ',"' + (p.per || 'pkt') + '"\n';
-            });
-            var encodedUri = encodeURI(csvContent);
-            var link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "Sri_Dhanush_Crackers_Inventory_Export.csv");
-            document.body.appendChild(link);
-            link.click();
-        }
-
-        function downloadCSVTemplate() {
-            var csvContent = "data:text/csv;charset=utf-8,Category,English_Name,Tamil_Name,Rate,Stock_Qty,Unit\n" +
-                             "ONE SOUND CRACKERS,3 1/2 Lakshmi,3 1/2 லட்சுமி,25,100,pkt\n" +
-                             "SPARKLERS,10cm Electric Sparklers,10 செ.மீ கம்பிமத்தாப்பு,40,200,box";
-            var encodedUri = encodeURI(csvContent);
-            var link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "Crackers_Product_Import_Template.csv");
-            document.body.appendChild(link);
-            link.click();
-        }
-
-        function handleBulkCSVUpload(input) {
-            var file = input.files[0];
-            if(!file) return;
-
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var text = e.target.result;
-                var lines = text.split("\n");
-                var productsArray = [];
-
-                for(var i=1; i<lines.length; i++) {
-                    var cols = lines[i].split(",");
-                    if(cols.length >= 4) {
-                        productsArray.push({
-                            category: cols[0].replace(/"/g, '').trim(),
-                            eng: cols[1].replace(/"/g, '').trim(),
-                            tam: cols[2].replace(/"/g, '').trim(),
-                            rate: parseFloat(cols[3].trim()) || 0,
-                            stock: cols[4] ? parseInt(cols[4].trim()) || 100 : 100,
-                            per: cols[5] ? cols[5].replace(/"/g, '').trim() : 'pkt',
-                            isOutOfStock: false
-                        });
-                    }
-                }
-
-                if(productsArray.length === 0) { alert("⚠️ Invalid CSV Format!"); return; }
-
-                fetch(MASTER_API_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "bulkAddProducts", clientSheetId: shopConfig.clientSheetId, productsArray: productsArray })
-                })
-                .then(r => r.text()).then(() => {
-                    alert("✅ " + productsArray.length + " Products Bulk Imported Successfully!");
-                    location.reload();
-                });
-            };
-            reader.readAsText(file);
-        }
-
         function viewOrderItems(orderId) {
             var order = adminOrdersList.find(o => (o.orderId || o.OrderId || o.orderid) === orderId);
             if(!order) return;
@@ -1293,21 +956,13 @@
             document.getElementById("modalOrderCustomerInfo").innerHTML = "<b>Mobile:</b> " + (order.mobile || order.Mobile) + " | <b>Address:</b> " + (order.address || order.Address || 'N/A');
             
             var items = [];
-            try { items = JSON.parse(order.items || order.Items); } catch(e){}
+            try { items = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []); } catch(e){}
             var html = "<table class='table table-sm table-bordered'><thead><tr><th>Item</th><th>Qty</th><th>Total</th></tr></thead><tbody>";
             items.forEach(it => { html += "<tr><td>" + it.name + "</td><td>" + it.qty + "</td><td>₹" + it.total + "</td></tr>"; });
             html += "</tbody></table><h6 class='text-end text-danger fw-bold'>Grand Total: ₹" + (order.total || order.Total) + "</h6>";
 
             document.getElementById("modalOrderItemsList").innerHTML = html;
             new bootstrap.Modal(document.getElementById("orderDetailsModal")).show();
-        }
-
-        function updateStatus(orderId, newStatus) {
-            if(!newStatus) return;
-            fetch(MASTER_API_URL, {
-                method: "POST", body: JSON.stringify({ action: "updateOrderStatus", clientSheetId: shopConfig.clientSheetId, orderId: orderId, newStatus: newStatus })
-            })
-            .then(r => r.text()).then(() => { alert("Status Updated!"); loadAdminOrders(); });
         }
     </script>
 </body>
