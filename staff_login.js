@@ -11,11 +11,10 @@ export default async function handler(req, res) {
   const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
 
   if (!supabaseUrl || !supabaseKey) {
-    return res.status(500).json({ error: "Supabase Keys missing in Vercel" });
+    return res.status(500).json({ success: false, error: "Supabase Keys missing in Vercel" });
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
-
   const { user, pass } = req.query;
 
   if (!user || !pass) {
@@ -23,23 +22,28 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Supabase 'staff' Table-ல் username மற்றும் password_hash ஒப்பீடு
     const { data, error } = await supabase
       .from('staff')
-      .select('*')
-      .eq('username', user.trim())
-      .eq('password_hash', pass.trim())
-      .single();
+      .select('*');
 
-    if (error || !data) {
+    if (error) {
+      return res.status(500).json({ success: false, error: error.message });
+    }
+
+    // Case-insensitive match for username
+    const matchedUser = (data || []).find(
+      u => u.username && u.username.trim().toLowerCase() === user.trim().toLowerCase() &&
+           u.password_hash && u.password_hash.trim() === pass.trim()
+    );
+
+    if (!matchedUser) {
       return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
 
     return res.status(200).json({
       success: true,
-      username: data.username,
-      role: data.role || 'STAFF',
-      name: data.username
+      username: matchedUser.username,
+      role: matchedUser.role || 'STAFF'
     });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
