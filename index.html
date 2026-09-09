@@ -590,7 +590,7 @@
             .then(r => r.json())
             .then(() => {
                 var sendTargetPhone = (currentSessionType === "Online Customer") ? targetShopWhatsApp : custMobileFormatted;
-                var waUrl = "https://api.whatsapp.com/send?phone=" + sendTargetPhone + "&text=" + encodeURIComponent(waMessage);
+                var waUrl = "https://wa.me/" + sendTargetPhone + "?text=" + encodeURIComponent(waMessage);
 
                 setTimeout(function() {
                     if (confirm("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது! PDF Bill டவுன்லோட் செய்யப்பட்டது.\n\nWhatsApp-ல் பில் மெசேஜ் அனுப்ப 'OK' அழுத்தவும்.")) {
