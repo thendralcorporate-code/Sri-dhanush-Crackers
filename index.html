@@ -457,34 +457,39 @@
         }
 
         function openReviewModal() {
-            var html = "<table class='table table-sm table-striped'><thead><tr><th>Item</th><th class='text-end'>Qty</th><th class='text-end'>Total</th></tr></thead><tbody>";
-            var tot = 0, count = 0;
+    var html = "<table class='table table-sm table-striped'><thead><tr><th>Item</th><th class='text-end'>Qty</th><th class='text-end'>Total</th></tr></thead><tbody>", tot = 0;
+    var count = 0;
 
-            rawProducts.forEach(p => {
-                var q = selectedQty[p.id] || 0;
-                if(q > 0) {
-                    var itemName = p.eng || p.name || "Item";
-                    var t = q * p.rate; 
-                    tot += t;
-                    count++;
-                    html += "<tr><td>" + itemName + "</td><td class='text-end'>" + q + "</td><td class='text-end'>₹" + t.toFixed(2) + "</td></tr>";
-                }
-            });
-            html += "</tbody></table>";
-
-            if(count === 0 || tot <= 0) { 
-                alert("⚠️ தயவுசெய்து ஏதேனும் பட்டாசுகளின் எண்ணிக்கையைத் தேர்ந்தெடுக்கவும்!"); 
-                return; 
-            }
-
-            document.getElementById("reviewItemsList").innerHTML = html;
-            document.getElementById("reviewGrandTotal").innerText = "₹ " + tot.toLocaleString('en-IN') + ".00";
-            
-            var modalElem = document.getElementById("reviewModal");
-            var reviewModal = new bootstrap.Modal(modalElem);
-            reviewModal.show();
+    rawProducts.forEach(p => {
+        var q = selectedQty[p.id] || 0;
+        if(q > 0) {
+            var itemName = p.eng || p.name || "Item";
+            var t = q * p.rate; 
+            tot += t;
+            count++;
+            html += "<tr><td>" + itemName + "</td><td class='text-end'>" + q + "</td><td class='text-end'>₹" + t.toFixed(2) + "</td></tr>";
         }
+    });
+    html += "</tbody></table>";
 
+    if(count === 0 || tot <= 0) { 
+        alert("⚠️ தயவுசெய்து ஏதேனும் பட்டாசுகளின் எண்ணிக்கையைத் தேர்ந்தெடுக்கவும்!"); 
+        return; 
+    }
+
+    // Element இருக்கிறதா என உறுதியாகச் சரிபார்த்து innerHTML அமைப்பது
+    var listContainer = document.getElementById("reviewItemsList");
+    var totalContainer = document.getElementById("reviewGrandTotal");
+    
+    if (listContainer) listContainer.innerHTML = html;
+    if (totalContainer) totalContainer.innerText = "₹ " + tot.toLocaleString('en-IN') + ".00";
+
+    var modalElem = document.getElementById("reviewModal");
+    if (modalElem) {
+        var myModal = bootstrap.Modal.getInstance(modalElem) || new bootstrap.Modal(modalElem);
+        myModal.show();
+    }
+}
         function finalizeOrder() {
             var modalElem = document.getElementById("reviewModal");
             var revModal = bootstrap.Modal.getInstance(modalElem);
