@@ -869,7 +869,7 @@
             document.getElementById("statApprovedOrders").innerText = approvedCount;
         }
 
-        // 🟢 FIX: Correct Staff Name Variable Rendering on Card Header
+        // 🟢 FIX: Strictly Renders Real Assigned Staff Name on Card
         function renderAdminOrders() {
             var searchTxt = document.getElementById("adminOrderSearch").value.trim().toLowerCase();
             var pendingHtml = "", completedHtml = "";
@@ -906,8 +906,8 @@
                 var oOrdStatus = o.orderStatus || o.OrderStatus || "Order Received";
                 var oType = o.orderType || o.OrderType || "Online Customer";
                 
-                // Real Staff Name Logic (Fixes the Unassigned Typo)
-                var oAllocated = o.allocatedStaff || o.AllocatedStaff || "Priya";
+                // Real Staff Name Render
+                var oAllocated = o.allocatedStaff || o.AllocatedStaff || "Unassigned";
                 var oTxnDetails = o.txnDetails || o.TxnDetails || "";
                 var oTotal = parseFloat(o.total || o.Total || 0);
 
