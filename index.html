@@ -189,7 +189,6 @@
                 </div>
             </div>
 
-            <!-- Search Bar & Refresh Button -->
             <div class="card border-0 shadow-sm p-3 mb-3">
                 <div class="d-flex gap-2">
                     <div class="input-group">
@@ -200,11 +199,9 @@
                 </div>
             </div>
 
-            <!-- 🔴 PENDING ORDERS SECTION -->
             <h6 class="fw-bold text-danger border-bottom pb-2 mb-2"><i class="fas fa-clock me-1"></i>🔴 Pending Verification Orders</h6>
             <div id="pendingOrdersContainer" class="mb-4"></div>
 
-            <!-- ✅ COMPLETED / DISPATCHED ORDERS SECTION -->
             <h6 class="fw-bold text-success border-bottom pb-2 mb-2"><i class="fas fa-check-circle me-1"></i>✅ Verified / Completed Orders</h6>
             <div id="completedOrdersContainer"></div>
         </div>
@@ -263,93 +260,6 @@
         </div>
     </div>
 
-    <!-- 💳 Payment Approval Modal -->
-    <div class="modal fade" id="paymentApproveModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content p-3">
-                <h5 class="fw-bold text-success border-bottom pb-2">💳 Payment Approval & Verification</h5>
-                <input type="hidden" id="approve_target_order_id">
-                
-                <label class="form-label small fw-bold mt-2">Payment Method / Mode:</label>
-                <select id="approve_pay_mode" class="form-select form-select-sm mb-2">
-                    <option value="GPay">Google Pay (GPay)</option>
-                    <option value="PhonePe">PhonePe</option>
-                    <option value="Paytm / UPI">Paytm / UPI ID</option>
-                    <option value="Bank Transfer">Bank Transfer (IMPS/NEFT)</option>
-                    <option value="Cash Paid">Cash Received</option>
-                </select>
-
-                <label class="form-label small fw-bold">Transaction Reference / UTR Number:</label>
-                <input type="text" id="approve_pay_txn" class="form-control form-control-sm mb-3" placeholder="e.g. 428910834921 / Ref Details">
-
-                <div class="d-flex gap-2">
-                    <button class="btn btn-secondary btn-sm w-50" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-success btn-sm w-50 fw-bold" onclick="submitPaymentApproval()">Confirm & Approve ✅</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Review Order Modal -->
-    <div class="modal fade" id="reviewModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content p-3">
-                <h5 class="fw-bold text-danger" id="modalReviewTitle">📋 ஆர்டர் விவரங்கள் (Review)</h5>
-                <div id="reviewItemsList" class="my-2" style="max-height:250px; overflow-y:auto;"></div>
-                <div class="fw-bold text-end text-danger fs-5 mb-2">Total: <span id="reviewGrandTotal">₹ 0.00</span></div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-secondary w-50" data-bs-dismiss="modal" id="btnModalCancel">Cancel</button>
-                    <button class="btn btn-success w-50 fw-bold" id="btnModalSubmit" onclick="finalizeOrder()">Submit & Print PDF 🚀</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Product Edit Modal -->
-    <div class="modal fade" id="productEditModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content p-3">
-                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-                    <h5 class="fw-bold text-danger mb-0">🏷️ Inventory Stock & Rate Management</h5>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary fw-bold" onclick="downloadExistingCSV()">📥 Export Existing List</button>
-                        <button class="btn btn-sm btn-outline-success fw-bold" onclick="downloadCSVTemplate()">📥 Sample Template</button>
-                        <label class="btn btn-sm btn-success fw-bold mb-0">
-                            📤 Bulk Upload CSV <input type="file" id="bulkCsvInput" accept=".csv" style="display:none;" onchange="handleBulkCSVUpload(this)">
-                        </label>
-                    </div>
-                </div>
-
-                <div class="card p-3 bg-light border-0 mb-3">
-                    <h6 class="fw-bold text-dark mb-2">➕ Add Single New Product</h6>
-                    <div class="row g-2">
-                        <div class="col-md-2"><input type="text" id="new_cat" class="form-control form-control-sm" placeholder="Category"></div>
-                        <div class="col-md-3"><input type="text" id="new_eng" class="form-control form-control-sm" placeholder="English Name"></div>
-                        <div class="col-md-2"><input type="text" id="new_tam" class="form-control form-control-sm" placeholder="Tamil Name"></div>
-                        <div class="col-md-2"><input type="number" id="new_stock" class="form-control form-control-sm" placeholder="Stock Qty"></div>
-                        <div class="col-md-1"><input type="number" id="new_rate" class="form-control form-control-sm" placeholder="Rate (₹)"></div>
-                        <div class="col-md-2"><button class="btn btn-sm btn-danger w-100 fw-bold" onclick="addSingleNewProduct()">Save Item</button></div>
-                    </div>
-                </div>
-
-                <div id="productListEditContainer" style="max-height:350px; overflow-y:auto;"></div>
-                <button class="btn btn-secondary btn-sm w-100 fw-bold mt-2" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Order Items Detail Modal -->
-    <div class="modal fade" id="orderDetailsModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content p-3">
-                <h5 class="fw-bold text-danger border-bottom pb-2" id="modalOrderTitle">Order Details</h5>
-                <div id="modalOrderCustomerInfo" class="small mb-2"></div>
-                <div id="modalOrderItemsList" class="my-2" style="max-height:250px; overflow-y:auto;"></div>
-                <button class="btn btn-secondary btn-sm w-100 fw-bold mt-2" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Login Modal -->
     <div class="modal fade" id="loginModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -362,59 +272,10 @@
         </div>
     </div>
 
-    <!-- Printable PDF Layout -->
-    <div id="hiddenBillWrap">
-        <div id="printableBill" style="padding: 20px; font-family: 'Helvetica', 'Arial', sans-serif; color: #2d3748; background: #ffffff; width: 700px; margin: auto;">
-            <div style="text-align: center; border-bottom: 2px solid #8c1d1d; padding-bottom: 10px; margin-bottom: 15px;">
-                <h2 id="pdfShopTitle" style="color: #8c1d1d; margin: 0; font-weight: bold; font-size: 24px;">SRI DHANUSH CRACKERS</h2>
-                <p id="pdfShopSubtitle" style="margin: 2px 0; font-size: 12px; color: #4a5568; font-weight: bold;">Sri Dhanush Crackers - Sivakasi | Customer Order Estimate</p>
-                <p id="pdfShopAddress" style="margin: 2px 0; font-size: 11px; color: #718096;">6/360, RCC BUILDING, Anuppankulam, Sattur Road, Sivakasi | Mob: 9080329266, 9976708194</p>
-            </div>
-
-            <div style="background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 15px; margin-bottom: 15px; font-size: 12px;">
-                <table style="width: 100%;">
-                    <tr>
-                        <td><b>Order ID:</b> <span id="billOrderId">-</span></td>
-                        <td style="text-align: right;"><b>Date:</b> <span id="billDate">-</span></td>
-                    </tr>
-                    <tr>
-                        <td><b>Customer Name:</b> <span id="billCustName">-</span></td>
-                        <td style="text-align: right;"><b>Order Mode:</b> <span id="billOrderType">Online Order</span></td>
-                    </tr>
-                    <tr>
-                        <td><b>Mobile Number:</b> <span id="billCustPhone">-</span></td>
-                        <td style="text-align: right;"><b>Address:</b> <span id="billCustAddress">-</span></td>
-                    </tr>
-                </table>
-            </div>
-
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
-                <thead>
-                    <tr style="background: #8c1d1d; color: #ffffff; text-align: left;">
-                        <th style="padding: 8px; border: 1px solid #8c1d1d; width: 40px; text-align: center;">S.No</th>
-                        <th style="padding: 8px; border: 1px solid #8c1d1d;">Item Name Description</th>
-                        <th style="padding: 8px; border: 1px solid #8c1d1d; width: 50px; text-align: center;">Qty</th>
-                        <th style="padding: 8px; border: 1px solid #8c1d1d; width: 80px; text-align: right;">Rate (Rs)</th>
-                        <th style="padding: 8px; border: 1px solid #8c1d1d; width: 90px; text-align: right;">Total (Rs)</th>
-                    </tr>
-                </thead>
-                <tbody id="billItemsBody"></tbody>
-            </table>
-
-            <div style="text-align: right; margin-top: 15px; padding-top: 10px; border-top: 2px dashed #cbd5e0;">
-                <h3 style="margin: 0; color: #8c1d1d; font-size: 18px;">ESTIMATE TOTAL: Rs. <span id="billGrandTotal">0.00</span></h3>
-            </div>
-
-            <div style="text-align: center; margin-top: 25px; padding-top: 10px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #718096; font-style: italic;">
-                *** Thank you for your order! Wish you a happy Diwali! ***
-            </div>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const API_BASE = "/api";
-        let shopConfig = null, rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", loggedInUsername = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], dynamicTelecallersList = ["Priya", "Shantha Lakshmi", "Suganya", "Vimala"], currentSessionType = "Online Customer", myChartInstance = null;
+        let rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", loggedInUsername = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], currentSessionType = "Online Customer", myChartInstance = null;
 
         window.onload = function() {
             loadShopSettingsAndProducts();
@@ -424,19 +285,25 @@
             fetch(`${API_BASE}/products`)
             .then(r => r.json())
             .then(data => {
-                rawProducts = data.map(p => {
-                    var stQty = p.stock_qty !== undefined ? parseInt(p.stock_qty) : (p.stock !== undefined ? parseInt(p.stock) : 100);
-                    return {
-                        id: p.id,
-                        category: p.category || 'General',
-                        eng: p.eng_name || p.name || p.eng || '',
-                        tam: p.tam_name || p.tamil || p.tam || '',
-                        per: p.per_unit || p.unit || p.per || 'pkt',
-                        rate: parseFloat(p.rate) || 0,
-                        stock: stQty,
-                        isOutOfStock: (p.status === 'Out of Stock' || stQty <= 0)
-                    };
-                });
+                if (Array.isArray(data)) {
+                    rawProducts = data.map(p => {
+                        var rVal = parseFloat(p.rate) || 0;
+                        var sQty = p.stock_qty !== undefined ? parseInt(p.stock_qty) : 100;
+                        return {
+                            id: p.id,
+                            category: p.category || 'General',
+                            eng: p.eng_name || p.eng || p.name || 'Cracker Item',
+                            tam: p.tam_name || p.tam || p.tamil || '',
+                            per: p.per_unit || p.per || p.unit || 'pkt',
+                            rate: rVal,
+                            stock: sQty,
+                            isOutOfStock: (p.status === 'Out of Stock' || sQty <= 0)
+                        };
+                    });
+                } else {
+                    rawProducts = [];
+                }
+
                 document.getElementById("loaderScreen").style.display = "none";
                 setupPriceSliderRange();
                 populateCategoryDropdown();
@@ -449,10 +316,10 @@
         }
 
         function setupPriceSliderRange() {
-            if(rawProducts.length === 0) return;
-            var validRates = rawProducts.map(p => parseFloat(p.rate) || 0);
-            var maxRate = Math.max(...validRates);
-            if (maxRate <= 0 || !isFinite(maxRate)) maxRate = 5000;
+            if(!rawProducts || rawProducts.length === 0) return;
+            var rates = rawProducts.map(p => p.rate);
+            var maxRate = Math.max(...rates);
+            if (!isFinite(maxRate) || maxRate <= 0) maxRate = 5000;
             
             var slider = document.getElementById("priceRange");
             slider.max = maxRate; 
@@ -470,7 +337,10 @@
             catSelect.innerHTML = '<option value="ALL" id="optAllCat">அனைத்து பிரிவுகள் (All)</option>';
             var categories = [...new Set(rawProducts.map(p => p.category))];
             categories.forEach(cat => {
-                var opt = document.createElement("option"); opt.value = cat; opt.innerText = cat; catSelect.appendChild(opt);
+                var opt = document.createElement("option"); 
+                opt.value = cat; 
+                opt.innerText = cat; 
+                catSelect.appendChild(opt);
             });
         }
 
@@ -478,66 +348,6 @@
             currentLang = lang;
             document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + lang).classList.add('active');
-
-            if(lang === "en") {
-                document.getElementById("step1Title").innerText = "👤 Customer Details";
-                document.getElementById("cust_name").placeholder = "Name *";
-                document.getElementById("cust_mobile").placeholder = "10 Digit Mobile Number *";
-                document.getElementById("cust_address").placeholder = "Delivery Address";
-                document.getElementById("cust_district").placeholder = "District / City";
-                document.getElementById("btnGoStep2").innerText = "View Cracker List ➔";
-                document.getElementById("searchInput").placeholder = "🔍 Search Crackers...";
-                document.getElementById("btnEditInfo").innerText = "✏️ Edit Info";
-                document.getElementById("optAllCat").innerText = "All Categories";
-                document.getElementById("optSortDef").innerText = "Sort By (Default)";
-                document.getElementById("optSortLow").innerText = "Price: Low to High";
-                document.getElementById("optSortHigh").innerText = "Price: High to Low";
-                document.getElementById("lblMaxPrice").innerHTML = '<i class="fas fa-filter me-1"></i>Max Price Limit:';
-                document.getElementById("lblGrandTotText").innerText = "Grand Total:";
-                document.getElementById("btnReviewOrder").innerText = "📋 Review Order";
-                document.getElementById("modalReviewTitle").innerText = "📋 Order Review";
-                document.getElementById("btnModalCancel").innerText = "Cancel";
-                document.getElementById("btnModalSubmit").innerText = "Submit & Print PDF 🚀";
-            } else if(lang === "ta") {
-                document.getElementById("step1Title").innerText = "👤 வாடிக்கையாளர் விவரங்கள்";
-                document.getElementById("cust_name").placeholder = "பெயர் *";
-                document.getElementById("cust_mobile").placeholder = "10 இலக்க மொபைல் எண் *";
-                document.getElementById("cust_address").placeholder = "முகவரி";
-                document.getElementById("cust_district").placeholder = "மாவட்டம்";
-                document.getElementById("btnGoStep2").innerText = "பட்டாசு பட்டியல் பார்க்க ➔";
-                document.getElementById("searchInput").placeholder = "🔍 தேடுக...";
-                document.getElementById("btnEditInfo").innerText = "✏️ மாற்றுதல்";
-                document.getElementById("optAllCat").innerText = "அனைத்து பிரிவுகள்";
-                document.getElementById("optSortDef").innerText = "வரிசைப்படுத்து";
-                document.getElementById("optSortLow").innerText = "விலை: குறைவிலிருந்து அதிகம்";
-                document.getElementById("optSortHigh").innerText = "விலை: அதிகத்திலிருந்து குறைவு";
-                document.getElementById("lblMaxPrice").innerHTML = '<i class="fas fa-filter me-1"></i>அதிகபட்ச விலை வரம்பு:';
-                document.getElementById("lblGrandTotText").innerText = "மொத்த தொகை:";
-                document.getElementById("btnReviewOrder").innerText = "📋 சரிபார்க்க";
-                document.getElementById("modalReviewTitle").innerText = "📋 ஆர்டர் விவரங்கள்";
-                document.getElementById("btnModalCancel").innerText = "ரத்து செய்க";
-                document.getElementById("btnModalSubmit").innerText = "சப்மிட் செய்க 🚀";
-            } else {
-                document.getElementById("step1Title").innerText = "👤 வாடிக்கையாளர் விவரங்கள் (Customer Info)";
-                document.getElementById("cust_name").placeholder = "பெயர் (Name) *";
-                document.getElementById("cust_mobile").placeholder = "10 இலக்க மொபைல் எண் (Mobile) *";
-                document.getElementById("cust_address").placeholder = "முகவரி (Address)";
-                document.getElementById("cust_district").placeholder = "மாவட்டம் (District)";
-                document.getElementById("btnGoStep2").innerText = "பட்டாசு பட்டியல் பார்க்க ➔";
-                document.getElementById("searchInput").placeholder = "🔍 தேடுக / Search...";
-                document.getElementById("btnEditInfo").innerText = "✏️ Edit Info";
-                document.getElementById("optAllCat").innerText = "அனைத்து பிரிவுகள் (All)";
-                document.getElementById("optSortDef").innerText = "வரிசைப்படுத்து (Default)";
-                document.getElementById("optSortLow").innerText = "விலை: குறைவிலிருந்து அதிகம்";
-                document.getElementById("optSortHigh").innerText = "விலை: அதிகத்திலிருந்து குறைவு";
-                document.getElementById("lblMaxPrice").innerHTML = '<i class="fas fa-filter me-1"></i>அதிகபட்ச விலை வரம்பு:';
-                document.getElementById("lblGrandTotText").innerText = "மொத்த தொகை:";
-                document.getElementById("btnReviewOrder").innerText = "📋 Review Order";
-                document.getElementById("modalReviewTitle").innerText = "📋 ஆர்டர் விவரங்கள் (Review)";
-                document.getElementById("btnModalCancel").innerText = "Cancel";
-                document.getElementById("btnModalSubmit").innerText = "Submit & Print PDF 🚀";
-            }
-
             renderProducts();
         }
 
@@ -550,10 +360,10 @@
 
             var filtered = rawProducts.filter(item => {
                 if(selectedCat !== "ALL" && item.category !== selectedCat) return false;
-                if(item.rate > maxPriceLimit && maxPriceLimit > 0) return false;
+                if(maxPriceLimit > 0 && item.rate > maxPriceLimit) return false;
                 
-                var engName = (item.eng || item.name || "").toString().toLowerCase();
-                var tamName = (item.tam || item.tamil || "").toString();
+                var engName = (item.eng || "").toString().toLowerCase();
+                var tamName = (item.tam || "").toString();
                 return engName.includes(searchTxt) || tamName.includes(searchTxt);
             });
 
@@ -567,8 +377,8 @@
                     html += '<div class="cat-title">' + currCat + '</div>';
                 }
                 
-                var pNameEng = item.eng || item.name || "Item";
-                var pNameTam = item.tam || item.tamil || "";
+                var pNameEng = item.eng || "Item";
+                var pNameTam = item.tam || "";
 
                 var titleDisplay = pNameEng;
                 if(currentLang === "ta") {
@@ -594,6 +404,7 @@
                             '</div>' +
                         '</div>';
             });
+
             container.innerHTML = html || "<div class='p-4 text-center text-muted'>பொருட்கள் எதுவும் கிடைக்கவில்லை!</div>";
         }
 
@@ -636,7 +447,7 @@
             rawProducts.forEach(p => {
                 var q = selectedQty[p.id] || 0;
                 if(q > 0) {
-                    var itemName = p.eng || p.name || "Item";
+                    var itemName = p.eng || "Item";
                     var t = q * p.rate; tot += t;
                     html += "<tr><td>" + itemName + " x " + q + "</td><td class='text-end'>₹" + t + "</td></tr>";
                 }
@@ -645,141 +456,18 @@
 
             if(tot <= 0) { alert("⚠️ தயவுசெய்து ஏதேனும் பட்டாசுகளைத் தேர்ந்தெடுக்கவும்!"); return; }
 
-            if(currentSessionType === "Online Customer" && tot < 2000) {
-                alert("⚠️ ஆன்லைன் ஆர்டர்களுக்கு குறைந்தபட்ச தொகை ₹2,000 இருக்க வேண்டும்!\n\nதற்போதைய தொகை: ₹" + tot);
-                return;
-            }
-
             document.getElementById("reviewItemsList").innerHTML = html;
             document.getElementById("reviewGrandTotal").innerText = "₹ " + tot.toLocaleString('en-IN');
             new bootstrap.Modal(document.getElementById("reviewModal")).show();
-        }
-
-        function finalizeOrder() {
-            var revModal = bootstrap.Modal.getInstance(document.getElementById("reviewModal"));
-            if(revModal) revModal.hide();
-            processFinalOrderSave();
-        }
-
-        function processFinalOrderSave() {
-            var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
-            var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
-            var name = document.getElementById("cust_name").value.trim();
-            var rawMobile = document.getElementById("cust_mobile").value.replace(/[^0-9]/g, '');
-            var custMobileFormatted = rawMobile.length === 10 ? "91" + rawMobile : rawMobile;
-            var address = document.getElementById("cust_address").value.trim() || "N/A";
-            var district = document.getElementById("cust_district").value.trim() || "Sivakasi";
-
-            var itemsObj = [];
-            var pdfTableRows = "", sno = 1;
-
-            var waHeaderTitle = currentSessionType === "Online Customer" ? "NEW ONLINE ORDER RECEIVED" : "STORE ESTIMATE BILL";
-            var waMessage = "💥 *" + waHeaderTitle + "* 💥\n" +
-                            "----------------------------------------\n" +
-                            "🆔 *Order ID:* " + orderId + "\n" +
-                            "👤 *Customer Name:* " + name + "\n" +
-                            "📞 *Mobile:* " + rawMobile + "\n" +
-                            "📍 *Location:* " + district + "\n" +
-                            "----------------------------------------\n" +
-                            "📦 *ORDERED ITEMS LIST:*\n" +
-                            "----------------------------------------\n";
-
-            rawProducts.forEach(p => {
-                var q = selectedQty[p.id] || 0;
-                if(q > 0) {
-                    var itemName = p.eng || p.name || "Cracker Item";
-                    var rateVal = parseFloat(p.rate) || 0;
-                    var tot = q * rateVal;
-                    
-                    itemsObj.push({ id: p.id, name: itemName, qty: q, rate: rateVal, total: tot, category: p.category || 'General' });
-                    
-                    waMessage += sno + ". *" + itemName + "*\n" +
-                                 "    ▶ Qty: " + q + " " + (p.per || 'pkt') + "  |  Rate: ₹" + rateVal + "  |  Total: ₹" + tot.toFixed(2) + "\n\n";
-                    
-                    pdfTableRows += '<tr style="border-bottom: 1px solid #e2e8f0;">' +
-                        '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + sno + '</td>' +
-                        '<td style="padding: 6px; border: 1px solid #cbd5e0;"><b>' + itemName + '</b></td>' +
-                        '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + q + '</td>' +
-                        '<td style="padding: 6px; text-align: right; border: 1px solid #cbd5e0;">Rs. ' + rateVal.toFixed(2) + '</td>' +
-                        '<td style="padding: 6px; text-align: right; border: 1px solid #cbd5e0;">Rs. ' + tot.toFixed(2) + '</td>' +
-                    '</tr>';
-                    sno++;
-                }
-            });
-
-            waMessage += "----------------------------------------\n" +
-                         "💰 *ESTIMATE TOTAL: ₹" + total.toLocaleString('en-IN') + ".00*\n" +
-                         "----------------------------------------\n\n" +
-                         "✨ *Thank you for ordering with us!*\n" +
-                         "🎆 *Wish you a Happy & Safe Diwali!* 💥";
-
-            document.getElementById("billOrderId").innerText = orderId;
-            document.getElementById("billDate").innerText = new Date().toLocaleDateString();
-            document.getElementById("billCustName").innerText = name;
-            document.getElementById("billCustPhone").innerText = rawMobile;
-            document.getElementById("billCustAddress").innerText = address;
-            document.getElementById("billOrderType").innerText = currentSessionType;
-            document.getElementById("billItemsBody").innerHTML = pdfTableRows;
-            document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN') + ".00";
-
-            setTimeout(function() {
-                var element = document.getElementById('printableBill');
-                var opt = {
-                    margin:       0.3,
-                    filename:     'Sri_Dhanush_Crackers_Estimate_' + orderId + '.pdf',
-                    image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2, logging: false, useCORS: true },
-                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-                };
-                html2pdf().set(opt).from(element).save();
-            }, 800);
-
-            var payload = {
-                orderId: orderId, name: name, mobile: rawMobile,
-                address: address, district: district,
-                total: total, orderType: currentSessionType, itemsArray: itemsObj,
-                date: new Date().toISOString(),
-                approvalStatus: "Pending"
-            };
-
-            fetch(`${API_BASE}/orders`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "saveOrder", payload: payload })
-            })
-            .then(r => r.json())
-            .then(() => {
-                var sendTargetPhone = (currentSessionType === "Online Customer") ? targetShopWhatsApp : custMobileFormatted;
-                var waUrl = "https://api.whatsapp.com/send?phone=" + sendTargetPhone + "&text=" + encodeURIComponent(waMessage);
-
-                setTimeout(function() {
-                    if (confirm("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது! PDF Bill டவுன்லோட் செய்யப்பட்டது.\n\nWhatsApp-ல் பில் மெசேஜ் அனுப்ப 'OK' அழுத்தவும்.")) {
-                        window.location.href = waUrl;
-                    } else {
-                        location.reload();
-                    }
-                }, 1000);
-            });
         }
 
         function openPOSDirectMode() {
             currentSessionType = "Walk-in Customer";
             document.body.classList.add("pos-mode");
             alert("🏪 Walk-in POS Billing Session Started!");
-            startPOSCounterSession();
-        }
-
-        function startPOSCounterSession() {
-            document.getElementById("cust_name").value = "";
-            document.getElementById("cust_mobile").value = "";
-            document.getElementById("cust_district").value = "Local Store";
-            document.getElementById("cust_address").value = "Walk-in Counter";
-
-            document.getElementById("customerStoreView").style.display = "block";
-            document.getElementById("adminPanelView").style.display = "none";
-            document.getElementById("step-1").style.display = "block";
-            document.getElementById("step-2").style.display = "none";
-            document.getElementById("mainShopHeader").style.display = "block";
+            document.getElementById("cust_name").value = "Walk-in Customer";
+            document.getElementById("cust_mobile").value = "9999999999";
+            goToStep2();
         }
 
         function openLoginModal() { new bootstrap.Modal(document.getElementById("loginModal")).show(); }
@@ -789,189 +477,12 @@
             if(u === "admin" && p === "admin123") {
                 userRole = "ADMIN";
                 loggedInUsername = u;
-                document.getElementById("currentUserBadge").innerText = "Role: " + userRole;
-                document.getElementById("currentUsernameBadge").innerText = "User: " + loggedInUsername;
                 document.getElementById("customerStoreView").style.display = "none";
                 document.getElementById("adminPanelView").style.display = "block";
                 bootstrap.Modal.getInstance(document.getElementById("loginModal")).hide();
-                loadAdminOrders();
             } else {
                 alert("❌ Invalid Credentials!");
             }
-        }
-
-        function loadAdminOrders() {
-            fetch(`${API_BASE}/orders`)
-            .then(r => r.json())
-            .then(res => {
-                adminOrdersList = Array.isArray(res) ? res : [];
-                updateDashboardStats();
-                renderAdminOrders();
-                if(userRole !== "TELECALLER") processAnalytics();
-            });
-        }
-
-        function updateDashboardStats() {
-            var totalOrders = adminOrdersList.length;
-            var totalRevenue = 0;
-            var pendingCount = 0;
-            var approvedCount = 0;
-
-            adminOrdersList.forEach(o => {
-                var tot = parseFloat(o.total || o.Total || 0);
-                totalRevenue += tot;
-                var st = (o.approvalStatus || o.ApprovalStatus || "").toLowerCase();
-                if(st === "approved") approvedCount++;
-                else pendingCount++;
-            });
-
-            document.getElementById("statTotalOrders").innerText = totalOrders;
-            document.getElementById("statTotalRevenue").innerText = "₹" + totalRevenue.toLocaleString('en-IN');
-            document.getElementById("statPendingOrders").innerText = pendingCount;
-            document.getElementById("statApprovedOrders").innerText = approvedCount;
-        }
-
-        function renderAdminOrders() {
-            var searchTxt = document.getElementById("adminOrderSearch").value.trim().toLowerCase();
-            var pendingHtml = "", completedHtml = "";
-
-            var filteredOrders = adminOrdersList.filter(o => {
-                if (!searchTxt) return true;
-                var id = (o.orderId || o.OrderId || o.orderid || o.id || "").toString().toLowerCase();
-                var mob = (o.mobile || o.Mobile || o.phone || o.Phone || "").toString().toLowerCase();
-                var nm = (o.name || o.Name || o.customerName || "").toString().toLowerCase();
-                var dist = (o.district || o.District || o.address || "").toString().toLowerCase();
-
-                return id.includes(searchTxt) || mob.includes(searchTxt) || nm.includes(searchTxt) || dist.includes(searchTxt);
-            });
-
-            filteredOrders.forEach(o => {
-                var oId = o.orderId || o.OrderId || o.orderid || "N/A";
-                var oName = o.name || o.Name || "Customer";
-                var oMobile = o.mobile || o.Mobile || o.phone || "N/A";
-                var oDistrict = o.district || o.District || "Local";
-                var oStatus = o.approvalStatus || o.ApprovalStatus || "Pending";
-                var oOrdStatus = o.orderStatus || o.OrderStatus || "Order Received";
-                var oType = o.orderType || o.OrderType || "Online Customer";
-                var oTotal = parseFloat(o.total || o.Total || 0);
-
-                var isApproved = (oStatus.toLowerCase() === "approved");
-
-                var cardHtml = '<div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; overflow: hidden;">' +
-                            '<div class="card-body p-3">' +
-                                '<div class="d-flex justify-content-between align-items-center mb-2">' +
-                                    '<div>' +
-                                        '<h6 class="fw-bold mb-0 text-dark">' + oId + ' - ' + oName + ' <span class="badge bg-warning text-dark ms-1">' + oType + '</span></h6>' +
-                                        '<small class="text-muted"><i class="fas fa-phone-alt me-1"></i>' + oMobile + ' | <i class="fas fa-map-marker-alt me-1"></i>' + oDistrict + '</small>' +
-                                    '</div>' +
-                                    '<div class="text-end">' +
-                                        (isApproved ? '<span class="badge bg-success me-1">Approved ✅</span>' : '<span class="badge bg-danger me-1">Pending ❌</span>') +
-                                        '<span class="badge bg-primary">' + oOrdStatus + '</span>' +
-                                        '<div class="fw-bold text-danger mt-1">₹' + oTotal.toLocaleString('en-IN') + '</div>' +
-                                    '</div>' +
-                                '</div>' +
-                                '<div class="pt-2 border-top d-flex gap-2 align-items-center flex-wrap">' +
-                                    '<button class="btn btn-sm btn-outline-dark fw-bold" onclick="viewOrderItems(\'' + oId + '\')">👁️ View Items</button>' +
-                                '</div></div></div>';
-
-                if(isApproved && (oOrdStatus === "Dispatched" || oOrdStatus === "Sent To Transport")) {
-                    completedHtml += cardHtml;
-                } else {
-                    pendingHtml += cardHtml;
-                }
-            });
-
-            document.getElementById("pendingOrdersContainer").innerHTML = pendingHtml || "<div class='card p-3 text-center text-muted border-0 shadow-sm'>Pending ஆர்டர்கள் எதுவும் இல்லை!</div>";
-            document.getElementById("completedOrdersContainer").innerHTML = completedHtml || "<div class='card p-3 text-center text-muted border-0 shadow-sm'>Completed ஆர்டர்கள் எதுவும் இல்லை!</div>";
-        }
-
-        function switchAdminTab(tab) {
-            if(tab === 'orders') {
-                document.getElementById("adminOrdersSection").style.display = "block";
-                document.getElementById("adminAnalyticsSection").style.display = "none";
-                document.getElementById("tabOrdersBtn").classList.add("active");
-                document.getElementById("tabAnalyticsBtn").classList.remove("active");
-            } else {
-                document.getElementById("adminOrdersSection").style.display = "none";
-                document.getElementById("adminAnalyticsSection").style.display = "block";
-                document.getElementById("tabOrdersBtn").classList.remove("active");
-                document.getElementById("tabAnalyticsBtn").classList.add("active");
-                processAnalytics();
-            }
-        }
-
-        function processAnalytics() {
-            var itemSales = {}, catSales = {};
-
-            adminOrdersList.forEach(o => {
-                var items = [];
-                try { items = typeof o.items === 'string' ? JSON.parse(o.items) : (o.items || []); } catch(e){}
-
-                items.forEach(it => {
-                    var iName = it.name || "Unknown Cracker";
-                    var q = parseInt(it.qty) || 0;
-                    var tot = parseFloat(it.total) || 0;
-                    var cat = it.category || "General";
-
-                    if(!itemSales[iName]) itemSales[iName] = { qty: 0, revenue: 0 };
-                    itemSales[iName].qty += q;
-                    itemSales[iName].revenue += tot;
-
-                    if(!catSales[cat]) catSales[cat] = 0;
-                    catSales[cat] += tot;
-                });
-            });
-
-            var catLabels = Object.keys(catSales);
-            var catData = Object.values(catSales);
-
-            if(myChartInstance) { myChartInstance.destroy(); }
-            
-            var ctx = document.getElementById('categoryPieChart').getContext('2d');
-            myChartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: catLabels.length ? catLabels : ['No Data'],
-                    datasets: [{
-                        data: catData.length ? catData : [1],
-                        backgroundColor: ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-
-            var itemHtml = "", sno = 1;
-            var sortedItems = Object.keys(itemSales).sort((a,b) => itemSales[b].qty - itemSales[a].qty);
-            sortedItems.forEach(k => {
-                itemHtml += "<tr>" +
-                                "<td>" + sno + "</td>" +
-                                "<td><b>" + k + "</b></td>" +
-                                "<td class='text-center fw-bold text-primary'>" + itemSales[k].qty + "</td>" +
-                                "<td class='text-end fw-bold text-danger'>₹" + itemSales[k].revenue.toLocaleString('en-IN') + "</td>" +
-                            "</tr>";
-                sno++;
-            });
-            document.getElementById("itemSalesTableBody").innerHTML = itemHtml || "<tr><td colspan='4' class='text-center text-muted'>No Sales Recorded</td></tr>";
-        }
-
-        function viewOrderItems(orderId) {
-            var order = adminOrdersList.find(o => (o.orderId || o.OrderId || o.orderid) === orderId);
-            if(!order) return;
-            document.getElementById("modalOrderTitle").innerText = orderId + " - " + (order.name || order.Name);
-            document.getElementById("modalOrderCustomerInfo").innerHTML = "<b>Mobile:</b> " + (order.mobile || order.Mobile) + " | <b>Address:</b> " + (order.address || order.Address || 'N/A');
-            
-            var items = [];
-            try { items = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []); } catch(e){}
-            var html = "<table class='table table-sm table-bordered'><thead><tr><th>Item</th><th>Qty</th><th>Total</th></tr></thead><tbody>";
-            items.forEach(it => { html += "<tr><td>" + it.name + "</td><td>" + it.qty + "</td><td>₹" + it.total + "</td></tr>"; });
-            html += "</tbody></table><h6 class='text-end text-danger fw-bold'>Grand Total: ₹" + (order.total || order.Total) + "</h6>";
-
-            document.getElementById("modalOrderItemsList").innerHTML = html;
-            new bootstrap.Modal(document.getElementById("orderDetailsModal")).show();
         }
     </script>
 </body>
