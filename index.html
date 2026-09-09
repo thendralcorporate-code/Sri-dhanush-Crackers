@@ -413,8 +413,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const MASTER_API_URL = "https://script.google.com/macros/s/AKfycbz9Rz7shnkPViFEI9qlINw9PTgI_JjL_tDWI54jrXl6OPhAFbAsjrDIvWL_qmXESrY6Fg/exec";
-
+        const API_BASE = "https://sri-dhanush-crackers1.vercel.app/api";
         let shopConfig = null, rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", loggedInUsername = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], dynamicTelecallersList = ["Priya", "Shantha Lakshmi", "Suganya", "Vimala"], currentSessionType = "Online Customer", myChartInstance = null;
 
         window.onload = function() {
@@ -432,34 +431,29 @@
         };
 
         function loadShopSettingsAndProducts() {
-            fetch(MASTER_API_URL + "?action=getSettings&sheetId=" + shopConfig.clientSheetId)
-            .then(r => r.text()).then(stTxt => {
-                var st = JSON.parse(stTxt);
-                if(st.ShopName) {
-                    document.title = st.ShopName + " | Online Cracker Store - Sivakasi";
-                    document.getElementById("hdr_shop_name").innerText = st.ShopName;
-                    document.getElementById("navShopTitle").innerText = st.ShopName;
-                    document.getElementById("pdfShopTitle").innerText = st.ShopName;
-                }
-                if(st.Address) {
-                    document.getElementById("hdr_address").innerText = st.Address;
-                    document.getElementById("pdfShopAddress").innerText = st.Address;
-                }
-                if(st.ContactNumbers) document.getElementById("hdr_contacts").innerText = st.ContactNumbers;
-                if(st.WhatsAppNumber) targetShopWhatsApp = st.WhatsAppNumber.replace(/[^0-9]/g, '');
-                if(st.PrimaryColor) document.documentElement.style.setProperty('--primary-color', st.PrimaryColor);
-
-                fetch(MASTER_API_URL + "?action=getProducts&sheetId=" + shopConfig.clientSheetId)
-                .then(r => r.text()).then(pTxt => {
-                    rawProducts = JSON.parse(pTxt) || [];
-                    document.getElementById("loaderScreen").style.display = "none";
-                    setupPriceSliderRange();
-                    populateCategoryDropdown();
-                    renderProducts();
-                });
-            });
-        }
-
+    fetch(`${API_BASE}/products`)
+    .then(r => r.json())
+    .then(data => {
+        rawProducts = data.map(p => ({
+            id: p.id,
+            category: p.category,
+            eng: p.eng_name,
+            tam: p.tam_name,
+            per: p.per_unit,
+            rate: parseFloat(p.rate),
+            stock: p.stock_qty,
+            isOutOfStock: (p.status === 'Out of Stock' || p.stock_qty <= 0)
+        }));
+        document.getElementById("loaderScreen").style.display = "none";
+        setupPriceSliderRange();
+        populateCategoryDropdown();
+        renderProducts();
+    })
+    .catch(err => {
+        console.error("Error loading products:", err);
+        document.getElementById("loaderScreen").style.display = "none";
+    });
+}
         function setupPriceSliderRange() {
             if(rawProducts.length === 0) return;
             var maxRate = Math.max(...rawProducts.map(p => parseFloat(p.rate) || 0));
