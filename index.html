@@ -35,7 +35,31 @@
         .cat-title { background: #feebc8; color: #742a2a; padding: 6px 10px; font-weight: bold; border-radius: 6px; margin: 10px; border-left: 4px solid #dd6b20; text-transform: uppercase; }
 
         .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 12px 15px 25px 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.15); border-top: 3px solid var(--primary-color); display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
-        .loader-screen { position: fixed; top:0; left:0; right:0; bottom:0; background: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        
+        /* 🎆 💥 100% PURE CSS ANIMATED SANGU CHAKKAR LOADER 💥 🎆 */
+        .loader-screen { position: fixed; top:0; left:0; right:0; bottom:0; background: #ffffff; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        
+        .sangu-chakkar-box { position: relative; width: 90px; height: 90px; display: flex; justify-content: center; align-items: center; }
+        
+        .chakkar-blades {
+            width: 70px; height: 70px; border-radius: 50%;
+            background: conic-gradient(#ef4444, #f59e0b, #10b981, #3b82f6, #ef4444);
+            animation: fastSpin 0.3s linear infinite;
+            box-shadow: 0 0 20px #f59e0b, inset 0 0 10px #ffffff;
+        }
+        
+        .chakkar-center {
+            position: absolute; width: 22px; height: 22px; background: #ffffff;
+            border-radius: 50%; border: 4px solid #8c1d1d; box-shadow: 0 0 5px #000;
+        }
+
+        .sparkle-ring {
+            position: absolute; width: 95px; height: 95px; border-radius: 50%;
+            border: 3px dotted #f59e0b; animation: fastSpinReverse 0.6s linear infinite;
+        }
+
+        @keyframes fastSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fastSpinReverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
 
         .out-of-stock-card { opacity: 0.6; background: #fff5f5; }
         .out-of-stock-badge { background: #e53e3e; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
@@ -45,9 +69,14 @@
 </head>
 <body>
 
+    <!-- 🎆 💥 REAL SANGU CHAKKAR ANIMATED LOADER 💥 🎆 -->
     <div id="loaderScreen" class="loader-screen">
-        <div class="spinner-border text-danger mb-2"></div>
-        <h6 id="loaderMsg">பட்டாசு கடை விவரங்கள் லோட் ஆகிறது...</h6>
+        <div class="sangu-chakkar-box mb-3">
+            <div class="sparkle-ring"></div>
+            <div class="chakkar-blades"></div>
+            <div class="chakkar-center"></div>
+        </div>
+        <h6 id="loaderMsg" class="fw-bold text-danger"><i class="fas fa-fire me-1 text-warning"></i>பட்டாசு கடை விவரங்கள் லோட் ஆகிறது...</h6>
     </div>
 
     <div class="admin-nav">
@@ -262,7 +291,6 @@
                 <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
                     <h5 class="fw-bold text-danger mb-0">🏷️ Inventory Stock & Rate Management</h5>
                     <div class="d-flex gap-2">
-                        <!-- 📥 Download Existing Items with Stock Count -->
                         <button class="btn btn-sm btn-outline-primary fw-bold" onclick="downloadExistingCSV()">📥 Export Existing List</button>
                         <button class="btn btn-sm btn-outline-success fw-bold" onclick="downloadCSVTemplate()">📥 Sample Template</button>
                         <label class="btn btn-sm btn-success fw-bold mb-0">
@@ -271,7 +299,6 @@
                     </div>
                 </div>
 
-                <!-- Single Item Addition Form -->
                 <div class="card p-3 bg-light border-0 mb-3">
                     <h6 class="fw-bold text-dark mb-2">➕ Add Single New Product</h6>
                     <div class="row g-2">
@@ -284,7 +311,6 @@
                     </div>
                 </div>
 
-                <!-- Products Table with Existing + New Addition -->
                 <div id="productListEditContainer" style="max-height:350px; overflow-y:auto;"></div>
                 <button class="btn btn-secondary btn-sm w-100 fw-bold mt-2" data-bs-dismiss="modal">Close</button>
             </div>
@@ -999,12 +1025,11 @@
             new bootstrap.Modal(document.getElementById("productEditModal")).show();
         }
 
-        // 🟢 FIX: Existing Stock + New Addition Calculation
         function saveSingleProduct(pId) {
             var item = rawProducts.find(p => p.id === pId);
             var currentStock = item ? (parseInt(item.stock) || 0) : 0;
             var addedStockQty = parseInt(document.getElementById("stk_add_" + pId).value) || 0;
-            var finalTotalStock = currentStock + addedStockQty; // Auto Sums Old + New
+            var finalTotalStock = currentStock + addedStockQty;
 
             var newRate = document.getElementById("rt_" + pId).value;
             var isInStock = document.getElementById("stk_toggle_" + pId).checked;
@@ -1048,7 +1073,6 @@
             });
         }
 
-        // 📥 Download Existing Items List with Stock & Rate
         function downloadExistingCSV() {
             var csvContent = "data:text/csv;charset=utf-8,Category,English_Name,Tamil_Name,Rate,Stock_Qty,Unit\n";
             rawProducts.forEach(p => {
