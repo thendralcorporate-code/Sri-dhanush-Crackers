@@ -628,6 +628,25 @@
                 alert("❌ Invalid Credentials!");
             }
         }
+        <!-- Review Order Modal (இதை இங்கே சேர்க்க வேண்டும்) -->
+    <div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-3">
+                <h5 class="fw-bold text-danger" id="modalReviewTitle">📋 ஆர்டர் விவரங்கள் (Review)</h5>
+                <div id="reviewItemsList" class="my-2" style="max-height:250px; overflow-y:auto;"></div>
+                <div class="fw-bold text-end text-danger fs-5 mb-2">Total: <span id="reviewGrandTotal">₹ 0.00</span></div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-secondary w-50" data-bs-dismiss="modal" id="btnModalCancel">Cancel</button>
+                    <button class="btn btn-success w-50 fw-bold" id="btnModalSubmit" onclick="finalizeOrder()">Submit & Print PDF 🚀</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS மற்றும் உங்கள் JavaScript ஸ்கிரிப்ட்ஸ் இங்கே தொடரும் -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+       // உங்கள் ஜாவாஸ்கிரிப்ட் கோடுகள்...
     </script>
 </body>
 </html>
