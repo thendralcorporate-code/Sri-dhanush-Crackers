@@ -421,37 +421,42 @@
         };
 
         function loadShopSettingsAndProducts() {
-    fetch(`${API_BASE}/products`)
-    .then(r => r.json())
-    .then(data => {
-        rawProducts = data.map(p => {
-            var stQty = p.stock_qty !== undefined ? parseInt(p.stock_qty) : (p.stock !== undefined ? parseInt(p.stock) : 100);
-            return {
-                id: p.id,
-                category: p.category || 'General',
-                eng: p.eng_name || p.name || p.eng || '',
-                tam: p.tam_name || p.tamil || p.tam || '',
-                per: p.per_unit || p.unit || p.per || 'pkt',
-                rate: parseFloat(p.rate) || 0,
-                stock: stQty,
-                isOutOfStock: (p.status === 'Out of Stock' || stQty <= 0)
-            };
-        });
-        document.getElementById("loaderScreen").style.display = "none";
-        setupPriceSliderRange();
-        populateCategoryDropdown();
-        renderProducts();
-    })
-    .catch(err => {
-        console.error("Error loading products:", err);
-        document.getElementById("loaderScreen").style.display = "none";
-    });
-}
+            fetch(`${API_BASE}/products`)
+            .then(r => r.json())
+            .then(data => {
+                rawProducts = data.map(p => {
+                    var stQty = p.stock_qty !== undefined ? parseInt(p.stock_qty) : (p.stock !== undefined ? parseInt(p.stock) : 100);
+                    return {
+                        id: p.id,
+                        category: p.category || 'General',
+                        eng: p.eng_name || p.name || p.eng || '',
+                        tam: p.tam_name || p.tamil || p.tam || '',
+                        per: p.per_unit || p.unit || p.per || 'pkt',
+                        rate: parseFloat(p.rate) || 0,
+                        stock: stQty,
+                        isOutOfStock: (p.status === 'Out of Stock' || stQty <= 0)
+                    };
+                });
+                document.getElementById("loaderScreen").style.display = "none";
+                setupPriceSliderRange();
+                populateCategoryDropdown();
+                renderProducts();
+            })
+            .catch(err => {
+                console.error("Error loading products:", err);
+                document.getElementById("loaderScreen").style.display = "none";
+            });
+        }
+
         function setupPriceSliderRange() {
             if(rawProducts.length === 0) return;
-            var maxRate = Math.max(...rawProducts.map(p => parseFloat(p.rate) || 0));
+            var validRates = rawProducts.map(p => parseFloat(p.rate) || 0);
+            var maxRate = Math.max(...validRates);
+            if (maxRate <= 0 || !isFinite(maxRate)) maxRate = 5000;
+            
             var slider = document.getElementById("priceRange");
-            slider.max = maxRate; slider.value = maxRate;
+            slider.max = maxRate; 
+            slider.value = maxRate;
             document.getElementById("priceRangeValue").innerText = "₹ " + maxRate;
         }
 
@@ -462,6 +467,7 @@
 
         function populateCategoryDropdown() {
             var catSelect = document.getElementById("catSelect");
+            catSelect.innerHTML = '<option value="ALL" id="optAllCat">அனைத்து பிரிவுகள் (All)</option>';
             var categories = [...new Set(rawProducts.map(p => p.category))];
             categories.forEach(cat => {
                 var opt = document.createElement("option"); opt.value = cat; opt.innerText = cat; catSelect.appendChild(opt);
@@ -537,14 +543,15 @@
 
         function renderProducts() {
             var container = document.getElementById("items-container");
-            var searchTxt = document.getElementById("searchInput").value.toLowerCase();
+            var searchTxt = (document.getElementById("searchInput").value || "").toLowerCase();
             var selectedCat = document.getElementById("catSelect").value;
             var sortVal = document.getElementById("sortSelect").value;
             var maxPriceLimit = parseFloat(document.getElementById("priceRange").value) || 999999;
 
             var filtered = rawProducts.filter(item => {
                 if(selectedCat !== "ALL" && item.category !== selectedCat) return false;
-                if(item.rate > maxPriceLimit) return false;
+                if(item.rate > maxPriceLimit && maxPriceLimit > 0) return false;
+                
                 var engName = (item.eng || item.name || "").toString().toLowerCase();
                 var tamName = (item.tam || item.tamil || "").toString();
                 return engName.includes(searchTxt) || tamName.includes(searchTxt);
@@ -574,7 +581,7 @@
 
                 var q = selectedQty[item.id] || 0;
                 var rowTot = q * item.rate;
-                var isOutOfStock = (item.isOutOfStock === true || item.stock === 0 || item.stock === "0");
+                var isOutOfStock = (item.isOutOfStock === true);
 
                 html += '<div class="item-card ' + (isOutOfStock ? 'out-of-stock-card' : '') + '">' +
                             '<div>' +
