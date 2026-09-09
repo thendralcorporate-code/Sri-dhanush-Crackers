@@ -23,19 +23,20 @@ export default async function handler(req, res) {
       const body = req.body;
       const genId = body.order_id || body.orderId || ("SDC-" + Math.floor(10000000 + Math.random() * 90000000));
       
-      // Flexible Mapping for all possible column names in Supabase
+      // Exact data payload matching the Supabase SQL schema
       const dbPayload = {
-        id: genId,
-        order_id: genId,
-        customer_name: body.customer_name || body.name || 'Customer',
-        mobile: body.mobile || '9999999999',
+        id: String(genId),
+        customer_name: String(body.customer_name || body.name || 'Customer'),
+        mobile: String(body.mobile || '9999999999'),
         address: body.address || 'N/A',
         district: body.district || 'Sivakasi',
-        total_amount: parseFloat(body.total_amount || body.total || 0),
-        order_type: body.order_type || body.orderType || 'Online Customer',
-        items: typeof body.items === 'string' ? body.items : JSON.stringify(body.items || []),
+        order_type: body.order_type || 'Online Customer',
+        total_amount: parseFloat(body.total_amount || 0),
+        items: Array.isArray(body.items) ? body.items : JSON.parse(body.items || "[]"),
         business_interest: body.business_interest || 'NO',
-        approval_status: body.approval_status || 'Pending'
+        approval_status: 'Pending Verification',
+        order_status: 'Order Received',
+        payment_status: 'NO'
       };
 
       const { data, error } = await supabase
@@ -43,7 +44,7 @@ export default async function handler(req, res) {
         .insert([dbPayload]);
 
       if (error) {
-        console.error("Supabase Insert Error:", error);
+        console.error("Supabase Save Error:", error);
         return res.status(500).json({ error: error.message, details: error });
       }
 
@@ -59,9 +60,7 @@ export default async function handler(req, res) {
         .order('created_at', { ascending: false });
 
       if (error) {
-        // created_at இல்லை என்றால் id வைத்து வரிசைப்படுத்த
-        const fallback = await supabase.from('orders').select('*');
-        return res.status(200).json(fallback.data || []);
+        return res.status(500).json({ error: error.message });
       }
 
       return res.status(200).json(data || []);
