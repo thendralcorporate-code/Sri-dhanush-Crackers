@@ -38,25 +38,10 @@
         
         /* 🎆 💥 SANGU CHAKKAR ANIMATED LOADER 💥 🎆 */
         .loader-screen { position: fixed; top:0; left:0; right:0; bottom:0; background: #ffffff; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        
         .sangu-chakkar-box { position: relative; width: 90px; height: 90px; display: flex; justify-content: center; align-items: center; }
-        
-        .chakkar-blades {
-            width: 70px; height: 70px; border-radius: 50%;
-            background: conic-gradient(#ef4444, #f59e0b, #10b981, #3b82f6, #ef4444);
-            animation: fastSpin 0.3s linear infinite;
-            box-shadow: 0 0 20px #f59e0b, inset 0 0 10px #ffffff;
-        }
-        
-        .chakkar-center {
-            position: absolute; width: 22px; height: 22px; background: #ffffff;
-            border-radius: 50%; border: 4px solid #8c1d1d; box-shadow: 0 0 5px #000;
-        }
-
-        .sparkle-ring {
-            position: absolute; width: 95px; height: 95px; border-radius: 50%;
-            border: 3px dotted #f59e0b; animation: fastSpinReverse 0.6s linear infinite;
-        }
+        .chakkar-blades { width: 70px; height: 70px; border-radius: 50%; background: conic-gradient(#ef4444, #f59e0b, #10b981, #3b82f6, #ef4444); animation: fastSpin 0.3s linear infinite; box-shadow: 0 0 20px #f59e0b, inset 0 0 10px #ffffff; }
+        .chakkar-center { position: absolute; width: 22px; height: 22px; background: #ffffff; border-radius: 50%; border: 4px solid #8c1d1d; box-shadow: 0 0 5px #000; }
+        .sparkle-ring { position: absolute; width: 95px; height: 95px; border-radius: 50%; border: 3px dotted #f59e0b; animation: fastSpinReverse 0.6s linear infinite; }
 
         @keyframes fastSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes fastSpinReverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
@@ -204,14 +189,24 @@
                 </div>
             </div>
 
+            <!-- Search Bar & Refresh Button -->
             <div class="card border-0 shadow-sm p-3 mb-3">
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
-                    <input type="text" id="adminOrderSearch" class="form-control border-start-0 ps-0" placeholder="Search by Order ID, Mobile, Name..." onkeyup="renderAdminOrders()">
+                <div class="d-flex gap-2">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" id="adminOrderSearch" class="form-control border-start-0 ps-0" placeholder="Search by Order ID, Mobile, Name..." onkeyup="renderAdminOrders()">
+                    </div>
+                    <button class="btn btn-outline-primary fw-bold" onclick="loadAdminOrders()"><i class="fas fa-sync-alt me-1"></i>Refresh Orders</button>
                 </div>
             </div>
 
-            <div id="ordersListContainer"></div>
+            <!-- 🟢 PENDING ORDERS SECTION -->
+            <h6 class="fw-bold text-danger border-bottom pb-2 mb-2"><i class="fas fa-clock me-1"></i>🔴 Pending Verification Orders</h6>
+            <div id="pendingOrdersContainer" class="mb-4"></div>
+
+            <!-- 🟢 COMPLETED / DISPATCHED ORDERS SECTION -->
+            <h6 class="fw-bold text-success border-bottom pb-2 mb-2"><i class="fas fa-check-circle me-1"></i>✅ Verified / Completed Orders</h6>
+            <div id="completedOrdersContainer"></div>
         </div>
 
         <div id="adminAnalyticsSection" style="display:none;">
@@ -263,6 +258,33 @@
                         </thead>
                         <tbody id="itemSalesTableBody"></tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🟢 Payment Approval Modal (With Transaction Details) -->
+    <div class="modal fade" id="paymentApproveModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-3">
+                <h5 class="fw-bold text-success border-bottom pb-2">💳 Payment Approval & Verification</h5>
+                <input type="hidden" id="approve_target_order_id">
+                
+                <label class="form-label small fw-bold mt-2">Payment Method / Mode:</label>
+                <select id="approve_pay_mode" class="form-select form-select-sm mb-2">
+                    <option value="GPay">Google Pay (GPay)</option>
+                    <option value="PhonePe">PhonePe</option>
+                    <option value="Paytm / UPI">Paytm / UPI ID</option>
+                    <option value="Bank Transfer">Bank Transfer (IMPS/NEFT)</option>
+                    <option value="Cash Paid">Cash Received</option>
+                </select>
+
+                <label class="form-label small fw-bold">Transaction Reference / UTR Number:</label>
+                <input type="text" id="approve_pay_txn" class="form-control form-control-sm mb-3" placeholder="e.g. 428910834921 / Ref Details">
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-secondary btn-sm w-50" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-success btn-sm w-50 fw-bold" onclick="submitPaymentApproval()">Confirm & Approve ✅</button>
                 </div>
             </div>
         </div>
@@ -395,7 +417,6 @@
 
         let shopConfig = null, rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", loggedInUsername = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], currentSessionType = "Online Customer", myChartInstance = null;
 
-        // Telecallers Rotation Roster
         const TELECALLERS_LIST = ["Vimala", "Priya", "Suganya"];
 
         window.onload = function() {
@@ -648,6 +669,7 @@
             processFinalOrderSave();
         }
 
+        // 🟢 FIX: Automatic Pre-Allocation to Staff on Order Submission
         function processFinalOrderSave() {
             var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
             var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
@@ -656,6 +678,11 @@
             var custMobileFormatted = rawMobile.length === 10 ? "91" + rawMobile : rawMobile;
             var address = document.getElementById("cust_address").value.trim() || "N/A";
             var district = document.getElementById("cust_district").value.trim() || "Sivakasi";
+
+            // Round-Robin Pre-Allocation
+            var lastIdx = parseInt(localStorage.getItem("LAST_RR_INDEX") || "0");
+            var allocatedStaff = TELECALLERS_LIST[lastIdx % TELECALLERS_LIST.length];
+            localStorage.setItem("LAST_RR_INDEX", (lastIdx + 1).toString());
 
             var itemsObj = [];
             var pdfTableRows = "", sno = 1;
@@ -727,7 +754,8 @@
                 address: address, district: district,
                 total: total, orderType: currentSessionType, itemsArray: itemsObj,
                 date: new Date().toISOString(),
-                allocatedStaff: "" // Will be assigned upon approval via Round-Robin
+                allocatedStaff: allocatedStaff, // Auto-allocated Pre-approval
+                approvalStatus: "Pending"
             };
 
             fetch(MASTER_API_URL, {
@@ -778,7 +806,6 @@
 
         function openLoginModal() { new bootstrap.Modal(document.getElementById("loginModal")).show(); }
 
-        // 🟢 FIX: Role & Username Control for Staff Login
         function processLogin() {
             var u = document.getElementById("login_user").value.trim(), p = document.getElementById("login_pass").value.trim();
             fetch(MASTER_API_URL + "?action=login&sheetId=" + shopConfig.clientSheetId + "&username=" + encodeURIComponent(u) + "&password=" + encodeURIComponent(p))
@@ -842,24 +869,22 @@
             document.getElementById("statApprovedOrders").innerText = approvedCount;
         }
 
-        // 🟢 FIX: Round-Robin Allocation + Chit Order Routing + Strict Staff Visibility Rules
+        // 🟢 FIX: Split Orders into Pending vs Completed, Chit Order Routing, & Payment Approval Controls
         function renderAdminOrders() {
             var searchTxt = document.getElementById("adminOrderSearch").value.trim().toLowerCase();
-            var html = "";
+            var pendingHtml = "", completedHtml = "";
 
             var filteredOrders = adminOrdersList.filter(o => {
                 var oType = o.orderType || o.OrderType || "";
-                var oAllocated = o.allocatedStaff || o.AllocatedStaff || o.staff || "";
-                var isApproved = ((o.approvalStatus || o.ApprovalStatus || "").toLowerCase() === "approved");
+                var oAllocated = o.allocatedStaff || o.AllocatedStaff || "";
 
-                // Rule 1: Chit Orders are strictly restricted to Suganya, Admin, & Accounts
+                // Chit Order Rule: Suganya, Admin, and Accounts Only
                 if(oType === "Chit Order" && userRole === "TELECALLER" && loggedInUsername.toLowerCase() !== "suganya") {
                     return false; 
                 }
 
-                // Rule 2: Telecallers see ONLY Approved orders that are specifically ALLOCATED to them
+                // Telecaller Visibility: Must be allocated to logged in staff or Suganya
                 if(userRole === "TELECALLER") {
-                    if(!isApproved) return false;
                     if(loggedInUsername.toLowerCase() !== "suganya" && oAllocated.toLowerCase() !== loggedInUsername.toLowerCase()) {
                         return false;
                     }
@@ -883,11 +908,13 @@
                 var oOrdStatus = o.orderStatus || o.OrderStatus || "Order Received";
                 var oType = o.orderType || o.OrderType || "Online Customer";
                 var oAllocated = o.allocatedStaff || o.AllocatedStaff || "Unassigned";
+                var oTxnDetails = o.txnDetails || o.TxnDetails || "";
                 var oTotal = parseFloat(o.total || o.Total || 0);
 
                 var isApproved = (oStatus.toLowerCase() === "approved");
+                var isGreyedForTelecaller = (userRole === "TELECALLER" && !isApproved);
 
-                html += '<div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; overflow: hidden;">' +
+                var cardHtml = '<div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; overflow: hidden; ' + (isGreyedForTelecaller ? 'opacity:0.65; background:#fff5f5;' : '') + '">' +
                             '<div class="card-body p-3">' +
                                 '<div class="d-flex justify-content-between align-items-center mb-2">' +
                                     '<div>' +
@@ -895,31 +922,38 @@
                                         '<small class="text-muted"><i class="fas fa-phone-alt me-1"></i>' + oMobile + ' | <i class="fas fa-map-marker-alt me-1"></i>' + oDistrict + ' | 👤 <b>Assigned:</b> ' + oAllocated + '</small>' +
                                     '</div>' +
                                     '<div class="text-end">' +
-                                        '<span class="badge ' + (isApproved ? 'bg-success' : 'bg-danger') + ' me-1">' + oStatus + '</span>' +
+                                        (isApproved ? '<span class="badge bg-success me-1">Approved ✅</span>' : '<span class="badge bg-danger me-1">Pending ❌</span>') +
                                         '<span class="badge bg-primary">' + oOrdStatus + '</span>' +
                                         '<div class="fw-bold text-danger mt-1">₹' + oTotal.toLocaleString('en-IN') + '</div>' +
                                     '</div>' +
-                                '</div>' +
-                                '<div class="pt-2 border-top d-flex gap-2 align-items-center flex-wrap">' +
-                                    '<button class="btn btn-sm btn-outline-dark fw-bold" onclick="viewOrderItems(\'' + oId + '\')">👁️ View Items</button>';
+                                '</div>';
 
-                // Admin/Accounts Functions: Approve, Change Order Type, & Re-allocate Staff
+                if(oTxnDetails) {
+                    cardHtml += '<div class="small text-success fw-bold mb-2"><i class="fas fa-receipt me-1"></i>Txn Info: ' + oTxnDetails + '</div>';
+                }
+
+                cardHtml += '<div class="pt-2 border-top d-flex gap-2 align-items-center flex-wrap">' +
+                            '<button class="btn btn-sm btn-outline-dark fw-bold" onclick="viewOrderItems(\'' + oId + '\')">👁️ View Items</button>';
+
+                // Payment Approval Controls
                 if(userRole === "ADMIN" || userRole === "ACCOUNTS") {
                     if(!isApproved) {
-                        html += '<button class="btn btn-sm btn-success fw-bold" onclick="approveOrder(\'' + oId + '\')">Approve Payment ✅</button>';
+                        cardHtml += '<button class="btn btn-sm btn-danger fw-bold" onclick="openPaymentModal(\'' + oId + '\')">Approve Payment ❌</button>';
+                    } else {
+                        cardHtml += '<span class="badge bg-success py-2 px-3"><i class="fas fa-check-circle me-1"></i>Payment Verified</span>';
                     }
 
-                    // Change Order Type Dropdown (e.g. Set to Chit Order)
-                    html += '<select class="form-select form-select-sm d-inline-block" style="width:auto;" onchange="changeOrderType(\'' + oId + '\', this.value)">' +
-                                '<option value="">Change Order Type...</option>' +
+                    // Change Order Type Dropdown
+                    cardHtml += '<select class="form-select form-select-sm d-inline-block" style="width:auto;" onchange="changeOrderType(\'' + oId + '\', this.value)">' +
+                                '<option value="">Change Type (' + oType + ')...</option>' +
                                 '<option value="Online Customer">Online Customer</option>' +
                                 '<option value="Chit Order">Chit Order (Suganya Only)</option>' +
                                 '<option value="Walk-in Customer">Walk-in Customer</option>' +
                             '</select>';
 
                     // Re-Allocate Staff Dropdown
-                    html += '<select class="form-select form-select-sm d-inline-block" style="width:auto;" onchange="reallocateStaff(\'' + oId + '\', this.value)">' +
-                                '<option value="">Assign Staff...</option>' +
+                    cardHtml += '<select class="form-select form-select-sm d-inline-block" style="width:auto;" onchange="reallocateStaff(\'' + oId + '\', this.value)">' +
+                                '<option value="">Re-Assign Staff (' + oAllocated + ')...</option>' +
                                 '<option value="Vimala">Assign to Vimala</option>' +
                                 '<option value="Priya">Assign to Priya</option>' +
                                 '<option value="Suganya">Assign to Suganya</option>' +
@@ -927,7 +961,7 @@
                 }
 
                 if(isApproved || userRole === "ADMIN") {
-                    html += '<select class="form-select form-select-sm d-inline-block" style="width:auto;" onchange="updateStatus(\'' + oId + '\', this.value)">' +
+                    cardHtml += '<select class="form-select form-select-sm d-inline-block" style="width:auto;" onchange="updateStatus(\'' + oId + '\', this.value)">' +
                                 '<option value="">Change Order Status...</option>' +
                                 '<option value="Order Received">Order Received</option>' +
                                 '<option value="Packing">Packing</option>' +
@@ -936,19 +970,53 @@
                             '</select>';
                 }
 
-                html += '</div></div></div>';
+                cardHtml += '</div></div></div>';
+
+                if(isApproved && (oOrdStatus === "Dispatched" || oOrdStatus === "Sent To Transport")) {
+                    completedHtml += cardHtml;
+                } else {
+                    pendingHtml += cardHtml;
+                }
             });
 
-            document.getElementById("ordersListContainer").innerHTML = html || "<div class='card p-4 text-center text-muted border-0 shadow-sm'>உங்களுக்கு ஒதுக்கப்பட்ட ஆர்டர்கள் எதுவும் இல்லை! (No Assigned Orders)</div>";
+            document.getElementById("pendingOrdersContainer").innerHTML = pendingHtml || "<div class='card p-3 text-center text-muted border-0 shadow-sm'>Pending ஆர்டர்கள் எதுவும் இல்லை!</div>";
+            document.getElementById("completedOrdersContainer").innerHTML = completedHtml || "<div class='card p-3 text-center text-muted border-0 shadow-sm'>Completed ஆர்டர்கள் எதுவும் இல்லை!</div>";
         }
 
-        // Action: Change Order Type (e.g., Set to Chit Order)
+        // Action: Open Payment Approval Modal
+        function openPaymentModal(orderId) {
+            document.getElementById("approve_target_order_id").value = orderId;
+            document.getElementById("approve_pay_txn").value = "";
+            new bootstrap.Modal(document.getElementById("paymentApproveModal")).show();
+        }
+
+        // Action: Confirm & Submit Payment Approval
+        function submitPaymentApproval() {
+            var orderId = document.getElementById("approve_target_order_id").value;
+            var mode = document.getElementById("approve_pay_mode").value;
+            var txn = document.getElementById("approve_pay_txn").value.trim() || "N/A";
+            var txnString = mode + " | Ref: " + txn;
+
+            fetch(MASTER_API_URL, {
+                method: "POST", body: JSON.stringify({ action: "approveOrderPayment", clientSheetId: shopConfig.clientSheetId, orderId: orderId, txnDetails: txnString })
+            })
+            .then(r => r.text()).then(() => {
+                alert("✅ Payment Verified & Order Approved!");
+                bootstrap.Modal.getInstance(document.getElementById("paymentApproveModal")).hide();
+                loadAdminOrders();
+            });
+        }
+
+        // Action: Change Order Type (Instant Fix)
         function changeOrderType(orderId, newType) {
             if(!newType) return;
             fetch(MASTER_API_URL, {
                 method: "POST", body: JSON.stringify({ action: "updateOrderType", clientSheetId: shopConfig.clientSheetId, orderId: orderId, newType: newType })
             })
-            .then(r => r.text()).then(() => { alert("✅ Order Type Updated to " + newType); loadAdminOrders(); });
+            .then(r => r.text()).then(() => { 
+                alert("✅ Order Type Updated to " + newType); 
+                loadAdminOrders(); 
+            });
         }
 
         // Action: Re-allocate Staff
@@ -957,7 +1025,10 @@
             fetch(MASTER_API_URL, {
                 method: "POST", body: JSON.stringify({ action: "reallocateStaff", clientSheetId: shopConfig.clientSheetId, orderId: orderId, newStaff: newStaff })
             })
-            .then(r => r.text()).then(() => { alert("✅ Order Assigned to " + newStaff); loadAdminOrders(); });
+            .then(r => r.text()).then(() => { 
+                alert("✅ Order Re-assigned to " + newStaff); 
+                loadAdminOrders(); 
+            });
         }
 
         /* 📊 ADVANCED ANALYTICS ENGINE */
@@ -1226,14 +1297,6 @@
 
             document.getElementById("modalOrderItemsList").innerHTML = html;
             new bootstrap.Modal(document.getElementById("orderDetailsModal")).show();
-        }
-
-        // 🟢 Approve Order & Auto Allocate Staff (Round Robin or Direct)
-        function approveOrder(orderId) {
-            fetch(MASTER_API_URL, {
-                method: "POST", body: JSON.stringify({ action: "updateOrderStatus", clientSheetId: shopConfig.clientSheetId, orderId: orderId, newStatus: "Approved" })
-            })
-            .then(r => r.text()).then(() => { alert("✅ Order Approved and Allocated!"); loadAdminOrders(); });
         }
 
         function updateStatus(orderId, newStatus) {
