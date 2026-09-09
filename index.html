@@ -255,14 +255,16 @@
         </div>
     </div>
 
-    <!-- 🏷️ Advanced Product Stock & Rate Management Modal -->
+    <!-- 🏷️ Product Stock & Rate Management Modal -->
     <div class="modal fade" id="productEditModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content p-3">
                 <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-                    <h5 class="fw-bold text-danger mb-0">🏷️ Inventory & Rate Management</h5>
+                    <h5 class="fw-bold text-danger mb-0">🏷️ Inventory Stock & Rate Management</h5>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-success fw-bold" onclick="downloadCSVTemplate()">📥 Download Template</button>
+                        <!-- 📥 Download Existing Items with Stock Count -->
+                        <button class="btn btn-sm btn-outline-primary fw-bold" onclick="downloadExistingCSV()">📥 Export Existing List</button>
+                        <button class="btn btn-sm btn-outline-success fw-bold" onclick="downloadCSVTemplate()">📥 Sample Template</button>
                         <label class="btn btn-sm btn-success fw-bold mb-0">
                             📤 Bulk Upload CSV <input type="file" id="bulkCsvInput" accept=".csv" style="display:none;" onchange="handleBulkCSVUpload(this)">
                         </label>
@@ -273,15 +275,16 @@
                 <div class="card p-3 bg-light border-0 mb-3">
                     <h6 class="fw-bold text-dark mb-2">➕ Add Single New Product</h6>
                     <div class="row g-2">
-                        <div class="col-md-3"><input type="text" id="new_cat" class="form-control form-control-sm" placeholder="Category (e.g. SPARKLERS)"></div>
+                        <div class="col-md-2"><input type="text" id="new_cat" class="form-control form-control-sm" placeholder="Category"></div>
                         <div class="col-md-3"><input type="text" id="new_eng" class="form-control form-control-sm" placeholder="English Name"></div>
                         <div class="col-md-2"><input type="text" id="new_tam" class="form-control form-control-sm" placeholder="Tamil Name"></div>
-                        <div class="col-md-2"><input type="number" id="new_rate" class="form-control form-control-sm" placeholder="Rate (₹)"></div>
+                        <div class="col-md-2"><input type="number" id="new_stock" class="form-control form-control-sm" placeholder="Stock Qty"></div>
+                        <div class="col-md-1"><input type="number" id="new_rate" class="form-control form-control-sm" placeholder="Rate (₹)"></div>
                         <div class="col-md-2"><button class="btn btn-sm btn-danger w-100 fw-bold" onclick="addSingleNewProduct()">Save Item</button></div>
                     </div>
                 </div>
 
-                <!-- Products Table with No Stock Toggle -->
+                <!-- Products Table with Existing + New Addition -->
                 <div id="productListEditContainer" style="max-height:350px; overflow-y:auto;"></div>
                 <button class="btn btn-secondary btn-sm w-100 fw-bold mt-2" data-bs-dismiss="modal">Close</button>
             </div>
@@ -542,7 +545,7 @@
                 html += '<div class="item-card ' + (isOutOfStock ? 'out-of-stock-card' : '') + '">' +
                             '<div>' +
                                 '<b>' + titleDisplay + '</b> ' + (isOutOfStock ? '<span class="out-of-stock-badge me-1">OUT OF STOCK</span>' : '') + '<br>' +
-                                '<small class="text-muted">₹ ' + item.rate + ' / ' + (item.per || 'pkt') + '</small>' +
+                                '<small class="text-muted">₹ ' + item.rate + ' / ' + (item.per || 'pkt') + ' | Stock: ' + (item.stock || 0) + '</small>' +
                             '</div>' +
                             '<div class="d-flex align-items-center gap-2">' +
                                 '<input type="number" min="0" id="input_qty_' + item.id + '" class="qty-input" value="' + (q || '') + '" ' + (isOutOfStock ? 'disabled placeholder="0"' : 'oninput="updateQtyOnly(' + item.id + ', this.value)"') + '>' +
@@ -968,15 +971,18 @@
             document.getElementById("itemSalesTableBody").innerHTML = itemHtml || "<tr><td colspan='4' class='text-center text-muted'>No Sales Recorded</td></tr>";
         }
 
-        /* 🏷️ INVENTORY STOCK & RATE EDIT FUNCTIONS */
+        /* 🏷️ INVENTORY STOCK & RATE EDIT FUNCTIONS WITH AUTO ADDITION LOGIC */
         function openProductEditModal() {
             var html = "<table class='table table-sm table-striped align-middle'>" +
-                        "<thead class='table-dark'><tr><th>Item Name</th><th>Rate (₹)</th><th>Stock Status</th><th>Action</th></tr></thead><tbody>";
+                        "<thead class='table-dark'><tr><th>Item Name</th><th style='width:110px;'>Add Stock (+)</th><th style='width:90px;'>Rate (₹)</th><th>Stock Status</th><th>Action</th></tr></thead><tbody>";
             rawProducts.forEach(p => {
                 var isOutOfStock = (p.isOutOfStock === true || p.stock === 0 || p.stock === "0");
+                var currentStockVal = p.stock !== undefined ? p.stock : 0;
+                
                 html += "<tr>" +
-                            "<td><b>" + (p.eng || p.name) + "</b><br><small class='text-muted'>" + (p.category || 'General') + "</small></td>" +
-                            "<td><input type='number' id='rt_" + p.id + "' class='form-control form-control-sm' style='width:80px;' value='" + p.rate + "'></td>" +
+                            "<td><b>" + (p.eng || p.name) + "</b><br><small class='text-muted'>" + (p.category || 'General') + " | Curr Stock: <b class='text-primary'>" + currentStockVal + "</b></small></td>" +
+                            "<td><input type='number' id='stk_add_" + p.id + "' class='form-control form-control-sm text-center fw-bold' placeholder='+ Add Qty'></td>" +
+                            "<td><input type='number' id='rt_" + p.id + "' class='form-control form-control-sm text-center fw-bold' value='" + p.rate + "'></td>" +
                             "<td>" +
                                 "<div class='form-check form-switch'>" +
                                     "<input class='form-check-input' type='checkbox' id='stk_toggle_" + p.id + "' " + (isOutOfStock ? '' : 'checked') + ">" +
@@ -993,7 +999,13 @@
             new bootstrap.Modal(document.getElementById("productEditModal")).show();
         }
 
+        // 🟢 FIX: Existing Stock + New Addition Calculation
         function saveSingleProduct(pId) {
+            var item = rawProducts.find(p => p.id === pId);
+            var currentStock = item ? (parseInt(item.stock) || 0) : 0;
+            var addedStockQty = parseInt(document.getElementById("stk_add_" + pId).value) || 0;
+            var finalTotalStock = currentStock + addedStockQty; // Auto Sums Old + New
+
             var newRate = document.getElementById("rt_" + pId).value;
             var isInStock = document.getElementById("stk_toggle_" + pId).checked;
             var isOutOfStock = !isInStock;
@@ -1005,11 +1017,12 @@
                     clientSheetId: shopConfig.clientSheetId, 
                     productId: pId, 
                     newRate: newRate, 
+                    newStock: finalTotalStock,
                     isOutOfStock: isOutOfStock 
                 })
             })
             .then(r => r.text()).then(() => {
-                alert("✅ Item Stock / Rate Updated Successfully!");
+                alert("✅ Stock Updated! New Total Stock: " + finalTotalStock);
                 location.reload();
             });
         }
@@ -1018,11 +1031,12 @@
             var cat = document.getElementById("new_cat").value.trim();
             var eng = document.getElementById("new_eng").value.trim();
             var tam = document.getElementById("new_tam").value.trim();
+            var stock = document.getElementById("new_stock").value.trim() || 100;
             var rate = document.getElementById("new_rate").value.trim();
 
             if(!cat || !eng || !rate) { alert("⚠️ Please fill Category, English Name and Rate!"); return; }
 
-            var newObj = { category: cat, eng: eng, tam: tam, rate: parseFloat(rate), per: 'pkt', stock: 100, isOutOfStock: false };
+            var newObj = { category: cat, eng: eng, tam: tam, rate: parseFloat(rate), per: 'pkt', stock: parseInt(stock), isOutOfStock: false };
 
             fetch(MASTER_API_URL, {
                 method: "POST",
@@ -1034,10 +1048,24 @@
             });
         }
 
+        // 📥 Download Existing Items List with Stock & Rate
+        function downloadExistingCSV() {
+            var csvContent = "data:text/csv;charset=utf-8,Category,English_Name,Tamil_Name,Rate,Stock_Qty,Unit\n";
+            rawProducts.forEach(p => {
+                csvContent += '"' + (p.category || 'General') + '","' + (p.eng || p.name || '') + '","' + (p.tam || '') + '",' + p.rate + ',' + (p.stock || 0) + ',"' + (p.per || 'pkt') + '"\n';
+            });
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Sri_Dhanush_Crackers_Inventory_Export.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+
         function downloadCSVTemplate() {
-            var csvContent = "data:text/csv;charset=utf-8,Category,English_Name,Tamil_Name,Rate,Unit\n" +
-                             "ONE SOUND CRACKERS,3 1/2 Lakshmi,3 1/2 லட்சுமி,25,pkt\n" +
-                             "SPARKLERS,10cm Electric Sparklers,10 செ.மீ கம்பிமத்தாப்பு,40,box";
+            var csvContent = "data:text/csv;charset=utf-8,Category,English_Name,Tamil_Name,Rate,Stock_Qty,Unit\n" +
+                             "ONE SOUND CRACKERS,3 1/2 Lakshmi,3 1/2 லட்சுமி,25,100,pkt\n" +
+                             "SPARKLERS,10cm Electric Sparklers,10 செ.மீ கம்பிமத்தாப்பு,40,200,box";
             var encodedUri = encodeURI(csvContent);
             var link = document.createElement("a");
             link.setAttribute("href", encodedUri);
@@ -1060,12 +1088,12 @@
                     var cols = lines[i].split(",");
                     if(cols.length >= 4) {
                         productsArray.push({
-                            category: cols[0].trim(),
-                            eng: cols[1].trim(),
-                            tam: cols[2].trim(),
+                            category: cols[0].replace(/"/g, '').trim(),
+                            eng: cols[1].replace(/"/g, '').trim(),
+                            tam: cols[2].replace(/"/g, '').trim(),
                             rate: parseFloat(cols[3].trim()) || 0,
-                            per: cols[4] ? cols[4].trim() : 'pkt',
-                            stock: 100,
+                            stock: cols[4] ? parseInt(cols[4].trim()) || 100 : 100,
+                            per: cols[5] ? cols[5].replace(/"/g, '').trim() : 'pkt',
                             isOutOfStock: false
                         });
                     }
