@@ -642,19 +642,31 @@
         function openLoginModal() { new bootstrap.Modal(document.getElementById("loginModal")).show(); }
 
         function processLogin() {
-            var u = document.getElementById("login_user").value.trim(), p = document.getElementById("login_pass").value.trim();
-            if(u === "admin" && p === "admin123") {
-                userRole = "ADMIN";
-                loggedInUsername = u;
-                document.getElementById("customerStoreView").style.display = "none";
-                document.getElementById("adminPanelView").style.display = "block";
-                bootstrap.Modal.getInstance(document.getElementById("loginModal")).hide();
-                loadAdminOrders();
-            } else {
-                alert("❌ Invalid Credentials!");
-            }
-        }
+    var u = document.getElementById("login_user").value.trim();
+    var p = document.getElementById("login_pass").value.trim();
 
+    // Default Admin Login Fallback
+    if(u === "admin" && p === "admin123") {
+        userRole = "ADMIN";
+        loggedInUsername = u;
+        showAdminPanel();
+        return;
+    }
+
+    // Supabase Staff Table Check
+    fetch(`${API_BASE}/staff_login?user=${u}&pass=${p}`)
+    .then(r => r.json())
+    .then(data => {
+        if(data && data.success) {
+            userRole = data.role; // ADMIN or STAFF
+            loggedInUsername = data.username;
+            showAdminPanel();
+        } else {
+            alert("❌ தவறான பயனர் பெயர் அல்லது பாஸ்வேர்ட்!");
+        }
+    })
+    .catch(() => alert("❌ லாகின் செய்வதில் பிழை!"));
+}
         /* 👑 ADMIN PANEL FUNCTIONS (ADDED) */
         function loadAdminOrders() {
             fetch(`${API_BASE}/orders`)
