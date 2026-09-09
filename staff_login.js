@@ -23,12 +23,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Supabase 'staff' Table-ல் லாகின் விவரங்களைச் சரிபார்த்தல்
+    // Supabase 'staff' Table-ல் username மற்றும் password_hash ஒப்பீடு
     const { data, error } = await supabase
       .from('staff')
       .select('*')
       .eq('username', user.trim())
-      .eq('password', pass.trim())
+      .eq('password_hash', pass.trim())
       .single();
 
     if (error || !data) {
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
       success: true,
       username: data.username,
       role: data.role || 'STAFF',
-      name: data.name || data.username
+      name: data.username
     });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
