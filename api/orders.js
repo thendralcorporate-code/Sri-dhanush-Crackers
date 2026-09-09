@@ -9,12 +9,8 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  let supabaseUrl = (process.env.SUPABASE_URL || '').trim();
+  let supabaseUrl = (process.env.SUPABASE_URL || '').trim().replace(/\/$/, '');
   const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
-
-  if (supabaseUrl.endsWith('/')) {
-    supabaseUrl = supabaseUrl.slice(0, -1);
-  }
 
   if (!supabaseUrl || !supabaseKey) {
     return res.status(500).json({ error: "Supabase Keys missing in Vercel" });
@@ -24,10 +20,25 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     try {
-      const payload = req.body;
+      const body = req.body;
+      
+      // Supabase Column Names Exact Mapping
+      const dbPayload = {
+        order_id: body.order_id || body.orderId,
+        customer_name: body.customer_name || body.name,
+        mobile: body.mobile,
+        address: body.address,
+        district: body.district,
+        total_amount: body.total_amount || body.total,
+        order_type: body.order_type || body.orderType,
+        items: body.items || body.itemsArray,
+        business_interest: body.business_interest || body.businessInterest || 'NO',
+        approval_status: body.approval_status || 'Pending'
+      };
+
       const { data, error } = await supabase
         .from('orders')
-        .insert([payload]);
+        .insert([dbPayload]);
 
       if (error) {
         return res.status(500).json({ error: error.message });
@@ -42,7 +53,7 @@ export default async function handler(req, res) {
       const { data, error } = await supabase
         .from('orders')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('id', { ascending: false });
 
       if (error) {
         return res.status(500).json({ error: error.message });
