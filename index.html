@@ -60,7 +60,8 @@
     </div>
 
     <div id="customerStoreView">
-        <div class="header">
+        <!-- Shop Header Banner (Auto Hidden in Step 2) -->
+        <div class="header" id="mainShopHeader">
             <img id="hdr_shop_logo" class="shop-logo-img" alt="Logo">
             <h1 id="hdr_shop_name">CRACKER STORE</h1>
             <p id="hdr_address" class="mb-0">📍 Sivakasi</p>
@@ -506,6 +507,7 @@
             document.getElementById("grand-total").innerText = "₹ " + tot.toLocaleString('en-IN') + ".00";
         }
 
+        // 🟢 FIX: Hide Shop Header Banner in Step 2 to Increase Visibility
         function goToStep2() {
             var name = document.getElementById("cust_name").value.trim();
             var mobile = document.getElementById("cust_mobile").value.trim().replace(/[^0-9]/g, '');
@@ -515,11 +517,13 @@
 
             document.getElementById("step-1").style.display = "none";
             document.getElementById("step-2").style.display = "block";
+            document.getElementById("mainShopHeader").style.display = "none"; // Hides Large Shop Header Banner
         }
 
         function goToStep1() {
             document.getElementById("step-1").style.display = "block";
             document.getElementById("step-2").style.display = "none";
+            document.getElementById("mainShopHeader").style.display = "block"; // Shows Header again when editing info
         }
 
         function openReviewModal() {
