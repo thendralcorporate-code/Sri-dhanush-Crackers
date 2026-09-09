@@ -8,6 +8,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- 📊 Chart.js Included for Beautiful Visual Pie & Bar Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary-color: #8c1d1d; --accent-color: #ffeb3b; }
         body { background: #f4f6f9; font-family: sans-serif; padding-bottom: 180px; }
@@ -35,10 +37,6 @@
 
         .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 12px 15px 25px 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.15); border-top: 3px solid var(--primary-color); display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
         .loader-screen { position: fixed; top:0; left:0; right:0; bottom:0; background: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-
-        .order-card { background: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .order-card.pending { border-left-color: #e53e3e; background: #fff5f5; }
-        .order-card.approved { border-left-color: #38a169; background: #ffffff; }
 
         /* Hidden PDF Render Container */
         #hiddenBillWrap { position: absolute; left: -9999px; top: 0; width: 750px; background: white; }
@@ -146,7 +144,7 @@
                 <button class="nav-link active fw-bold" id="tabOrdersBtn" onclick="switchAdminTab('orders')">📦 Orders Management</button>
             </li>
             <li class="nav-item">
-                <button class="nav-link fw-bold" id="tabAnalyticsBtn" onclick="switchAdminTab('analytics')">📊 Sales & Item Analytics</button>
+                <button class="nav-link fw-bold" id="tabAnalyticsBtn" onclick="switchAdminTab('analytics')">📊 Sales & Staff Analytics</button>
             </li>
         </ul>
 
@@ -189,38 +187,41 @@
             <div id="ordersListContainer"></div>
         </div>
 
-        <!-- TAB 2: Advanced Analytics & Reports -->
+        <!-- TAB 2: Advanced Analytics & Staff Performance -->
         <div id="adminAnalyticsSection" style="display:none;">
-            <!-- Date Filter Card -->
+            <!-- Date Filter with Apply Button -->
             <div class="card border-0 shadow-sm p-3 mb-3">
-                <div class="row g-2 align-items-center">
+                <div class="row g-2 align-items-end">
                     <div class="col-12 col-md-4">
-                        <label class="form-label mb-0 fw-bold small text-muted">From Date:</label>
-                        <input type="date" id="analyticsFromDate" class="form-control form-control-sm" onchange="processAnalytics()">
+                        <label class="form-label mb-1 fw-bold small text-muted">From Date:</label>
+                        <input type="date" id="analyticsFromDate" class="form-control form-control-sm">
                     </div>
                     <div class="col-12 col-md-4">
-                        <label class="form-label mb-0 fw-bold small text-muted">To Date:</label>
-                        <input type="date" id="analyticsToDate" class="form-control form-control-sm" onchange="processAnalytics()">
+                        <label class="form-label mb-1 fw-bold small text-muted">To Date:</label>
+                        <input type="date" id="analyticsToDate" class="form-control form-control-sm">
                     </div>
-                    <div class="col-12 col-md-4 text-end pt-3">
-                        <button class="btn btn-sm btn-secondary fw-bold w-100" onclick="resetAnalyticsDate()">Reset Date Filter</button>
+                    <div class="col-12 col-md-4 d-flex gap-2">
+                        <button class="btn btn-sm btn-primary fw-bold w-100" onclick="processAnalytics()"><i class="fas fa-filter me-1"></i>Filter Data 🚀</button>
+                        <button class="btn btn-sm btn-outline-secondary fw-bold" onclick="resetAnalyticsDate()">Reset</button>
                     </div>
                 </div>
             </div>
 
             <div class="row g-3 mb-3">
-                <!-- Top Category Sales Card -->
+                <!-- Pie Chart: Category Sales -->
                 <div class="col-12 col-md-6">
-                    <div class="card border-0 shadow-sm p-3 h-100">
-                        <h6 class="fw-bold text-danger border-bottom pb-2"><i class="fas fa-chart-pie me-1"></i>Category-wise Sales</h6>
-                        <div id="categorySalesContainer" class="pt-2"></div>
+                    <div class="card border-0 shadow-sm p-3 h-100 text-center">
+                        <h6 class="fw-bold text-danger border-bottom pb-2"><i class="fas fa-chart-pie me-1"></i>Category Sales Distribution</h6>
+                        <div style="max-height: 260px;" class="d-flex justify-content-center">
+                            <canvas id="categoryPieChart"></canvas>
+                        </div>
                     </div>
                 </div>
-                <!-- District Breakdown Card -->
+                <!-- Staff Performance Card -->
                 <div class="col-12 col-md-6">
                     <div class="card border-0 shadow-sm p-3 h-100">
-                        <h6 class="fw-bold text-danger border-bottom pb-2"><i class="fas fa-map-marked-alt me-1"></i>District Sales & Top Demands</h6>
-                        <div id="districtSalesContainer" class="pt-2"></div>
+                        <h6 class="fw-bold text-danger border-bottom pb-2"><i class="fas fa-user-check me-1"></i>Staff Performance & Billing</h6>
+                        <div id="staffPerformanceContainer" class="pt-2"></div>
                     </div>
                 </div>
             </div>
@@ -228,7 +229,7 @@
             <!-- Detailed Item-wise Sales Table -->
             <div class="card border-0 shadow-sm p-3 mb-3">
                 <h6 class="fw-bold text-danger border-bottom pb-2"><i class="fas fa-fire me-1"></i>Item-wise Sales Breakdown</h6>
-                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
                     <table class="table table-hover table-sm">
                         <thead class="table-light sticky-top">
                             <tr>
@@ -348,7 +349,7 @@
     <script>
         const MASTER_API_URL = "https://script.google.com/macros/s/AKfycby7LQ3ebuBeRAiDX66Z1ax6NBXqyOezHJJOTctbM3ayka1hFAMH_fcod7YpHfjZWYF1/exec";
 
-        let shopConfig = null, rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], currentSessionType = "Online Customer";
+        let shopConfig = null, rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], currentSessionType = "Online Customer", myChartInstance = null;
 
         window.onload = function() {
             var host = window.location.hostname || "sridhanushcrackers.in";
@@ -674,7 +675,8 @@
                 orderId: orderId, name: name, mobile: rawMobile,
                 address: address, district: district,
                 total: total, orderType: currentSessionType, itemsArray: itemsObj,
-                date: new Date().toISOString()
+                date: new Date().toISOString(),
+                staff: userRole || "Customer Direct"
             };
 
             fetch(MASTER_API_URL, {
@@ -836,7 +838,7 @@
             document.getElementById("ordersListContainer").innerHTML = html || "<div class='card p-4 text-center text-muted border-0 shadow-sm'>எந்த ஆர்டர்களும் கிடைக்கவில்லை! (No Orders Found)</div>";
         }
 
-        /* 📊 ADVANCED ANALYTICS ENGINE */
+        /* 📊 ADVANCED ANALYTICS & STAFF PERFORMANCE ENGINE */
         function switchAdminTab(tab) {
             if(tab === 'orders') {
                 document.getElementById("adminOrdersSection").style.display = "block";
@@ -870,16 +872,19 @@
                 return true;
             });
 
-            var itemSales = {}, catSales = {}, distSales = {};
+            var itemSales = {}, catSales = {}, staffSales = {};
 
             filtered.forEach(o => {
                 var items = [];
                 try { items = JSON.parse(o.items || o.Items); } catch(e){}
-                var dist = o.district || o.District || "Local / Sivakasi";
+                
+                // Staff Performance Extraction
+                var staffName = o.staff || o.Staff || o.createdBy || o.orderStatus || "Online Direct";
+                var totVal = parseFloat(o.total || o.Total || 0);
 
-                if(!distSales[dist]) distSales[dist] = { orders: 0, revenue: 0 };
-                distSales[dist].orders += 1;
-                distSales[dist].revenue += parseFloat(o.total || o.Total || 0);
+                if(!staffSales[staffName]) staffSales[staffName] = { count: 0, revenue: 0 };
+                staffSales[staffName].count += 1;
+                staffSales[staffName].revenue += totVal;
 
                 items.forEach(it => {
                     var iName = it.name || "Unknown Cracker";
@@ -896,26 +901,43 @@
                 });
             });
 
-            // 1. Render Category Sales
-            var catHtml = "<ul class='list-group list-group-flush'>";
-            Object.keys(catSales).forEach(c => {
-                catHtml += "<li class='list-group-item d-flex justify-content-between align-items-center fw-bold'>" +
-                                c + "<span class='badge bg-danger rounded-pill'>₹" + catSales[c].toLocaleString('en-IN') + "</span>" +
-                           "</li>";
-            });
-            document.getElementById("categorySalesContainer").innerHTML = catHtml + "</ul>" || "<div class='text-muted'>No Data</div>";
+            // 1. Render Chart.js Pie/Doughnut Chart for Categories
+            var catLabels = Object.keys(catSales);
+            var catData = Object.values(catSales);
 
-            // 2. Render District Sales
-            var distHtml = "<ul class='list-group list-group-flush'>";
-            Object.keys(distSales).forEach(d => {
-                distHtml += "<li class='list-group-item d-flex justify-content-between align-items-center'>" +
-                                "<div><b>" + d + "</b><br><small class='text-muted'>" + distSales[d].orders + " Orders</small></div>" +
-                                "<span class='badge bg-success fs-6'>₹" + distSales[d].revenue.toLocaleString('en-IN') + "</span>" +
-                            "</li>";
+            if(myChartInstance) { myChartInstance.destroy(); }
+            
+            var ctx = document.getElementById('categoryPieChart').getContext('2d');
+            myChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: catLabels.length ? catLabels : ['No Data'],
+                    datasets: [{
+                        data: catData.length ? catData : [1],
+                        backgroundColor: ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
             });
-            document.getElementById("districtSalesContainer").innerHTML = distHtml + "</ul>" || "<div class='text-muted'>No Data</div>";
 
-            // 3. Render Item Sales Table
+            // 2. Render Staff Performance UI List
+            var staffHtml = "<ul class='list-group list-group-flush'>";
+            Object.keys(staffSales).forEach(s => {
+                staffHtml += "<li class='list-group-item d-flex justify-content-between align-items-center py-2'>" +
+                                "<div>" +
+                                    "<h6 class='fw-bold mb-0 text-dark'><i class='fas fa-user-circle me-1 text-primary'></i>" + s + "</h6>" +
+                                    "<small class='text-muted'>" + staffSales[s].count + " Total Orders Handled</small>" +
+                                "</div>" +
+                                "<span class='badge bg-success fs-6'>₹" + staffSales[s].revenue.toLocaleString('en-IN') + "</span>" +
+                             "</li>";
+            });
+            document.getElementById("staffPerformanceContainer").innerHTML = staffHtml + "</ul>" || "<div class='text-muted'>No Staff Activity</div>";
+
+            // 3. Render Detailed Item Sales Table
             var itemHtml = "", sno = 1;
             var sortedItems = Object.keys(itemSales).sort((a,b) => itemSales[b].qty - itemSales[a].qty);
             sortedItems.forEach(k => {
