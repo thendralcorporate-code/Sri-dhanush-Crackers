@@ -52,7 +52,7 @@
     </div>
 
     <div class="admin-nav">
-        <span class="fw-bold text-warning" id="navShopTitle">💥 CRACKER STORE</span>
+        <span class="fw-bold text-warning" id="navShopTitle">💥 SRI DHANUSH CRACKERS</span>
         <div>
             <button class="btn btn-sm btn-success fw-bold me-1 py-0" style="font-size:12px;" onclick="openPOSDirectMode()">🏪 POS Counter</button>
             <button class="btn btn-outline-warning btn-sm py-0" style="font-size:11px;" onclick="openLoginModal()">🔒 Staff Login</button>
@@ -62,7 +62,7 @@
     <div id="customerStoreView">
         <div class="header" id="mainShopHeader">
             <img id="hdr_shop_logo" class="shop-logo-img" alt="Logo">
-            <h1 id="hdr_shop_name">CRACKER STORE</h1>
+            <h1 id="hdr_shop_name">SRI DHANUSH CRACKERS</h1>
             <p id="hdr_address" class="mb-0">📍 Sivakasi</p>
             <p id="hdr_contacts" class="mb-0">📞 Contact Store</p>
             <span class="pos-badge">🏪 WALKIN COUNTER BILLING MODE</span>
@@ -127,7 +127,7 @@
         </div>
     </div>
 
-    <!-- Modern Admin Panel Dashboard -->
+    <!-- 🚀 Modern Admin Panel Dashboard with Analytics -->
     <div id="adminPanelView" class="p-3" style="display:none; background: #f8fafc; min-height: 100vh;">
         <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded-3 shadow-sm text-white" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
             <div class="d-flex align-items-center gap-2">
@@ -140,41 +140,109 @@
             </div>
         </div>
 
-        <div class="row g-3 mb-3">
-            <div class="col-6 col-md-3">
-                <div class="card border-0 shadow-sm p-3 text-center" style="background: #ffffff; border-left: 4px solid #3b82f6 !important;">
-                    <small class="text-muted fw-bold">TOTAL ORDERS</small>
-                    <h3 class="fw-bold mb-0 text-primary" id="statTotalOrders">0</h3>
+        <!-- Admin Navigation Tabs -->
+        <ul class="nav nav-pills mb-3 bg-white p-2 rounded-3 shadow-sm" id="adminTab">
+            <li class="nav-item">
+                <button class="nav-link active fw-bold" id="tabOrdersBtn" onclick="switchAdminTab('orders')">📦 Orders Management</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold" id="tabAnalyticsBtn" onclick="switchAdminTab('analytics')">📊 Sales & Item Analytics</button>
+            </li>
+        </ul>
+
+        <!-- TAB 1: Orders List -->
+        <div id="adminOrdersSection">
+            <div class="row g-3 mb-3">
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm p-3 text-center" style="background: #ffffff; border-left: 4px solid #3b82f6 !important;">
+                        <small class="text-muted fw-bold">TOTAL ORDERS</small>
+                        <h3 class="fw-bold mb-0 text-primary" id="statTotalOrders">0</h3>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm p-3 text-center" style="background: #ffffff; border-left: 4px solid #10b981 !important;">
+                        <small class="text-muted fw-bold">TOTAL REVENUE</small>
+                        <h3 class="fw-bold mb-0 text-success" id="statTotalRevenue">₹0</h3>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm p-3 text-center" style="background: #ffffff; border-left: 4px solid #ef4444 !important;">
+                        <small class="text-muted fw-bold">PENDING APPROVAL</small>
+                        <h3 class="fw-bold mb-0 text-danger" id="statPendingOrders">0</h3>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm p-3 text-center" style="background: #ffffff; border-left: 4px solid #8b5cf6 !important;">
+                        <small class="text-muted fw-bold">APPROVED ORDERS</small>
+                        <h3 class="fw-bold mb-0 text-purple" id="statApprovedOrders">0</h3>
+                    </div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
-                <div class="card border-0 shadow-sm p-3 text-center" style="background: #ffffff; border-left: 4px solid #10b981 !important;">
-                    <small class="text-muted fw-bold">TOTAL REVENUE</small>
-                    <h3 class="fw-bold mb-0 text-success" id="statTotalRevenue">₹0</h3>
+
+            <div class="card border-0 shadow-sm p-3 mb-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" id="adminOrderSearch" class="form-control border-start-0 ps-0" placeholder="Search by Order ID, Mobile, Name..." onkeyup="renderAdminOrders()">
                 </div>
             </div>
-            <div class="col-6 col-md-3">
-                <div class="card border-0 shadow-sm p-3 text-center" style="background: #ffffff; border-left: 4px solid #ef4444 !important;">
-                    <small class="text-muted fw-bold">PENDING APPROVAL</small>
-                    <h3 class="fw-bold mb-0 text-danger" id="statPendingOrders">0</h3>
+
+            <div id="ordersListContainer"></div>
+        </div>
+
+        <!-- TAB 2: Advanced Analytics & Reports -->
+        <div id="adminAnalyticsSection" style="display:none;">
+            <!-- Date Filter Card -->
+            <div class="card border-0 shadow-sm p-3 mb-3">
+                <div class="row g-2 align-items-center">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label mb-0 fw-bold small text-muted">From Date:</label>
+                        <input type="date" id="analyticsFromDate" class="form-control form-control-sm" onchange="processAnalytics()">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label mb-0 fw-bold small text-muted">To Date:</label>
+                        <input type="date" id="analyticsToDate" class="form-control form-control-sm" onchange="processAnalytics()">
+                    </div>
+                    <div class="col-12 col-md-4 text-end pt-3">
+                        <button class="btn btn-sm btn-secondary fw-bold w-100" onclick="resetAnalyticsDate()">Reset Date Filter</button>
+                    </div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
-                <div class="card border-0 shadow-sm p-3 text-center" style="background: #ffffff; border-left: 4px solid #8b5cf6 !important;">
-                    <small class="text-muted fw-bold">APPROVED ORDERS</small>
-                    <h3 class="fw-bold mb-0 text-purple" id="statApprovedOrders">0</h3>
+
+            <div class="row g-3 mb-3">
+                <!-- Top Category Sales Card -->
+                <div class="col-12 col-md-6">
+                    <div class="card border-0 shadow-sm p-3 h-100">
+                        <h6 class="fw-bold text-danger border-bottom pb-2"><i class="fas fa-chart-pie me-1"></i>Category-wise Sales</h6>
+                        <div id="categorySalesContainer" class="pt-2"></div>
+                    </div>
+                </div>
+                <!-- District Breakdown Card -->
+                <div class="col-12 col-md-6">
+                    <div class="card border-0 shadow-sm p-3 h-100">
+                        <h6 class="fw-bold text-danger border-bottom pb-2"><i class="fas fa-map-marked-alt me-1"></i>District Sales & Top Demands</h6>
+                        <div id="districtSalesContainer" class="pt-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Item-wise Sales Table -->
+            <div class="card border-0 shadow-sm p-3 mb-3">
+                <h6 class="fw-bold text-danger border-bottom pb-2"><i class="fas fa-fire me-1"></i>Item-wise Sales Breakdown</h6>
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-hover table-sm">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>#</th>
+                                <th>Item Name</th>
+                                <th class="text-center">Total Quantity Sold</th>
+                                <th class="text-end">Total Revenue Generated</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemSalesTableBody"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
-
-        <div class="card border-0 shadow-sm p-3 mb-3">
-            <div class="input-group">
-                <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
-                <input type="text" id="adminOrderSearch" class="form-control border-start-0 ps-0" placeholder="Search by Order ID (e.g. SDC-68784514), Mobile Number, or Customer Name..." onkeyup="renderAdminOrders()">
-            </div>
-        </div>
-
-        <div id="ordersListContainer"></div>
     </div>
 
     <!-- Review Order Modal -->
@@ -301,11 +369,11 @@
             .then(r => r.text()).then(stTxt => {
                 var st = JSON.parse(stTxt);
                 if(st.ShopName) {
-    document.title = st.ShopName + " | Online Cracker Store - Sivakasi"; // 💥 பிரவுசர் டேப் பெயர் தானாக மாறும்
-    document.getElementById("hdr_shop_name").innerText = st.ShopName;
-    document.getElementById("navShopTitle").innerText = st.ShopName;
-    document.getElementById("pdfShopTitle").innerText = st.ShopName;
-}
+                    document.title = st.ShopName + " | Online Cracker Store - Sivakasi";
+                    document.getElementById("hdr_shop_name").innerText = st.ShopName;
+                    document.getElementById("navShopTitle").innerText = st.ShopName;
+                    document.getElementById("pdfShopTitle").innerText = st.ShopName;
+                }
                 if(st.Address) {
                     document.getElementById("hdr_address").innerText = st.Address;
                     document.getElementById("pdfShopAddress").innerText = st.Address;
@@ -522,14 +590,12 @@
             new bootstrap.Modal(document.getElementById("reviewModal")).show();
         }
 
-        // 🟢 FIX: Directly proceed to Order Processing (No popup interruption for online orders)
         function finalizeOrder() {
             var revModal = bootstrap.Modal.getInstance(document.getElementById("reviewModal"));
             if(revModal) revModal.hide();
             processFinalOrderSave();
         }
 
-        // 🟢 FIX: Clean & Dual WhatsApp Message Routing System
         function processFinalOrderSave() {
             var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
             var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
@@ -560,7 +626,7 @@
                     var rateVal = parseFloat(p.rate) || 0;
                     var tot = q * rateVal;
                     
-                    itemsObj.push({ id: p.id, name: itemName, qty: q, rate: rateVal, total: tot });
+                    itemsObj.push({ id: p.id, name: itemName, qty: q, rate: rateVal, total: tot, category: p.category || 'General' });
                     
                     waMessage += sno + ". *" + itemName + "*\n" +
                                  "   ▶ Qty: " + q + " " + (p.per || 'pkt') + "  |  Rate: ₹" + rateVal + "  |  Total: ₹" + tot.toFixed(2) + "\n\n";
@@ -591,7 +657,6 @@
             document.getElementById("billItemsBody").innerHTML = pdfTableRows;
             document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN') + ".00";
 
-            // Trigger Local PDF Download
             setTimeout(function() {
                 var element = document.getElementById('printableBill');
                 var opt = {
@@ -608,16 +673,14 @@
                 shopId: shopConfig.shopId, shopName: shopConfig.shopName,
                 orderId: orderId, name: name, mobile: rawMobile,
                 address: address, district: district,
-                total: total, orderType: currentSessionType, itemsArray: itemsObj
+                total: total, orderType: currentSessionType, itemsArray: itemsObj,
+                date: new Date().toISOString()
             };
 
             fetch(MASTER_API_URL, {
                 method: "POST", body: JSON.stringify({ action: "saveOrder", clientSheetId: shopConfig.clientSheetId, payload: payload })
             })
             .then(r => r.text()).then(() => {
-                // 🔀 DUAL WHATSAPP ROUTING:
-                // 1. Online Customer -> Message goes to SHOP WHATSAPP
-                // 2. POS Billing -> Message goes to CUSTOMER WHATSAPP
                 var sendTargetPhone = (currentSessionType === "Online Customer") ? targetShopWhatsApp : custMobileFormatted;
                 var waUrl = "https://api.whatsapp.com/send?phone=" + sendTargetPhone + "&text=" + encodeURIComponent(waMessage);
 
@@ -687,6 +750,7 @@
                 adminOrdersList = JSON.parse(txt) || [];
                 updateDashboardStats();
                 renderAdminOrders();
+                processAnalytics();
             });
         }
 
@@ -770,6 +834,100 @@
             });
 
             document.getElementById("ordersListContainer").innerHTML = html || "<div class='card p-4 text-center text-muted border-0 shadow-sm'>எந்த ஆர்டர்களும் கிடைக்கவில்லை! (No Orders Found)</div>";
+        }
+
+        /* 📊 ADVANCED ANALYTICS ENGINE */
+        function switchAdminTab(tab) {
+            if(tab === 'orders') {
+                document.getElementById("adminOrdersSection").style.display = "block";
+                document.getElementById("adminAnalyticsSection").style.display = "none";
+                document.getElementById("tabOrdersBtn").classList.add("active");
+                document.getElementById("tabAnalyticsBtn").classList.remove("active");
+            } else {
+                document.getElementById("adminOrdersSection").style.display = "none";
+                document.getElementById("adminAnalyticsSection").style.display = "block";
+                document.getElementById("tabOrdersBtn").classList.remove("active");
+                document.getElementById("tabAnalyticsBtn").classList.add("active");
+                processAnalytics();
+            }
+        }
+
+        function resetAnalyticsDate() {
+            document.getElementById("analyticsFromDate").value = "";
+            document.getElementById("analyticsToDate").value = "";
+            processAnalytics();
+        }
+
+        function processAnalytics() {
+            var fromDate = document.getElementById("analyticsFromDate").value;
+            var toDate = document.getElementById("analyticsToDate").value;
+
+            var filtered = adminOrdersList.filter(o => {
+                if(!o.date) return true;
+                var oDate = new Date(o.date).toISOString().split('T')[0];
+                if(fromDate && oDate < fromDate) return false;
+                if(toDate && oDate > toDate) return false;
+                return true;
+            });
+
+            var itemSales = {}, catSales = {}, distSales = {};
+
+            filtered.forEach(o => {
+                var items = [];
+                try { items = JSON.parse(o.items || o.Items); } catch(e){}
+                var dist = o.district || o.District || "Local / Sivakasi";
+
+                if(!distSales[dist]) distSales[dist] = { orders: 0, revenue: 0 };
+                distSales[dist].orders += 1;
+                distSales[dist].revenue += parseFloat(o.total || o.Total || 0);
+
+                items.forEach(it => {
+                    var iName = it.name || "Unknown Cracker";
+                    var q = parseInt(it.qty) || 0;
+                    var tot = parseFloat(it.total) || 0;
+                    var cat = it.category || "General";
+
+                    if(!itemSales[iName]) itemSales[iName] = { qty: 0, revenue: 0 };
+                    itemSales[iName].qty += q;
+                    itemSales[iName].revenue += tot;
+
+                    if(!catSales[cat]) catSales[cat] = 0;
+                    catSales[cat] += tot;
+                });
+            });
+
+            // 1. Render Category Sales
+            var catHtml = "<ul class='list-group list-group-flush'>";
+            Object.keys(catSales).forEach(c => {
+                catHtml += "<li class='list-group-item d-flex justify-content-between align-items-center fw-bold'>" +
+                                c + "<span class='badge bg-danger rounded-pill'>₹" + catSales[c].toLocaleString('en-IN') + "</span>" +
+                           "</li>";
+            });
+            document.getElementById("categorySalesContainer").innerHTML = catHtml + "</ul>" || "<div class='text-muted'>No Data</div>";
+
+            // 2. Render District Sales
+            var distHtml = "<ul class='list-group list-group-flush'>";
+            Object.keys(distSales).forEach(d => {
+                distHtml += "<li class='list-group-item d-flex justify-content-between align-items-center'>" +
+                                "<div><b>" + d + "</b><br><small class='text-muted'>" + distSales[d].orders + " Orders</small></div>" +
+                                "<span class='badge bg-success fs-6'>₹" + distSales[d].revenue.toLocaleString('en-IN') + "</span>" +
+                            "</li>";
+            });
+            document.getElementById("districtSalesContainer").innerHTML = distHtml + "</ul>" || "<div class='text-muted'>No Data</div>";
+
+            // 3. Render Item Sales Table
+            var itemHtml = "", sno = 1;
+            var sortedItems = Object.keys(itemSales).sort((a,b) => itemSales[b].qty - itemSales[a].qty);
+            sortedItems.forEach(k => {
+                itemHtml += "<tr>" +
+                                "<td>" + sno + "</td>" +
+                                "<td><b>" + k + "</b></td>" +
+                                "<td class='text-center fw-bold text-primary'>" + itemSales[k].qty + "</td>" +
+                                "<td class='text-end fw-bold text-danger'>₹" + itemSales[k].revenue.toLocaleString('en-IN') + "</td>" +
+                            "</tr>";
+                sno++;
+            });
+            document.getElementById("itemSalesTableBody").innerHTML = itemHtml || "<tr><td colspan='4' class='text-center text-muted'>No Sales Recorded</td></tr>";
         }
 
         function viewOrderItems(orderId) {
