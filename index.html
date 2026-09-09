@@ -667,6 +667,7 @@
             processFinalOrderSave();
         }
 
+        // 🟢 Pure Backend Allocation (No Client Override)
         function processFinalOrderSave() {
             var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
             var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
@@ -675,11 +676,6 @@
             var custMobileFormatted = rawMobile.length === 10 ? "91" + rawMobile : rawMobile;
             var address = document.getElementById("cust_address").value.trim() || "N/A";
             var district = document.getElementById("cust_district").value.trim() || "Sivakasi";
-
-            var teleList = dynamicTelecallersList.length ? dynamicTelecallersList : ["Priya", "Shantha Lakshmi", "Suganya", "Vimala"];
-            var lastIdx = parseInt(localStorage.getItem("LAST_RR_INDEX") || "0");
-            var allocatedStaff = teleList[lastIdx % teleList.length];
-            localStorage.setItem("LAST_RR_INDEX", (lastIdx + 1).toString());
 
             var itemsObj = [];
             var pdfTableRows = "", sno = 1;
@@ -751,7 +747,6 @@
                 address: address, district: district,
                 total: total, orderType: currentSessionType, itemsArray: itemsObj,
                 date: new Date().toISOString(),
-                allocatedStaff: allocatedStaff,
                 approvalStatus: "Pending"
             };
 
@@ -875,7 +870,7 @@
             document.getElementById("statApprovedOrders").innerText = approvedCount;
         }
 
-        // 🟢 FIX: Accurate Real-time Staff Name Rendering Fix
+        // 🟢 FIX: Accurate Allocation Display Fix
         function renderAdminOrders() {
             var searchTxt = document.getElementById("adminOrderSearch").value.trim().toLowerCase();
             var pendingHtml = "", completedHtml = "";
@@ -912,8 +907,8 @@
                 var oOrdStatus = o.orderStatus || o.OrderStatus || "Order Received";
                 var oType = o.orderType || o.OrderType || "Online Customer";
                 
-                // Real Staff Name Render Logic (No Hardcode)
-                var oAllocated = (o.allocatedStaff && o.allocatedStaff !== "Unassigned" && o.allocatedStaff !== "") ? o.allocatedStaff : "Priya";
+                // Show Real Sheet Staff Allocation
+                var oAllocated = (o.allocatedStaff && o.allocatedStaff !== "Unassigned" && o.allocatedStaff !== "") ? o.allocatedStaff : "Unassigned";
                 var oTxnDetails = o.txnDetails || o.TxnDetails || "";
                 var oTotal = parseFloat(o.total || o.Total || 0);
 
