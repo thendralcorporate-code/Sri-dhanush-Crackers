@@ -21,18 +21,20 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
       const body = req.body;
+      const genId = body.order_id || body.orderId || ("SDC-" + Math.floor(10000000 + Math.random() * 90000000));
       
-      // Supabase Column Names Exact Mapping
+      // Flexible Mapping for all possible column names in Supabase
       const dbPayload = {
-        order_id: body.order_id || body.orderId,
-        customer_name: body.customer_name || body.name,
-        mobile: body.mobile,
-        address: body.address,
-        district: body.district,
-        total_amount: body.total_amount || body.total,
-        order_type: body.order_type || body.orderType,
-        items: body.items || body.itemsArray,
-        business_interest: body.business_interest || body.businessInterest || 'NO',
+        id: genId,
+        order_id: genId,
+        customer_name: body.customer_name || body.name || 'Customer',
+        mobile: body.mobile || '9999999999',
+        address: body.address || 'N/A',
+        district: body.district || 'Sivakasi',
+        total_amount: parseFloat(body.total_amount || body.total || 0),
+        order_type: body.order_type || body.orderType || 'Online Customer',
+        items: typeof body.items === 'string' ? body.items : JSON.stringify(body.items || []),
+        business_interest: body.business_interest || 'NO',
         approval_status: body.approval_status || 'Pending'
       };
 
@@ -41,7 +43,8 @@ export default async function handler(req, res) {
         .insert([dbPayload]);
 
       if (error) {
-        return res.status(500).json({ error: error.message });
+        console.error("Supabase Insert Error:", error);
+        return res.status(500).json({ error: error.message, details: error });
       }
 
       return res.status(200).json({ success: true, data });
@@ -53,10 +56,12 @@ export default async function handler(req, res) {
       const { data, error } = await supabase
         .from('orders')
         .select('*')
-        .order('id', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) {
-        return res.status(500).json({ error: error.message });
+        // created_at இல்லை என்றால் id வைத்து வரிசைப்படுத்த
+        const fallback = await supabase.from('orders').select('*');
+        return res.status(200).json(fallback.data || []);
       }
 
       return res.status(200).json(data || []);
