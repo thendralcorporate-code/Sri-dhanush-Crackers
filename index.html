@@ -139,7 +139,7 @@
         </div>
     </div>
 
-    <!-- Review Order Modal (FIXED) -->
+    <!-- Review Order Modal -->
     <div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3">
@@ -148,7 +148,31 @@
                 <div class="fw-bold text-end text-danger fs-5 mb-2">Total: <span id="reviewGrandTotal">₹ 0.00</span></div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-secondary w-50" data-bs-dismiss="modal" id="btnModalCancel">Cancel</button>
-                    <button class="btn btn-success w-50 fw-bold" id="btnModalSubmit" onclick="finalizeOrder()">Submit & Print PDF 🚀</button>
+                    <button class="btn btn-success w-50 fw-bold" id="btnModalSubmit" onclick="triggerBusinessInterestModal()">Submit & Print PDF 🚀</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 💼 Business Interest Inquiry Modal (NEW) -->
+    <div class="modal fade" id="businessInterestModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-4 text-center border-danger shadow-lg" style="border: 2px solid #8c1d1d;">
+                <div class="mb-2">
+                    <span style="font-size: 40px;">💼🎆</span>
+                </div>
+                <h5 class="fw-bold text-danger mb-2" id="bizTitle">பட்டாசு கடை பிசினஸ் செய்ய விருப்பமா?</h5>
+                <p class="text-dark fw-bold mb-3" style="font-size: 14px;" id="bizDesc">
+                    நீங்களும் குறைந்த முதலீட்டில் பட்டாசு வியாபாரம் தொடங்குவதில் ஆர்வமாக உள்ளீர்களா?<br>
+                    <small class="text-muted">(Are you interested in starting a Cracker Shop Business with low investment?)</small>
+                </p>
+                <div class="d-flex justify-content-center gap-3 mt-2">
+                    <button class="btn btn-success fw-bold px-4 py-2" onclick="recordBusinessChoice('YES')">
+                        <i class="fas fa-check-circle me-1"></i> ஆம் / YES 👍
+                    </button>
+                    <button class="btn btn-outline-secondary fw-bold px-4 py-2" onclick="recordBusinessChoice('NO')">
+                        <i class="fas fa-times-circle me-1"></i> இல்லை / NO 👎
+                    </button>
                 </div>
             </div>
         </div>
@@ -289,7 +313,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const API_BASE = "/api";
-        let rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", loggedInUsername = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], currentSessionType = "Online Customer";
+        let rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", loggedInUsername = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], currentSessionType = "Online Customer", userBusinessInterest = "NO";
 
         window.onload = function() {
             loadShopSettingsAndProducts();
@@ -362,6 +386,18 @@
             currentLang = lang;
             document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + lang).classList.add('active');
+
+            if(lang === 'ta') {
+                document.getElementById("bizTitle").innerText = "பட்டாசு கடை பிசினஸ் செய்ய விருப்பமா?";
+                document.getElementById("bizDesc").innerHTML = "நீங்களும் குறைந்த முதலீட்டில் பட்டாசு வியாபாரம் தொடங்குவதில் ஆர்வமாக உள்ளீர்களா?";
+            } else if(lang === 'en') {
+                document.getElementById("bizTitle").innerText = "Interested in Cracker Business?";
+                document.getElementById("bizDesc").innerHTML = "Are you interested in starting a Cracker Shop Business with low investment?";
+            } else {
+                document.getElementById("bizTitle").innerText = "பட்டாசு கடை பிசினஸ் செய்ய விருப்பமா?";
+                document.getElementById("bizDesc").innerHTML = "நீங்களும் குறைந்த முதலீட்டில் பட்டாசு வியாபாரம் தொடங்குவதில் ஆர்வமாக உள்ளீர்களா?<br><small class='text-muted'>(Are you interested in starting a Cracker Shop Business with low investment?)</small>";
+            }
+
             renderProducts();
         }
 
@@ -457,43 +493,50 @@
         }
 
         function openReviewModal() {
-    var html = "<table class='table table-sm table-striped'><thead><tr><th>Item</th><th class='text-end'>Qty</th><th class='text-end'>Total</th></tr></thead><tbody>", tot = 0;
-    var count = 0;
+            var html = "<table class='table table-sm table-striped'><thead><tr><th>Item</th><th class='text-end'>Qty</th><th class='text-end'>Total</th></tr></thead><tbody>";
+            var tot = 0, count = 0;
 
-    rawProducts.forEach(p => {
-        var q = selectedQty[p.id] || 0;
-        if(q > 0) {
-            var itemName = p.eng || p.name || "Item";
-            var t = q * p.rate; 
-            tot += t;
-            count++;
-            html += "<tr><td>" + itemName + "</td><td class='text-end'>" + q + "</td><td class='text-end'>₹" + t.toFixed(2) + "</td></tr>";
-        }
-    });
-    html += "</tbody></table>";
+            rawProducts.forEach(p => {
+                var q = selectedQty[p.id] || 0;
+                if(q > 0) {
+                    var itemName = p.eng || p.name || "Item";
+                    var t = q * p.rate; 
+                    tot += t;
+                    count++;
+                    html += "<tr><td>" + itemName + "</td><td class='text-end'>" + q + "</td><td class='text-end'>₹" + t.toFixed(2) + "</td></tr>";
+                }
+            });
+            html += "</tbody></table>";
 
-    if(count === 0 || tot <= 0) { 
-        alert("⚠️ தயவுசெய்து ஏதேனும் பட்டாசுகளின் எண்ணிக்கையைத் தேர்ந்தெடுக்கவும்!"); 
-        return; 
-    }
+            if(count === 0 || tot <= 0) { 
+                alert("⚠️ தயவுசெய்து ஏதேனும் பட்டாசுகளின் எண்ணிக்கையைத் தேர்ந்தெடுக்கவும்!"); 
+                return; 
+            }
 
-    // Element இருக்கிறதா என உறுதியாகச் சரிபார்த்து innerHTML அமைப்பது
-    var listContainer = document.getElementById("reviewItemsList");
-    var totalContainer = document.getElementById("reviewGrandTotal");
-    
-    if (listContainer) listContainer.innerHTML = html;
-    if (totalContainer) totalContainer.innerText = "₹ " + tot.toLocaleString('en-IN') + ".00";
-
-    var modalElem = document.getElementById("reviewModal");
-    if (modalElem) {
-        var myModal = bootstrap.Modal.getInstance(modalElem) || new bootstrap.Modal(modalElem);
-        myModal.show();
-    }
-}
-        function finalizeOrder() {
+            document.getElementById("reviewItemsList").innerHTML = html;
+            document.getElementById("reviewGrandTotal").innerText = "₹ " + tot.toLocaleString('en-IN') + ".00";
+            
             var modalElem = document.getElementById("reviewModal");
-            var revModal = bootstrap.Modal.getInstance(modalElem);
+            var reviewModal = bootstrap.Modal.getInstance(modalElem) || new bootstrap.Modal(modalElem);
+            reviewModal.show();
+        }
+
+        function triggerBusinessInterestModal() {
+            var revElem = document.getElementById("reviewModal");
+            var revModal = bootstrap.Modal.getInstance(revElem);
             if(revModal) revModal.hide();
+
+            var bizElem = document.getElementById("businessInterestModal");
+            var bizModal = new bootstrap.Modal(bizElem);
+            bizModal.show();
+        }
+
+        function recordBusinessChoice(choice) {
+            userBusinessInterest = choice;
+            var bizElem = document.getElementById("businessInterestModal");
+            var bizModal = bootstrap.Modal.getInstance(bizElem);
+            if(bizModal) bizModal.hide();
+
             processFinalOrderSave();
         }
 
@@ -516,6 +559,7 @@
                             "👤 *Customer Name:* " + name + "\n" +
                             "📞 *Mobile:* " + rawMobile + "\n" +
                             "📍 *Location:* " + district + "\n" +
+                            "💼 *Business Interested:* " + (userBusinessInterest === "YES" ? "YES 👍" : "NO 👎") + "\n" +
                             "----------------------------------------\n" +
                             "📦 *ORDERED ITEMS LIST:*\n" +
                             "----------------------------------------\n";
@@ -579,6 +623,7 @@
                 total_amount: total, 
                 order_type: currentSessionType, 
                 items: itemsObj,
+                business_interest: userBusinessInterest,
                 approval_status: "Pending"
             };
 
@@ -593,12 +638,8 @@
                 var waUrl = "https://wa.me/" + sendTargetPhone + "?text=" + encodeURIComponent(waMessage);
 
                 setTimeout(function() {
-                    if (confirm("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது! PDF Bill டவுன்லோட் செய்யப்பட்டது.\n\nWhatsApp-ல் பில் மெசேஜ் அனுப்ப 'OK' அழுத்தவும்.")) {
-                        window.location.href = waUrl;
-                    } else {
-                        location.reload();
-                    }
-                }, 1000);
+                    window.location.href = waUrl;
+                }, 1200);
             })
             .catch(err => {
                 alert("ஆர்டர் சேமிப்பதில் பிழை: " + err);
@@ -628,25 +669,6 @@
                 alert("❌ Invalid Credentials!");
             }
         }
-        <!-- Review Order Modal (இதை இங்கே சேர்க்க வேண்டும்) -->
-    <div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content p-3">
-                <h5 class="fw-bold text-danger" id="modalReviewTitle">📋 ஆர்டர் விவரங்கள் (Review)</h5>
-                <div id="reviewItemsList" class="my-2" style="max-height:250px; overflow-y:auto;"></div>
-                <div class="fw-bold text-end text-danger fs-5 mb-2">Total: <span id="reviewGrandTotal">₹ 0.00</span></div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-secondary w-50" data-bs-dismiss="modal" id="btnModalCancel">Cancel</button>
-                    <button class="btn btn-success w-50 fw-bold" id="btnModalSubmit" onclick="finalizeOrder()">Submit & Print PDF 🚀</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bootstrap JS மற்றும் உங்கள் JavaScript ஸ்கிரிப்ட்ஸ் இங்கே தொடரும் -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-       // உங்கள் ஜாவாஸ்கிரிப்ட் கோடுகள்...
     </script>
 </body>
 </html>
