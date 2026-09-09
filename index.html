@@ -60,7 +60,6 @@
     </div>
 
     <div id="customerStoreView">
-        <!-- Shop Header Banner (Auto Hidden in Step 2) -->
         <div class="header" id="mainShopHeader">
             <img id="hdr_shop_logo" class="shop-logo-img" alt="Logo">
             <h1 id="hdr_shop_name">CRACKER STORE</h1>
@@ -288,9 +287,7 @@
                         <th style="padding: 8px; border: 1px solid #8c1d1d; width: 90px; text-align: right;">Total (Rs)</th>
                     </tr>
                 </thead>
-                <tbody id="billItemsBody">
-                    <!-- PDF Table Content Injected Dynamically -->
-                </tbody>
+                <tbody id="billItemsBody"></tbody>
             </table>
 
             <div style="text-align: right; margin-top: 15px; padding-top: 10px; border-top: 2px dashed #cbd5e0;">
@@ -305,7 +302,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // 🚀 MASTER API URL HERE
         const MASTER_API_URL = "https://script.google.com/macros/s/AKfycby7LQ3ebuBeRAiDX66Z1ax6NBXqyOezHJJOTctbM3ayka1hFAMH_fcod7YpHfjZWYF1/exec";
 
         let shopConfig = null, rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], currentSessionType = "Online Customer";
@@ -507,7 +503,6 @@
             document.getElementById("grand-total").innerText = "₹ " + tot.toLocaleString('en-IN') + ".00";
         }
 
-        // 🟢 FIX: Hide Shop Header Banner in Step 2 to Increase Visibility
         function goToStep2() {
             var name = document.getElementById("cust_name").value.trim();
             var mobile = document.getElementById("cust_mobile").value.trim().replace(/[^0-9]/g, '');
@@ -517,13 +512,13 @@
 
             document.getElementById("step-1").style.display = "none";
             document.getElementById("step-2").style.display = "block";
-            document.getElementById("mainShopHeader").style.display = "none"; // Hides Large Shop Header Banner
+            document.getElementById("mainShopHeader").style.display = "none";
         }
 
         function goToStep1() {
             document.getElementById("step-1").style.display = "block";
             document.getElementById("step-2").style.display = "none";
-            document.getElementById("mainShopHeader").style.display = "block"; // Shows Header again when editing info
+            document.getElementById("mainShopHeader").style.display = "block";
         }
 
         function openReviewModal() {
@@ -573,15 +568,23 @@
             if(isInterested) {
                 var fn = document.getElementById("cust_name").value.trim();
                 var fm = document.getElementById("cust_mobile").value.trim();
-                var fc = document.getElementById("cust_district").value.trim();
+                var fc = document.getElementById("cust_district").value.trim() || "Local";
 
-                var msg = "*NEW FRANCHISE / WHOLESALE ENQUIRY*\nName: " + fn + "\nMobile: " + fm + "\nCity: " + fc;
-                window.open("https://api.whatsapp.com/send?phone=" + targetShopWhatsApp + "&text=" + encodeURIComponent(msg), "_blank");
+                var adminLeadMsg = "💥 *NEW FRANCHISE / WHOLESALE ENQUIRY* 💥\n" +
+                                   "----------------------------------------\n" +
+                                   "👤 *Name:* " + fn + "\n" +
+                                   "📞 *Mobile:* " + fm + "\n" +
+                                   "📍 *City:* " + fc + "\n" +
+                                   "----------------------------------------\n" +
+                                   "ℹ️ *Customer is interested in wholesale cracker business.*";
+
+                window.open("https://api.whatsapp.com/send?phone=" + targetShopWhatsApp + "&text=" + encodeURIComponent(adminLeadMsg), "_blank");
             }
 
             processFinalOrderSave(isInterested);
         }
 
+        // 🟢 FIX: Dual WhatsApp Routing (Online Order -> Shop | POS Order -> Customer)
         function processFinalOrderSave(hasFranchiseLead) {
             var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
             var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
@@ -589,10 +592,21 @@
             var rawMobile = document.getElementById("cust_mobile").value.replace(/[^0-9]/g, '');
             var custMobileFormatted = rawMobile.length === 10 ? "91" + rawMobile : rawMobile;
             var address = document.getElementById("cust_address").value.trim() || "N/A";
+            var district = document.getElementById("cust_district").value.trim() || "Sivakasi";
 
             var itemsObj = [];
-            var waMessage = "*SRI DHANUSH CRACKERS - ESTIMATE BILL*\nOrder ID: " + orderId + "\nCustomer: " + name + "\n\n*ITEMS:*\n";
             var pdfTableRows = "", sno = 1;
+
+            var waHeaderTitle = currentSessionType === "Online Customer" ? "NEW ONLINE ORDER RECEIVED" : "STORE ESTIMATE BILL";
+            var waMessage = "💥 *" + waHeaderTitle + "* 💥\n" +
+                            "----------------------------------------\n" +
+                            "🆔 *Order ID:* " + orderId + "\n" +
+                            "👤 *Customer Name:* " + name + "\n" +
+                            "📞 *Mobile:* " + rawMobile + "\n" +
+                            "📍 *Location:* " + district + "\n" +
+                            "----------------------------------------\n" +
+                            "📦 *ORDERED ITEMS LIST:*\n" +
+                            "----------------------------------------\n";
 
             rawProducts.forEach(p => {
                 var q = selectedQty[p.id] || 0;
@@ -602,7 +616,9 @@
                     var tot = q * rateVal;
                     
                     itemsObj.push({ id: p.id, name: itemName, qty: q, rate: rateVal, total: tot });
-                    waMessage += sno + ". " + itemName + " x " + q + " = ₹" + tot + "\n";
+                    
+                    waMessage += sno + ". *" + itemName + "*\n" +
+                                 "   ▶ Qty: " + q + " " + (p.per || 'pkt') + "  |  Rate: ₹" + rateVal + "  |  Total: ₹" + tot.toFixed(2) + "\n\n";
                     
                     pdfTableRows += '<tr style="border-bottom: 1px solid #e2e8f0;">' +
                         '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + sno + '</td>' +
@@ -615,7 +631,11 @@
                 }
             });
 
-            waMessage += "\n*ESTIMATE TOTAL: ₹" + total.toLocaleString('en-IN') + "*\n\n*** Thank you for your order! Wish you a happy Diwali! ***";
+            waMessage += "----------------------------------------\n" +
+                         "💰 *ESTIMATE TOTAL: ₹" + total.toLocaleString('en-IN') + ".00*\n" +
+                         "----------------------------------------\n\n" +
+                         "✨ *Thank you for ordering with us!*\n" +
+                         "🎆 *Wish you a Happy & Safe Diwali!* 💥";
 
             document.getElementById("billOrderId").innerText = orderId;
             document.getElementById("billDate").innerText = new Date().toLocaleDateString();
@@ -626,6 +646,7 @@
             document.getElementById("billItemsBody").innerHTML = pdfTableRows;
             document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN') + ".00";
 
+            // Trigger PDF Download
             setTimeout(function() {
                 var element = document.getElementById('printableBill');
                 var opt = {
@@ -641,7 +662,7 @@
             var payload = {
                 shopId: shopConfig.shopId, shopName: shopConfig.shopName,
                 orderId: orderId, name: name, mobile: rawMobile,
-                address: address, district: document.getElementById("cust_district").value.trim(),
+                address: address, district: district,
                 total: total, orderType: currentSessionType, itemsArray: itemsObj
             };
 
@@ -649,9 +670,14 @@
                 method: "POST", body: JSON.stringify({ action: "saveOrder", clientSheetId: shopConfig.clientSheetId, payload: payload })
             })
             .then(r => r.text()).then(() => {
-                var waUrl = "https://api.whatsapp.com/send?phone=" + custMobileFormatted + "&text=" + encodeURIComponent(waMessage);
+                // 🔀 DUAL WHATSAPP TARGET LOGIC:
+                // 1. Online Customer -> Send order to SHOP WHATSAPP
+                // 2. POS Counter Billing -> Send bill to CUSTOMER WHATSAPP
+                var sendTargetPhone = (currentSessionType === "Online Customer") ? targetShopWhatsApp : custMobileFormatted;
+                var waUrl = "https://api.whatsapp.com/send?phone=" + sendTargetPhone + "&text=" + encodeURIComponent(waMessage);
+
                 setTimeout(function() {
-                    if (confirm("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது! PDF Bill டவுன்லோட் செய்யப்பட்டது.\n\nWhatsApp-ல் பில் அனுப்ப 'OK' அழுத்தவும்.")) {
+                    if (confirm("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது! PDF Bill டவுன்லோட் செய்யப்பட்டது.\n\nWhatsApp-ல் மெசேஜ் அனுப்ப 'OK' அழுத்தவும்.")) {
                         window.location.href = waUrl;
                     } else {
                         location.reload();
@@ -686,6 +712,7 @@
             document.getElementById("adminPanelView").style.display = "none";
             document.getElementById("step-1").style.display = "block";
             document.getElementById("step-2").style.display = "none";
+            document.getElementById("mainShopHeader").style.display = "block";
         }
 
         function openLoginModal() { new bootstrap.Modal(document.getElementById("loginModal")).show(); }
