@@ -16,12 +16,17 @@ export default async function handler(req, res) {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // 1. Confirm Payment
+  // 1. Confirm Payment Action with Mode & Ref
   if (req.method === 'POST' && req.body && req.body.action === 'confirm_payment') {
-    const { order_id } = req.body;
+    const { order_id, payment_mode, transaction_ref } = req.body;
     const { data, error } = await supabase
       .from('orders')
-      .update({ payment_status: 'YES', approval_status: 'Payment Approved' })
+      .update({ 
+        payment_status: 'YES', 
+        approval_status: 'Payment Approved',
+        payment_mode: payment_mode || 'Cash',
+        transaction_ref: transaction_ref || 'N/A'
+      })
       .eq('id', order_id);
 
     if (error) return res.status(500).json({ error: error.message });
@@ -37,7 +42,6 @@ export default async function handler(req, res) {
 
       let allocatedStaff = null;
 
-      // Telecaller Auto Allocation for Online Customer
       if (orderType === 'Online Customer') {
         const { data: staffList } = await supabase.from('staff').select('username, role');
         const telecallers = (staffList || []).filter(s => s.role && s.role.trim().toUpperCase() === 'TELECALLER');
@@ -63,7 +67,7 @@ export default async function handler(req, res) {
 
       const itemsArr = Array.isArray(body.items) ? body.items : JSON.parse(body.items || "[]");
 
-      // 💥 AUTO DEDUCT STOCK LOGIC IN SUPABASE
+      // Auto Deduct Stock
       for (let item of itemsArr) {
         if (item.id && item.qty > 0) {
           const { data: prod } = await supabase.from('products').select('stock_qty').eq('id', item.id).single();
