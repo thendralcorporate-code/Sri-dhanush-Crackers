@@ -1263,40 +1263,128 @@
             reader.readAsText(file);
         }
 
-        // --- ANALYTICS CHARTS ---
+        // Global Chart Instance Variables to prevent duplication
+        let staffPerfChartInst = null, paymentModeChartInst = null, topProductsChartInst = null, bizInterestChartInst = null;
+
+        // 📊 Complete Executive Analytics & Charts Engine
         function renderAnalyticsCharts() {
-            var ctx1 = document.getElementById('salesChart').getContext('2d');
-            var ctx2 = document.getElementById('orderTypeChart').getContext('2d');
+            if (!adminOrdersList || adminOrdersList.length === 0) return;
 
-            var onlineCount = adminOrdersList.filter(o => (o.order_type || '').includes('Online')).length;
-            var posCount = adminOrdersList.filter(o => (o.order_type || '').includes('Walk-in')).length;
+            // 1. Calculate Summary Cards Totals
+            let onlineOrders = adminOrdersList.filter(o => String(o.order_type || '').includes('Online'));
+            let posOrders = adminOrdersList.filter(o => String(o.order_type || '').includes('Walk-in'));
+            let verifiedOrders = adminOrdersList.filter(o => String(o.payment_status || '').toUpperCase() === 'YES' || String(o.approval_status || '').toUpperCase() === 'APPROVED');
+            let verifiedRevenue = verifiedOrders.reduce((acc, o) => acc + (parseFloat(o.total_amount || o.total) || 0), 0);
+            let bizLeadsCount = adminOrdersList.filter(o => String(o.business_interest || '').toUpperCase() === 'YES').length;
 
-            if(orderTypeChartInst) orderTypeChartInst.destroy();
-            orderTypeChartInst = new Chart(ctx2, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Online Orders', 'POS Walk-in Orders'],
-                    datasets: [{
-                        data: [onlineCount, posCount],
-                        backgroundColor: ['#ef4444', '#0284c7']
-                    }]
-                }
+            document.getElementById("analyticsOnlineCount").innerText = onlineOrders.length;
+            document.getElementById("analyticsPosCount").innerText = posOrders.length;
+            document.getElementById("analyticsVerifiedRevenue").innerText = "₹" + verifiedRevenue.toLocaleString('en-IN');
+            document.getElementById("analyticsBizLeads").innerText = bizLeadsCount;
+
+            // 2. Staff Performance Calculation (Orders & Revenue per Telecaller)
+            let staffData = {};
+            adminOrdersList.forEach(o => {
+                let st = String(o.allocated_staff || 'Unassigned').trim();
+                let rev = parseFloat(o.total_amount || o.total) || 0;
+                if (!staffData[st]) staffData[st] = { count: 0, revenue: 0 };
+                staffData[st].count += 1;
+                staffData[st].revenue += rev;
             });
 
-            if(salesChartInst) salesChartInst.destroy();
-            salesChartInst = new Chart(ctx1, {
+            let staffLabels = Object.keys(staffData);
+            let staffRevenues = staffLabels.map(s => staffData[s].revenue);
+
+            let ctxStaff = document.getElementById('staffPerfChart').getContext('2d');
+            if (staffPerfChartInst) staffPerfChartInst.destroy();
+            staffPerfChartInst = new Chart(ctxStaff, {
                 type: 'bar',
                 data: {
-                    labels: ['Total Orders Received', 'Verified Payments'],
+                    labels: staffLabels,
                     datasets: [{
-                        label: 'Orders Summary',
-                        data: [adminOrdersList.length, adminOrdersList.filter(o => String(o.payment_status || '').toUpperCase() === 'YES').length],
-                        backgroundColor: ['#f59e0b', '#22c55e']
+                        label: 'Total Revenue (₹)',
+                        data: staffRevenues,
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 6
                     }]
-                }
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            // 3. Payment Mode Revenue Breakup
+            let payModes = { 'GPay': 0, 'PhonePe': 0, 'Paytm': 0, 'Bank Transfer': 0, 'Cash': 0 };
+            adminOrdersList.forEach(o => {
+                let pm = String(o.payment_mode || 'GPay').trim();
+                let rev = parseFloat(o.total_amount || o.total) || 0;
+                if (payModes[pm] !== undefined) payModes[pm] += rev;
+                else payModes[pm] = rev;
+            });
+
+            let ctxPay = document.getElementById('paymentModeChart').getContext('2d');
+            if (paymentModeChartInst) paymentModeChartInst.destroy();
+            paymentModeChartInst = new Chart(ctxPay, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(payModes),
+                    datasets: [{
+                        data: Object.values(payModes),
+                        backgroundColor: ['#10b981', '#06b6d4', '#f59e0b', '#8b5cf6', '#ef4444']
+                    }]
+                },
+                options: { responsive: true }
+            });
+
+            // 4. Top Selling Cracker Items (Extracted from Orders Json Items)
+            let itemQuantities = {};
+            adminOrdersList.forEach(o => {
+                let items = [];
+                try { items = typeof o.items === 'string' ? JSON.parse(o.items) : (o.items || []); } catch(e){}
+                items.forEach(it => {
+                    let name = String(it.name || it.eng || 'Cracker Item').trim();
+                    let q = parseInt(it.qty) || 0;
+                    itemQuantities[name] = (itemQuantities[name] || 0) + q;
+                });
+            });
+
+            let sortedProducts = Object.keys(itemQuantities)
+                .map(k => ({ name: k, qty: itemQuantities[k] }))
+                .sort((a, b) => b.qty - a.qty)
+                .slice(0, 5); // Top 5 Items
+
+            let ctxProd = document.getElementById('topProductsChart').getContext('2d');
+            if (topProductsChartInst) topProductsChartInst.destroy();
+            topProductsChartInst = new Chart(ctxProd, {
+                type: 'bar',
+                data: {
+                    labels: sortedProducts.map(p => p.name),
+                    datasets: [{
+                        label: 'Total Quantity Sold',
+                        data: sortedProducts.map(p => p.qty),
+                        backgroundColor: '#ef4444',
+                        borderRadius: 6
+                    }]
+                },
+                options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            // 5. Business Interest Split (YES vs NO)
+            let bizYes = adminOrdersList.filter(o => String(o.business_interest || '').toUpperCase() === 'YES').length;
+            let bizNo = adminOrdersList.length - bizYes;
+
+            let ctxBiz = document.getElementById('bizInterestChart').getContext('2d');
+            if (bizInterestChartInst) bizInterestChartInst.destroy();
+            bizInterestChartInst = new Chart(ctxBiz, {
+                type: 'pie',
+                data: {
+                    labels: ['Interested (YES 👍)', 'Not Interested (NO 👎)'],
+                    datasets: [{
+                        data: [bizYes, bizNo],
+                        backgroundColor: ['#f59e0b', '#cbd5e1']
+                    }]
+                },
+                options: { responsive: true }
             });
         }
-
         function openAdminSettingsTool() {
             if (userRole !== "ADMIN") {
                 alert("❌ Admin-க்கு மட்டுமே Settings மாற்ற அனுமதி உண்டு!");
