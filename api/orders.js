@@ -16,24 +16,32 @@ export default async function handler(req, res) {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // 1. Confirm Payment Action with Mode & Ref
+  // 💥 FIX: Confirm Payment with Exact Order ID Filter & Direct Supabase REST Logic
   if (req.method === 'POST' && req.body && req.body.action === 'confirm_payment') {
-    const { order_id, payment_mode, transaction_ref } = req.body;
-    const { data, error } = await supabase
-      .from('orders')
-      .update({ 
-        payment_status: 'YES', 
-        approval_status: 'Payment Approved',
-        payment_mode: payment_mode || 'Cash',
-        transaction_ref: transaction_ref || 'N/A'
-      })
-      .eq('id', order_id);
+    try {
+      const orderIdStr = String(req.body.order_id || '').trim();
+      const payMode = req.body.payment_mode || 'GPay';
+      const transRef = req.body.transaction_ref || 'Verified';
 
-    if (error) return res.status(500).json({ error: error.message });
-    return res.status(200).json({ success: true, data });
+      // Update both payment_status and approval_status
+      const { data, error } = await supabase
+        .from('orders')
+        .update({ 
+          payment_status: 'YES', 
+          approval_status: 'Approved',
+          payment_mode: payMode,
+          transaction_ref: transRef
+        })
+        .or(`id.eq.${orderIdStr},order_id.eq.${orderIdStr}`);
+
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ success: true, message: "Payment Verified Successfully!", data });
+    } catch(err) {
+      return res.status(500).json({ error: err.message });
+    }
   }
 
-  // 2. Save Order & Auto Deduct Stock
+  // Save Order
   if (req.method === 'POST') {
     try {
       const body = req.body;
@@ -109,7 +117,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 3. GET Orders
+  // GET Orders
   else if (req.method === 'GET') {
     try {
       const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
