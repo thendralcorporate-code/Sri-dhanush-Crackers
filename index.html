@@ -50,6 +50,7 @@
 
         .out-of-stock-card { opacity: 0.6; background: #fff5f5; }
         .out-of-stock-badge { background: #e53e3e; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        .in-stock-badge { background: #22c55e; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
 
         #hiddenBillWrap { position: fixed; top: 0; left: -9999px; width: 750px; background: white; z-index: -1; }
         .admin-tab-btn { font-weight: bold; font-size: 13px; border-radius: 6px; }
@@ -151,8 +152,8 @@
                 <div id="reviewItemsList" class="my-2" style="max-height:250px; overflow-y:auto;"></div>
                 <div class="fw-bold text-end text-danger fs-5 mb-2">Total: <span id="reviewGrandTotal">₹ 0.00</span></div>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-secondary w-50" data-bs-dismiss="modal" id="btnModalCancel">Cancel</button>
-                    <button class="btn btn-success w-50 fw-bold" id="btnModalSubmit" onclick="triggerBusinessInterestModal()">Submit & Print PDF 🚀</button>
+                    <button class="btn btn-secondary w-50" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-success w-50 fw-bold" onclick="triggerBusinessInterestModal()">Submit & Print PDF 🚀</button>
                 </div>
             </div>
         </div>
@@ -211,10 +212,10 @@
                 <textarea id="cfg_shop_address" class="form-control form-control-sm mb-2" rows="2"></textarea>
                 <label class="form-label small fw-bold">தொடர்பு எண்கள் (Contact Numbers):</label>
                 <input type="text" id="cfg_shop_contacts" class="form-control form-control-sm mb-2">
-                <label class="form-label small fw-bold">வாட்ஸ்அப் எண் (WhatsApp No with Country Code):</label>
-                <input type="text" id="cfg_shop_whatsapp" class="form-control form-control-sm mb-2" placeholder="e.g. 919080329266">
-                <label class="form-label small fw-bold">லோகோ படம் URL (Logo Image URL):</label>
-                <input type="text" id="cfg_shop_logo" class="form-control form-control-sm mb-3" placeholder="https://example.com/logo.png">
+                <label class="form-label small fw-bold">வாட்ஸ்அப் எண் (WhatsApp No):</label>
+                <input type="text" id="cfg_shop_whatsapp" class="form-control form-control-sm mb-2">
+                <label class="form-label small fw-bold">லோகோ படம் URL (Logo URL):</label>
+                <input type="text" id="cfg_shop_logo" class="form-control form-control-sm mb-3">
                 <div class="d-flex gap-2">
                     <button class="btn btn-secondary btn-sm w-50" data-bs-dismiss="modal">Cancel</button>
                     <button class="btn btn-success btn-sm w-50 fw-bold" onclick="saveShopSettings()">Save Changes 💾</button>
@@ -223,53 +224,16 @@
         </div>
     </div>
 
-    <!-- ➕ Single Product Add/Edit Modal -->
-    <div class="modal fade" id="productFormModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content p-3 text-dark">
-                <h5 class="fw-bold text-danger border-bottom pb-2 mb-3" id="prodModalTitle">➕ Add / Edit Product</h5>
-                <input type="hidden" id="edit_prod_id">
-                <div class="mb-2">
-                    <label class="form-label small fw-bold">Category:</label>
-                    <input type="text" id="edit_prod_cat" class="form-control form-control-sm" placeholder="e.g. Ground Chakkars">
-                </div>
-                <div class="mb-2">
-                    <label class="form-label small fw-bold">English Name *:</label>
-                    <input type="text" id="edit_prod_eng" class="form-control form-control-sm" placeholder="e.g. Deluxe Chakkar">
-                </div>
-                <div class="mb-2">
-                    <label class="form-label small fw-bold">Tamil Name:</label>
-                    <input type="text" id="edit_prod_tam" class="form-control form-control-sm" placeholder="e.g. டிலக்ஸ் சக்கரம்">
-                </div>
-                <div class="row g-2 mb-2">
-                    <div class="col-4">
-                        <label class="form-label small fw-bold">Unit:</label>
-                        <input type="text" id="edit_prod_per" class="form-control form-control-sm" placeholder="pkt/box">
-                    </div>
-                    <div class="col-4">
-                        <label class="form-label small fw-bold">Rate (₹) *:</label>
-                        <input type="number" id="edit_prod_rate" class="form-control form-control-sm" placeholder="100">
-                    </div>
-                    <div class="col-4">
-                        <label class="form-label small fw-bold">Stock Qty *:</label>
-                        <input type="number" id="edit_prod_stock" class="form-control form-control-sm" placeholder="50">
-                    </div>
-                </div>
-                <div class="d-flex gap-2 mt-3">
-                    <button class="btn btn-secondary btn-sm w-50" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-success btn-sm w-50 fw-bold" onclick="saveSingleProductManual()">Save Product 💾</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Admin Panel View -->
     <div id="adminPanelView" class="p-3" style="display:none; background: #f8fafc; min-height: 100vh;">
-        <!-- Admin Header -->
         <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded-3 shadow-sm text-white" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
             <div class="d-flex align-items-center gap-2">
                 <span id="currentUserBadge" class="badge bg-warning text-dark fw-bold px-3 py-2 fs-6">Role: ADMIN</span>
                 <span id="currentUsernameBadge" class="text-white fw-bold">User: Admin</span>
+                <!-- Low Stock Badge Alert in Admin Header -->
+                <span id="lowStockAlertBadge" class="badge bg-danger text-white fw-bold px-2 py-1 fs-6" style="display:none; cursor:pointer;" onclick="switchAdminTab('stock'); filterLowStockOnly();">
+                    ⚠️ Low Stock (<span id="lowStockCount">0</span> Items &lt; 100)
+                </span>
             </div>
             <div>
                 <button class="btn btn-sm btn-info text-white fw-bold me-2" id="btnAdminSettingsTool" onclick="openAdminSettingsTool()">⚙️ Shop Settings</button>
@@ -278,15 +242,7 @@
             </div>
         </div>
 
-        <!-- Admin Navigation Tabs -->
-        <div class="d-flex gap-2 mb-3 bg-white p-2 rounded shadow-sm overflow-auto">
-            <button class="btn btn-danger admin-tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fas fa-shopping-bag me-1"></i>Orders List</button>
-            <button class="btn btn-outline-danger admin-tab-btn" id="tabBtnStock" onclick="switchAdminTab('stock')"><i class="fas fa-boxes me-1"></i>Stock & Price Edit</button>
-            <button class="btn btn-outline-danger admin-tab-btn" id="tabBtnAnalytics" onclick="switchAdminTab('analytics')"><i class="fas fa-chart-line me-1"></i>Analytics & Reports</button>
-        </div>
-
-        <!-- TAB 1: ORDERS SECTION -->
-        <div id="adminTabOrders">
+        <div id="adminOrdersSection">
             <div class="row g-3 mb-3" id="adminSummaryCards">
                 <div class="col-6 col-md-3">
                     <div class="card border-0 shadow-sm p-3 text-center" style="background: #ffffff; border-left: 4px solid #3b82f6 !important;">
@@ -314,67 +270,6 @@
 
             <h6 class="fw-bold text-danger border-bottom pb-2 mb-2"><i class="fas fa-clock me-1"></i>🔴 Received Orders List</h6>
             <div id="pendingOrdersContainer" class="mb-4"></div>
-        </div>
-
-        <!-- TAB 2: STOCK & PRICE MANAGEMENT SECTION -->
-        <div id="adminTabStock" style="display:none;">
-            <div class="card border-0 shadow-sm p-3 mb-3">
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                    <h6 class="fw-bold text-danger mb-0"><i class="fas fa-boxes me-1"></i>Stock & Price Inventory Manager</h6>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <button class="btn btn-sm btn-success fw-bold" onclick="openSingleProdModal()"><i class="fas fa-plus-circle me-1"></i>+ Add Product</button>
-                        <button class="btn btn-sm btn-outline-primary fw-bold" onclick="downloadCSVTemplate()"><i class="fas fa-file-csv me-1"></i>Download Template</button>
-                        <button class="btn btn-sm btn-outline-success fw-bold" onclick="exportExistingProductsCSV()"><i class="fas fa-download me-1"></i>Export Existing CSV</button>
-                        <label class="btn btn-sm btn-warning fw-bold mb-0 text-dark">
-                            <i class="fas fa-upload me-1"></i>Bulk Upload CSV
-                            <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleBulkCSVUpload(event)">
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card border-0 shadow-sm p-2 mb-3">
-                <input type="text" id="stockSearchInput" class="form-control form-control-sm" placeholder="🔍 Search Products by Name or Category..." onkeyup="renderAdminStockTable()">
-            </div>
-
-            <div class="card border-0 shadow-sm p-3">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle small mb-0">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>#</th>
-                                <th>Category</th>
-                                <th>Item Name (Eng)</th>
-                                <th>Tamil Name</th>
-                                <th>Unit</th>
-                                <th style="width: 110px;">Rate (₹)</th>
-                                <th style="width: 100px;">Stock Qty</th>
-                                <th>Status</th>
-                                <th class="text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminStockTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 3: ANALYTICS & REPORTS SECTION -->
-        <div id="adminTabAnalytics" style="display:none;">
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <div class="card border-0 shadow-sm p-3">
-                        <h6 class="fw-bold text-dark border-bottom pb-2">📊 Sales Revenue Overview</h6>
-                        <canvas id="salesChart" height="200"></canvas>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card border-0 shadow-sm p-3">
-                        <h6 class="fw-bold text-dark border-bottom pb-2">📦 Order Type Split (Online vs POS)</h6>
-                        <canvas id="orderTypeChart" height="200"></canvas>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -455,7 +350,6 @@
     <script>
         const API_BASE = "/api";
         let rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", loggedInUsername = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], currentSessionType = "Online Customer", userBusinessInterest = "NO";
-        let salesChartInst = null, orderTypeChartInst = null;
 
         if (!localStorage.getItem("POS_PASSKEY")) {
             localStorage.setItem("POS_PASSKEY", "9999");
@@ -465,7 +359,7 @@
             loadShopSettingsAndProducts();
         };
 
-        // Load Settings & Products via Vercel Backend API
+        // Load Settings & Products
         function loadShopSettingsAndProducts() {
             fetch(`${API_BASE}/settings`)
             .then(r => r.json())
@@ -501,7 +395,7 @@
             })
             .catch(err => console.error("Error loading settings:", err));
 
-            // Products Fetch Logic
+            // Products Fetch
             fetch(`${API_BASE}/products`)
             .then(r => r.json())
             .then(data => {
@@ -526,6 +420,7 @@
                 setupPriceSliderRange();
                 populateCategoryDropdown();
                 renderProducts();
+                checkLowStockAlerts();
             })
             .catch(err => {
                 console.error("Error loading products:", err);
@@ -533,284 +428,78 @@
             });
         }
 
-        function switchAdminTab(tab) {
-            document.querySelectorAll('.admin-tab-btn').forEach(b => {
-                b.classList.remove('btn-danger', 'active');
-                b.classList.add('btn-outline-danger');
-            });
+        // Low Stock Alert Checker (< 100 Qty)
+        function checkLowStockAlerts() {
+            var lowStockItems = rawProducts.filter(p => p.stock <= 100);
+            var badge = document.getElementById("lowStockAlertBadge");
+            var countSpan = document.getElementById("lowStockCount");
 
-            document.getElementById('adminTabOrders').style.display = 'none';
-            document.getElementById('adminTabStock').style.display = 'none';
-            document.getElementById('adminTabAnalytics').style.display = 'none';
-
-            if(tab === 'orders') {
-                document.getElementById('tabBtnOrders').classList.add('btn-danger', 'active');
-                document.getElementById('adminTabOrders').style.display = 'block';
-            } else if(tab === 'stock') {
-                document.getElementById('tabBtnStock').classList.add('btn-danger', 'active');
-                document.getElementById('adminTabStock').style.display = 'block';
-                renderAdminStockTable();
-            } else if(tab === 'analytics') {
-                document.getElementById('tabBtnAnalytics').classList.add('btn-danger', 'active');
-                document.getElementById('adminTabAnalytics').style.display = 'block';
-                renderAnalyticsCharts();
+            if (lowStockItems.length > 0) {
+                if(countSpan) countSpan.innerText = lowStockItems.length;
+                if(badge) badge.style.display = "inline-block";
+            } else {
+                if(badge) badge.style.display = "none";
             }
         }
 
-        // --- STOCK & PRICE MANAGEMENT FUNCTIONS ---
-        function renderAdminStockTable() {
-            var searchTxt = (document.getElementById("stockSearchInput").value || "").trim().toLowerCase();
-            var tbody = document.getElementById("adminStockTableBody");
-            var html = "";
+        // 🎯 FIX 1: CUSTOMER VIEW STOCK DISPLAY (Shows 'IN STOCK' or 'OUT OF STOCK' Badge Only - Stock Qty Numbers Hidden!)
+        function renderProducts() {
+            var container = document.getElementById("items-container");
+            var searchTxt = (document.getElementById("searchInput").value || "").toLowerCase();
+            var selectedCat = document.getElementById("catSelect").value;
+            var sortVal = document.getElementById("sortSelect").value;
+            var maxPriceLimit = parseFloat(document.getElementById("priceRange").value) || 999999;
 
-            var filtered = rawProducts.filter(p => {
-                if(!searchTxt) return true;
-                return p.eng.toLowerCase().includes(searchTxt) || p.tam.includes(searchTxt) || p.category.toLowerCase().includes(searchTxt);
+            var filtered = rawProducts.filter(item => {
+                if(selectedCat !== "ALL" && item.category !== selectedCat) return false;
+                if(maxPriceLimit > 0 && item.rate > maxPriceLimit) return false;
+                var engName = (item.eng || "").toString().toLowerCase();
+                var tamName = (item.tam || "").toString();
+                return engName.includes(searchTxt) || tamName.includes(searchTxt);
             });
 
-            filtered.forEach((p, idx) => {
-                html += `<tr>
-                    <td>${idx + 1}</td>
-                    <td><span class="badge bg-light text-dark border">${p.category}</span></td>
-                    <td><b>${p.eng}</b></td>
-                    <td>${p.tam || '-'}</td>
-                    <td>${p.per}</td>
-                    <td><input type="number" id="stk_rate_${p.id}" class="form-control form-control-sm text-end" value="${p.rate}"></td>
-                    <td><input type="number" id="stk_qty_${p.id}" class="form-control form-control-sm text-center" value="${p.stock}"></td>
-                    <td>
-                        <span class="badge ${p.isOutOfStock ? 'bg-danger' : 'bg-success'}">
-                            ${p.isOutOfStock ? 'OUT OF STOCK' : 'IN STOCK'}
-                        </span>
-                    </td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-primary py-0 me-1" onclick="saveSingleStockItem(${p.id})">💾 Save</button>
-                        <button class="btn btn-sm ${p.isOutOfStock ? 'btn-outline-success' : 'btn-outline-danger'} py-0" onclick="toggleStockStatus(${p.id})">
-                            ${p.isOutOfStock ? 'Mark In Stock' : 'Mark Out'}
-                        </button>
-                    </td>
-                </tr>`;
+            if(sortVal === "LOW_HIGH") filtered.sort((a, b) => a.rate - b.rate);
+            else if(sortVal === "HIGH_LOW") filtered.sort((a, b) => b.rate - a.rate);
+
+            var html = "", currCat = "";
+            filtered.forEach(item => {
+                if(sortVal === "DEFAULT" && item.category !== currCat) {
+                    currCat = item.category;
+                    html += '<div class="cat-title">' + currCat + '</div>';
+                }
+                
+                var pNameEng = item.eng || "Item";
+                var pNameTam = item.tam || "";
+
+                var titleDisplay = pNameEng;
+                if(currentLang === "ta") {
+                    titleDisplay = pNameTam || pNameEng;
+                } else if(currentLang === "en") {
+                    titleDisplay = pNameEng;
+                } else if(currentLang === "both") {
+                    titleDisplay = pNameEng + (pNameTam ? ' <small class="text-muted">(' + pNameTam + ')</small>' : '');
+                }
+
+                var q = selectedQty[item.id] || 0;
+                var rowTot = q * item.rate;
+                var isOutOfStock = (item.isOutOfStock === true);
+
+                html += '<div class="item-card ' + (isOutOfStock ? 'out-of-stock-card' : '') + '">' +
+                            '<div>' +
+                                '<b>' + titleDisplay + '</b> ' + 
+                                (isOutOfStock ? '<span class="out-of-stock-badge ms-1">OUT OF STOCK</span>' : '<span class="in-stock-badge ms-1">IN STOCK</span>') + '<br>' +
+                                '<small class="text-muted">₹ ' + item.rate + ' / ' + (item.per || 'pkt') + '</small>' +
+                            '</div>' +
+                            '<div class="d-flex align-items-center gap-2">' +
+                                '<input type="number" min="0" id="input_qty_' + item.id + '" class="qty-input" value="' + (q || '') + '" ' + (isOutOfStock ? 'disabled placeholder="0"' : 'oninput="updateQtyOnly(' + item.id + ', this.value)"') + '>' +
+                                '<span class="row-total" id="tot_' + item.id + '">₹ ' + rowTot + '</span>' +
+                            '</div>' +
+                        '</div>';
             });
 
-            tbody.innerHTML = html || "<tr><td colspan='9' class='text-center text-muted'>பொருட்கள் எதுவும் இல்லை!</td></tr>";
+            container.innerHTML = html || "<div class='p-4 text-center text-muted'>பொருட்கள் எதுவும் கிடைக்கவில்லை!</div>";
         }
 
-        function saveSingleStockItem(id) {
-            var item = rawProducts.find(p => p.id === id);
-            if(!item) return;
-
-            var newRate = parseFloat(document.getElementById("stk_rate_" + id).value) || 0;
-            var newQty = parseInt(document.getElementById("stk_qty_" + id).value) || 0;
-
-            var payload = {
-                action: 'save_single',
-                product: {
-                    id: id,
-                    category: item.category,
-                    eng_name: item.eng,
-                    tam_name: item.tam,
-                    per_unit: item.per,
-                    rate: newRate,
-                    stock_qty: newQty,
-                    status: newQty > 0 ? 'In Stock' : 'Out of Stock'
-                }
-            };
-
-            fetch(`${API_BASE}/products`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(r => r.json())
-            .then(res => {
-                alert("✅ Product Updated Successfully!");
-                loadShopSettingsAndProducts();
-            })
-            .catch(err => alert("❌ Error updating product: " + err));
-        }
-
-        function toggleStockStatus(id) {
-            var item = rawProducts.find(p => p.id === id);
-            if(!item) return;
-
-            var newStatus = item.isOutOfStock ? 'In Stock' : 'Out of Stock';
-            var newQty = item.isOutOfStock ? (item.stock > 0 ? item.stock : 50) : 0;
-
-            var payload = {
-                action: 'save_single',
-                product: {
-                    id: id,
-                    category: item.category,
-                    eng_name: item.eng,
-                    tam_name: item.tam,
-                    per_unit: item.per,
-                    rate: item.rate,
-                    stock_qty: newQty,
-                    status: newStatus
-                }
-            };
-
-            fetch(`${API_BASE}/products`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(r => r.json())
-            .then(() => {
-                loadShopSettingsAndProducts();
-            });
-        }
-
-        function openSingleProdModal() {
-            document.getElementById("edit_prod_id").value = "";
-            document.getElementById("edit_prod_cat").value = "General";
-            document.getElementById("edit_prod_eng").value = "";
-            document.getElementById("edit_prod_tam").value = "";
-            document.getElementById("edit_prod_per").value = "pkt";
-            document.getElementById("edit_prod_rate").value = "";
-            document.getElementById("edit_prod_stock").value = "100";
-            
-            new bootstrap.Modal(document.getElementById("productFormModal")).show();
-        }
-
-        function saveSingleProductManual() {
-            var eng = document.getElementById("edit_prod_eng").value.trim();
-            var rate = parseFloat(document.getElementById("edit_prod_rate").value) || 0;
-            if(!eng || rate <= 0) { alert("⚠️ Product Name and valid Rate are required!"); return; }
-
-            var payload = {
-                action: 'save_single',
-                product: {
-                    category: document.getElementById("edit_prod_cat").value.trim() || 'General',
-                    eng_name: eng,
-                    tam_name: document.getElementById("edit_prod_tam").value.trim(),
-                    per_unit: document.getElementById("edit_prod_per").value.trim() || 'pkt',
-                    rate: rate,
-                    stock_qty: parseInt(document.getElementById("edit_prod_stock").value) || 0
-                }
-            };
-
-            fetch(`${API_BASE}/products`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(r => r.json())
-            .then(() => {
-                alert("✅ New Product Added!");
-                bootstrap.Modal.getInstance(document.getElementById("productFormModal")).hide();
-                loadShopSettingsAndProducts();
-            });
-        }
-
-        function downloadCSVTemplate() {
-            var csvContent = "data:text/csv;charset=utf-8,category,eng_name,tam_name,per_unit,rate,stock_qty\n" +
-                             "Ground Chakkars,Deluxe Chakkar,டிலக்ஸ் சக்கரம்,pkt,120,50\n" +
-                             "Flower Pots,Big Flower Pot,பூச்சட்டி,box,250,100";
-            var encodedUri = encodeURI(csvContent);
-            var link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "Cracker_Products_Sample_Template.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        function exportExistingProductsCSV() {
-            if(!rawProducts || rawProducts.length === 0) { alert("⚠️ No products to export!"); return; }
-            var csv = "category,eng_name,tam_name,per_unit,rate,stock_qty\n";
-            rawProducts.forEach(p => {
-                csv += `"${p.category}","${p.eng}","${p.tam}","${p.per}",${p.rate},${p.stock}\n`;
-            });
-            var encodedUri = encodeURI("data:text/csv;charset=utf-8," + csv);
-            var link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "Sri_Dhanush_Crackers_Products_Backup.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        function handleBulkCSVUpload(evt) {
-            var file = evt.target.files[0];
-            if(!file) return;
-
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var text = e.target.result;
-                var lines = text.split("\n");
-                var productsArr = [];
-
-                for(var i = 1; i < lines.length; i++) {
-                    var line = lines[i].trim();
-                    if(!line) continue;
-                    var cols = line.split(",").map(c => c.replace(/^"|"$/g, '').trim());
-                    if(cols.length >= 5) {
-                        productsArr.push({
-                            category: cols[0] || 'General',
-                            eng_name: cols[1],
-                            tam_name: cols[2] || '',
-                            per_unit: cols[3] || 'pkt',
-                            rate: parseFloat(cols[4]) || 0,
-                            stock_qty: parseInt(cols[5]) || 0
-                        });
-                    }
-                }
-
-                if(productsArr.length > 0) {
-                    if(confirm(`⚠️ Uploading ${productsArr.length} items. Old Stock + New Stock will be accumulated. Proceed?`)) {
-                        fetch(`${API_BASE}/products`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: 'bulk_csv_upload', products: productsArr })
-                        })
-                        .then(r => r.json())
-                        .then(res => {
-                            alert("✅ Bulk CSV Upload Successful! Products Updated/Added.");
-                            loadShopSettingsAndProducts();
-                        });
-                    }
-                } else {
-                    alert("❌ Invalid CSV format!");
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        // --- ANALYTICS CHARTS ---
-        function renderAnalyticsCharts() {
-            var ctx1 = document.getElementById('salesChart').getContext('2d');
-            var ctx2 = document.getElementById('orderTypeChart').getContext('2d');
-
-            var onlineCount = adminOrdersList.filter(o => (o.order_type || '').includes('Online')).length;
-            var posCount = adminOrdersList.filter(o => (o.order_type || '').includes('Walk-in')).length;
-
-            if(orderTypeChartInst) orderTypeChartInst.destroy();
-            orderTypeChartInst = new Chart(ctx2, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Online Orders', 'POS Walk-in Orders'],
-                    datasets: [{
-                        data: [onlineCount, posCount],
-                        backgroundColor: ['#ef4444', '#0284c7']
-                    }]
-                }
-            });
-
-            if(salesChartInst) salesChartInst.destroy();
-            salesChartInst = new Chart(ctx1, {
-                type: 'bar',
-                data: {
-                    labels: ['Total Orders Received', 'Verified Payments'],
-                    datasets: [{
-                        label: 'Orders Summary',
-                        data: [adminOrdersList.length, adminOrdersList.filter(o => o.payment_status === 'YES').length],
-                        backgroundColor: ['#f59e0b', '#22c55e']
-                    }]
-                }
-            });
-        }
-
-        // Open Admin Settings Tool with Existing Values
         function openAdminSettingsTool() {
             if (userRole !== "ADMIN") {
                 alert("❌ Admin-க்கு மட்டுமே Settings மாற்ற அனுமதி உண்டு!");
@@ -834,7 +523,6 @@
             });
         }
 
-        // Save Settings via Vercel Backend API
         function saveShopSettings() {
             var payload = {
                 shop_name: document.getElementById("cfg_shop_name").value.trim(),
@@ -907,63 +595,6 @@
             }
 
             renderProducts();
-        }
-
-        function renderProducts() {
-            var container = document.getElementById("items-container");
-            var searchTxt = (document.getElementById("searchInput").value || "").toLowerCase();
-            var selectedCat = document.getElementById("catSelect").value;
-            var sortVal = document.getElementById("sortSelect").value;
-            var maxPriceLimit = parseFloat(document.getElementById("priceRange").value) || 999999;
-
-            var filtered = rawProducts.filter(item => {
-                if(selectedCat !== "ALL" && item.category !== selectedCat) return false;
-                if(maxPriceLimit > 0 && item.rate > maxPriceLimit) return false;
-                
-                var engName = (item.eng || "").toString().toLowerCase();
-                var tamName = (item.tam || "").toString();
-                return engName.includes(searchTxt) || tamName.includes(searchTxt);
-            });
-
-            if(sortVal === "LOW_HIGH") filtered.sort((a, b) => a.rate - b.rate);
-            else if(sortVal === "HIGH_LOW") filtered.sort((a, b) => b.rate - a.rate);
-
-            var html = "", currCat = "";
-            filtered.forEach(item => {
-                if(sortVal === "DEFAULT" && item.category !== currCat) {
-                    currCat = item.category;
-                    html += '<div class="cat-title">' + currCat + '</div>';
-                }
-                
-                var pNameEng = item.eng || "Item";
-                var pNameTam = item.tam || "";
-
-                var titleDisplay = pNameEng;
-                if(currentLang === "ta") {
-                    titleDisplay = pNameTam || pNameEng;
-                } else if(currentLang === "en") {
-                    titleDisplay = pNameEng;
-                } else if(currentLang === "both") {
-                    titleDisplay = pNameEng + (pNameTam ? ' <small class="text-muted">(' + pNameTam + ')</small>' : '');
-                }
-
-                var q = selectedQty[item.id] || 0;
-                var rowTot = q * item.rate;
-                var isOutOfStock = (item.isOutOfStock === true);
-
-                html += '<div class="item-card ' + (isOutOfStock ? 'out-of-stock-card' : '') + '">' +
-                            '<div>' +
-                                '<b>' + titleDisplay + '</b> ' + (isOutOfStock ? '<span class="out-of-stock-badge me-1">OUT OF STOCK</span>' : '') + '<br>' +
-                                '<small class="text-muted">₹ ' + item.rate + ' / ' + (item.per || 'pkt') + ' | Stock: ' + (item.stock || 0) + '</small>' +
-                            '</div>' +
-                            '<div class="d-flex align-items-center gap-2">' +
-                                '<input type="number" min="0" id="input_qty_' + item.id + '" class="qty-input" value="' + (q || '') + '" ' + (isOutOfStock ? 'disabled placeholder="0"' : 'oninput="updateQtyOnly(' + item.id + ', this.value)"') + '>' +
-                                '<span class="row-total" id="tot_' + item.id + '">₹ ' + rowTot + '</span>' +
-                            '</div>' +
-                        '</div>';
-            });
-
-            container.innerHTML = html || "<div class='p-4 text-center text-muted'>பொருட்கள் எதுவும் கிடைக்கவில்லை!</div>";
         }
 
         function updateQtyOnly(id, val) {
