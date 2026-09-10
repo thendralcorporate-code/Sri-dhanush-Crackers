@@ -16,15 +16,14 @@ export default async function handler(req, res) {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // 1. Confirm Payment Action (Strong Multi-field Search)
+  // 1. Confirm Payment Action (Saves Payment Mode & Ref No to Supabase)
   if (req.method === 'POST' && req.body && req.body.action === 'confirm_payment') {
     try {
       const targetId = String(req.body.order_id || '').trim();
-      const cleanNumericId = targetId.replace(/[^0-9]/g, ''); // Extract only numbers (e.g. SDC-123456 -> 123456)
+      const cleanNumericId = targetId.replace(/[^0-9]/g, '');
       const payMode = req.body.payment_mode || 'GPay';
       const transRef = req.body.transaction_ref || 'Verified';
 
-      // Update in Supabase across all possible ID column representations
       const { data, error } = await supabase
         .from('orders')
         .update({ 
