@@ -718,7 +718,7 @@
                 var payStatus = String(o.payment_status || "NO").trim().toUpperCase();
                 var appStatus = String(o.approval_status || "").trim().toUpperCase();
                 
-                // Payment Status Check
+                // Payment Status Logic Check
                 var isPaid = (payStatus === "YES" || payStatus === "VERIFIED" || appStatus === "APPROVED" || appStatus === "PAYMENT APPROVED");
                 
                 var allocatedStaff = String(o.allocated_staff || "Unassigned");
@@ -768,7 +768,7 @@
             new bootstrap.Modal(document.getElementById("paymentVerifyModal")).show();
         }
 
-        // Customer View: Shows IN STOCK / OUT OF STOCK Badge only!
+        // Customer View: Shows IN STOCK / OUT OF STOCK Badge only (Stock Qty Numbers Hidden!)
         function renderProducts() {
             var container = document.getElementById("items-container");
             var searchTxt = (document.getElementById("searchInput").value || "").toLowerCase();
