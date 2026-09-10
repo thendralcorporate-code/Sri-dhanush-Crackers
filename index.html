@@ -303,7 +303,7 @@
                 </div>
             </div>
 
-            <!-- Table View Orders -->
+            <!-- Orders Table Format -->
             <div class="card border-0 shadow-sm p-3">
                 <h6 class="fw-bold text-danger border-bottom pb-2 mb-2"><i class="fas fa-list me-1"></i>Received Orders Master Table</h6>
                 <div class="table-responsive">
@@ -609,117 +609,64 @@
         }
 
         // 🟢 Payment Verification Submit Function
-function submitPaymentConfirmation() {
-    var orderId = document.getElementById("pay_order_id").value;
-    var mode = document.getElementById("pay_mode_select").value;
-    var ref = document.getElementById("pay_ref_input").value.trim() || "N/A";
+        function submitPaymentConfirmation() {
+            var orderId = document.getElementById("pay_order_id").value;
+            var mode = document.getElementById("pay_mode_select").value;
+            var ref = document.getElementById("pay_ref_input").value.trim() || "N/A";
 
-    if(!orderId) {
-        alert("⚠️ Order ID கிடைத்ததில் பிழை!");
-        return;
-    }
+            if(!orderId) {
+                alert("⚠️ Order ID கிடைத்ததில் பிழை!");
+                return;
+            }
 
-    fetch(`${API_BASE}/orders`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-            action: "confirm_payment", 
-            order_id: orderId,
-            payment_mode: mode,
-            transaction_ref: ref
-        })
-    })
-    .then(r => r.json())
-    .then(res => {
-        alert("✅ Payment Verified & Approved Successfully!");
-        var mInst = bootstrap.Modal.getInstance(document.getElementById("paymentVerifyModal"));
-        if(mInst) mInst.hide();
-        loadAdminOrders();
-    })
-    .catch(err => alert("❌ பிழை: " + err));
-}
-
-// 🟢 Table Renderer - Correct Payment Status & Telecaller Unlock Check
-function renderAdminOrders() {
-    var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
-    var tbody = document.getElementById("adminOrdersTableBody");
-    if (!tbody) return;
-
-    var html = "";
-
-    var filteredOrders = adminOrdersList.filter(o => {
-        var oType = o.order_type || "Online Customer";
-        var allocated = o.allocated_staff || "";
-
-        if (oType === "Walk-in Customer" && userRole === "TELECALLER") {
-            return false;
+            fetch(`${API_BASE}/orders`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    action: "confirm_payment", 
+                    order_id: orderId,
+                    payment_mode: mode,
+                    transaction_ref: ref
+                })
+            })
+            .then(r => r.json())
+            .then(res => {
+                alert("✅ Payment Verified & Approved Successfully!");
+                var mInst = bootstrap.Modal.getInstance(document.getElementById("paymentVerifyModal"));
+                if(mInst) mInst.hide();
+                loadAdminOrders();
+            })
+            .catch(err => alert("❌ பிழை: " + err));
         }
 
-        if (userRole === "TELECALLER" && allocated !== loggedInUsername) {
-            return false;
-        }
+        // 🟢 Table Renderer - Correct Payment Status & Telecaller Unlock Check
+        function renderAdminOrders() {
+            var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
+            var tbody = document.getElementById("adminOrdersTableBody");
+            if (!tbody) return;
 
-        if (!searchTxt) return true;
-        var id = String(o.id || o.order_id || "").toLowerCase();
-        var mob = String(o.mobile || "").toLowerCase();
-        var nm = String(o.customer_name || o.name || "").toLowerCase();
+            var html = "";
 
-        return id.includes(searchTxt) || mob.includes(searchTxt) || nm.includes(searchTxt);
-    });
+            var filteredOrders = adminOrdersList.filter(o => {
+                var oType = o.order_type || "Online Customer";
+                var allocated = o.allocated_staff || "";
 
-    filteredOrders.forEach(o => {
-        var oId = String(o.id || o.order_id || "N/A");
-        var oName = String(o.customer_name || o.name || "Customer");
-        var oMobile = String(o.mobile || "N/A");
-        var oDistrict = String(o.district || "Local");
-        var oType = String(o.order_type || "Online Customer");
-        var oTotal = parseFloat(o.total_amount || o.total || 0);
-        
-        var payStatus = String(o.payment_status || "NO").trim().toUpperCase();
-        var appStatus = String(o.approval_status || "").trim().toUpperCase();
-        
-        // 💥 FIX: Payment status is TRUE if payment_status='YES' OR approval_status='APPROVED'
-        var isPaid = (payStatus === "YES" || payStatus === "VERIFIED" || appStatus === "APPROVED" || appStatus === "PAYMENT APPROVED");
-        
-        var allocatedStaff = String(o.allocated_staff || "Unassigned");
-        var payMode = o.payment_mode || "GPay";
-        var transRef = o.transaction_ref || "Approved";
+                if (oType === "Walk-in Customer" && userRole === "TELECALLER") {
+                    return false;
+                }
 
-        var orderDateStr = "N/A";
-        if (o.created_at || o.order_date) {
-            try {
-                var d = new Date(o.created_at || o.order_date);
-                orderDateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + " " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-            } catch(e){}
-        }
+                if (userRole === "TELECALLER" && allocated !== loggedInUsername) {
+                    return false;
+                }
 
-        var isTelecallerLocked = (userRole === "TELECALLER" && !isPaid);
+                if (!searchTxt) return true;
+                var id = String(o.id || o.order_id || "").toLowerCase();
+                var mob = String(o.mobile || "").toLowerCase();
+                var nm = String(o.customer_name || o.name || "").toLowerCase();
 
-        html += `<tr>
-            <td><b>${oId}</b><br><small class="text-muted">${orderDateStr}</small></td>
-            <td><b>${oName}</b></td>
-            <td>${oMobile}<br><small class="text-muted">📍 ${oDistrict}</small></td>
-            <td><span class="badge bg-warning text-dark">${oType}</span></td>
-            <td><span class="badge bg-secondary">${allocatedStaff}</span></td>
-            <td><b class="text-danger fs-6">₹${oTotal.toLocaleString('en-IN')}</b></td>
-            <td>
-                <span class="badge ${isPaid ? 'bg-success' : 'bg-danger'} p-2">
-                    ${isPaid ? 'Payment Verified ✅' : 'Payment Pending ⏳'}
-                </span>
-                ${isPaid ? `<br><small class="text-muted">${payMode} (${transRef})</small>` : ''}
-            </td>
-            <td class="text-center text-nowrap">
-                <button class="btn btn-sm btn-outline-dark fw-bold me-1" onclick="viewOrderItems('${oId}')">👁️ View</button>
-                ${((userRole === "ADMIN" || userRole === "ACCOUNTS") && !isPaid) 
-                    ? `<button class="btn btn-sm btn-danger fw-bold" onclick="openPaymentVerifyModal('${oId}')">💳 Confirm Payment</button>` 
-                    : ''}
-                ${isTelecallerLocked ? '<span class="badge bg-secondary">🔒 Locked</span>' : ''}
-            </td>
-        </tr>`;
-    });
+                return id.includes(searchTxt) || mob.includes(searchTxt) || nm.includes(searchTxt);
+            });
 
-    tbody.innerHTML = html || "<tr><td colspan='8' class='text-center text-muted p-3'>ஆர்டர்கள் எதுவும் இல்லை!</td></tr>";
-}
             filteredOrders.forEach(o => {
                 var oId = String(o.id || o.order_id || "N/A");
                 var oName = String(o.customer_name || o.name || "Customer");
@@ -727,9 +674,16 @@ function renderAdminOrders() {
                 var oDistrict = String(o.district || "Local");
                 var oType = String(o.order_type || "Online Customer");
                 var oTotal = parseFloat(o.total_amount || o.total || 0);
-                var payStatus = String(o.payment_status || "NO").toUpperCase();
-                var isPaid = (payStatus === "YES" || payStatus === "VERIFIED" || payStatus === "CONFIRMED");
+                
+                var payStatus = String(o.payment_status || "NO").trim().toUpperCase();
+                var appStatus = String(o.approval_status || "").trim().toUpperCase();
+                
+                // 💥 FIX: Payment status is TRUE if payment_status='YES' OR approval_status='APPROVED'
+                var isPaid = (payStatus === "YES" || payStatus === "VERIFIED" || appStatus === "APPROVED" || appStatus === "PAYMENT APPROVED");
+                
                 var allocatedStaff = String(o.allocated_staff || "Unassigned");
+                var payMode = o.payment_mode || "GPay";
+                var transRef = o.transaction_ref || "Approved";
 
                 var orderDateStr = "N/A";
                 if (o.created_at || o.order_date) {
@@ -752,7 +706,7 @@ function renderAdminOrders() {
                         <span class="badge ${isPaid ? 'bg-success' : 'bg-danger'} p-2">
                             ${isPaid ? 'Payment Verified ✅' : 'Payment Pending ⏳'}
                         </span>
-                        ${o.payment_mode ? `<br><small class="text-muted">${o.payment_mode} (${o.transaction_ref || 'N/A'})</small>` : ''}
+                        ${isPaid ? `<br><small class="text-muted">${payMode} (${transRef})</small>` : ''}
                     </td>
                     <td class="text-center text-nowrap">
                         <button class="btn btn-sm btn-outline-dark fw-bold me-1" onclick="viewOrderItems('${oId}')">👁️ View</button>
@@ -772,32 +726,6 @@ function renderAdminOrders() {
             document.getElementById("pay_order_id").value = orderId;
             document.getElementById("pay_ref_input").value = "";
             new bootstrap.Modal(document.getElementById("paymentVerifyModal")).show();
-        }
-
-        // Submit Payment Confirmation
-        function submitPaymentConfirmation() {
-            var orderId = document.getElementById("pay_order_id").value;
-            var mode = document.getElementById("pay_mode_select").value;
-            var ref = document.getElementById("pay_ref_input").value.trim() || "N/A";
-
-            fetch(`${API_BASE}/orders`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    action: "confirm_payment", 
-                    order_id: orderId,
-                    payment_mode: mode,
-                    transaction_ref: ref
-                })
-            })
-            .then(r => r.json())
-            .then(res => {
-                alert("✅ Payment Verified & Approved!");
-                var mInst = bootstrap.Modal.getInstance(document.getElementById("paymentVerifyModal"));
-                if(mInst) mInst.hide();
-                loadAdminOrders();
-            })
-            .catch(err => alert("❌ பிழை: " + err));
         }
 
         // Customer View: Shows IN STOCK / OUT OF STOCK Badge only (Stock Qty Numbers Hidden!)
