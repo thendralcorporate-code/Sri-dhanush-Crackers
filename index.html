@@ -55,6 +55,7 @@
         #hiddenBillWrap { position: fixed; top: 0; left: -9999px; width: 750px; background: white; z-index: -1; }
         .admin-tab-btn { font-weight: bold; font-size: 13px; border-radius: 6px; }
         .cursor-pointer { cursor: pointer; }
+        .chart-container { position: relative; height: 230px; width: 100%; }
     </style>
 </head>
 <body>
@@ -412,6 +413,22 @@
 
         <!-- TAB 3: ANALYTICS & ADVANCED REPORTS -->
         <div id="adminTabAnalytics" style="display:none;">
+            <!-- Date Filter Header Bar -->
+            <div class="card border-0 shadow-sm p-3 mb-4 bg-white">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <h6 class="fw-bold text-danger mb-0"><i class="fas fa-calendar-alt me-2"></i>Report Date Range Filter</h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <select id="analyticsDateRange" class="form-select form-select-sm fw-bold border-danger" onchange="renderAnalyticsCharts()">
+                            <option value="ALL">All Time Reports 📅</option>
+                            <option value="TODAY">Today Only ☀️</option>
+                            <option value="YESTERDAY">Yesterday 🌙</option>
+                            <option value="LAST_7_DAYS">Last 7 Days 🗓️</option>
+                            <option value="THIS_MONTH">This Month 📆</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <!-- Key Performance Metrics Summary Cards -->
             <div class="row g-3 mb-4">
                 <div class="col-6 col-md-3">
@@ -442,38 +459,83 @@
 
             <!-- Analytics Charts Grid -->
             <div class="row g-3 mb-4">
-                <!-- 1. Staff Performance & Sales Split -->
                 <div class="col-md-6">
                     <div class="card border-0 shadow-sm p-3 h-100">
                         <h6 class="fw-bold text-dark border-bottom pb-2"><i class="fas fa-user-check me-2 text-primary"></i>Staff Sales & Order Distribution</h6>
-                        <canvas id="staffPerfChart" height="220"></canvas>
+                        <div class="chart-container">
+                            <canvas id="staffPerfChart"></canvas>
+                        </div>
                     </div>
                 </div>
-                <!-- 2. Payment Method Revenue Breakup -->
                 <div class="col-md-6">
                     <div class="card border-0 shadow-sm p-3 h-100">
                         <h6 class="fw-bold text-dark border-bottom pb-2"><i class="fas fa-wallet me-2 text-success"></i>Payment Mode Revenue Breakup</h6>
-                        <canvas id="paymentModeChart" height="220"></canvas>
+                        <div class="chart-container">
+                            <canvas id="paymentModeChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="row g-3 mb-4">
-                <!-- 3. Top Selling Crackers / Items -->
-                <div class="col-md-7">
+                <div class="col-md-6">
                     <div class="card border-0 shadow-sm p-3 h-100">
-                        <h6 class="fw-bold text-dark border-bottom pb-2"><i class="fas fa-fire me-2 text-danger"></i>Top 5 Most Demanded Cracker Items</h6>
-                        <canvas id="topProductsChart" height="220"></canvas>
+                        <h6 class="fw-bold text-dark border-bottom pb-2"><i class="fas fa-fire me-2 text-danger"></i>Top Demanded Cracker Items</h6>
+                        <div class="chart-container">
+                            <canvas id="topProductsChart"></canvas>
+                        </div>
                     </div>
                 </div>
-                <!-- 4. Order Types & Business Inquiry Split -->
-                <div class="col-md-5">
+                <div class="col-md-6">
                     <div class="card border-0 shadow-sm p-3 h-100">
                         <h6 class="fw-bold text-dark border-bottom pb-2"><i class="fas fa-chart-pie me-2 text-warning"></i>Business Interest Inquiries</h6>
-                        <canvas id="bizInterestChart" height="220"></canvas>
+                        <div class="chart-container">
+                            <canvas id="bizInterestChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Detailed Data Tables Reports (NEW ADDITION) -->
+            <div class="row g-3 mb-4">
+                <!-- Staff Performance Detailed Table Report -->
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm p-3">
+                        <h6 class="fw-bold text-dark border-bottom pb-2"><i class="fas fa-users me-2 text-primary"></i>Staff Performance Breakdown Table</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0 small">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Staff Name</th>
+                                        <th class="text-center">Total Orders</th>
+                                        <th class="text-end">Total Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analyticsStaffTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- Top Products Detailed Sales Table Report -->
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm p-3">
+                        <h6 class="fw-bold text-dark border-bottom pb-2"><i class="fas fa-list-ol me-2 text-danger"></i>Top Products Sales Quantity Table</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0 small">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Item Name</th>
+                                        <th class="text-center">Qty Sold</th>
+                                        <th class="text-end">Total Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analyticsTopProductsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -619,7 +681,6 @@
     <script>
         const API_BASE = "/api";
         let rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", loggedInUsername = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], currentSessionType = "Online Customer", userBusinessInterest = "NO";
-        let salesChartInst = null, orderTypeChartInst = null;
 
         if (!localStorage.getItem("POS_PASSKEY")) {
             localStorage.setItem("POS_PASSKEY", "9999");
@@ -629,7 +690,6 @@
             loadShopSettingsAndProducts();
         };
 
-        // Load Settings & Products via Vercel Backend API
         function loadShopSettingsAndProducts() {
             fetch(`${API_BASE}/settings`)
             .then(r => r.json())
@@ -665,7 +725,6 @@
             })
             .catch(err => console.error("Error loading settings:", err));
 
-            // Products Fetch
             fetch(`${API_BASE}/products`)
             .then(r => r.json())
             .then(data => {
@@ -698,7 +757,6 @@
             });
         }
 
-        // Low Stock Checker (< 100 Qty)
         function checkLowStockAlerts() {
             var lowStockItems = rawProducts.filter(p => p.stock <= 100);
             var badge = document.getElementById("lowStockAlertBadge");
@@ -762,7 +820,6 @@
             }
         }
 
-        // 🟢 Submit Payment Confirmation & Force UI Refresh
         function submitPaymentConfirmation() {
             var orderId = document.getElementById("pay_order_id").value;
             var mode = document.getElementById("pay_mode_select").value;
@@ -810,7 +867,6 @@
             .catch(err => alert("❌ பிழை: " + err));
         }
 
-        // 🟢 Table Renderer - Admin Order Rows with 3-Copy Print Button
         function renderAdminOrders() {
             var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
             var tbody = document.getElementById("adminOrdersTableBody");
@@ -897,7 +953,6 @@
             tbody.innerHTML = html || "<tr><td colspan='8' class='text-center text-muted p-3'>ஆர்டர்கள் எதுவும் இல்லை!</td></tr>";
         }
 
-        // 🟢 Re-assign Staff Function for Admin
         function reassignStaffModal(orderId, currentStaff) {
             if(userRole !== "ADMIN") return;
             var newStaff = prompt(`Order ID ${orderId}-க்கான Staff-ஐ மாற்றவும்:\n(Current Staff: ${currentStaff})`, currentStaff);
@@ -920,7 +975,6 @@
             }
         }
 
-        // 🟢 Function to Print 3-Copy Set PDF for Admin Orders
         function printSingleAdminOrderPDF(orderId) {
             var order = adminOrdersList.find(o => String(o.id || o.order_id) === String(orderId));
             if(!order) return;
@@ -981,14 +1035,12 @@
             html2pdf().set(opt).from(element).save();
         }
 
-        // Open Payment Verification Modal
         function openPaymentVerifyModal(orderId) {
             document.getElementById("pay_order_id").value = orderId;
             document.getElementById("pay_ref_input").value = "";
             new bootstrap.Modal(document.getElementById("paymentVerifyModal")).show();
         }
 
-        // Customer View: Shows IN STOCK / OUT OF STOCK Badge only!
         function renderProducts() {
             var container = document.getElementById("items-container");
             var searchTxt = (document.getElementById("searchInput").value || "").toLowerCase();
@@ -1046,7 +1098,6 @@
             container.innerHTML = html || "<div class='p-4 text-center text-muted'>பொருட்கள் எதுவும் கிடைக்கவில்லை!</div>";
         }
 
-        // --- STOCK & PRICE MANAGEMENT FUNCTIONS ---
         function renderAdminStockTable() {
             var searchTxt = (document.getElementById("stockSearchInput").value || "").trim().toLowerCase();
             var tbody = document.getElementById("adminStockTableBody");
@@ -1265,28 +1316,53 @@
             reader.readAsText(file);
         }
 
-        // Global Chart Instance Variables to prevent duplication
+        // Global Chart Instance Variables
         let staffPerfChartInst = null, paymentModeChartInst = null, topProductsChartInst = null, bizInterestChartInst = null;
 
-        // 📊 Complete Executive Analytics & Charts Engine
+        // 📊 Complete Executive Analytics & Charts Engine with Date Range Filter & Data Tables
         function renderAnalyticsCharts() {
             if (!adminOrdersList || adminOrdersList.length === 0) return;
 
-            // 1. Calculate Summary Cards Totals
-            let onlineOrders = adminOrdersList.filter(o => String(o.order_type || '').includes('Online'));
-            let posOrders = adminOrdersList.filter(o => String(o.order_type || '').includes('Walk-in'));
-            let verifiedOrders = adminOrdersList.filter(o => String(o.payment_status || '').toUpperCase() === 'YES' || String(o.approval_status || '').toUpperCase() === 'APPROVED');
+            // 1. Date Filter Range Logic
+            let filterType = document.getElementById("analyticsDateRange") ? document.getElementById("analyticsDateRange").value : "ALL";
+            let now = new Date();
+            let filteredList = adminOrdersList.filter(o => {
+                if (filterType === "ALL") return true;
+
+                let oDate = new Date(o.created_at || o.order_date || Date.now());
+                let isSameDay = (d1, d2) => d1.getDate() === d2.getDate() && d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear();
+
+                if (filterType === "TODAY") {
+                    return isSameDay(oDate, now);
+                } else if (filterType === "YESTERDAY") {
+                    let yest = new Date(now);
+                    yest.setDate(now.getDate() - 1);
+                    return isSameDay(oDate, yest);
+                } else if (filterType === "LAST_7_DAYS") {
+                    let diffTime = Math.abs(now - oDate);
+                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    return diffDays <= 7;
+                } else if (filterType === "THIS_MONTH") {
+                    return oDate.getMonth() === now.getMonth() && oDate.getFullYear() === now.getFullYear();
+                }
+                return true;
+            });
+
+            // 2. Summary Cards Calculation
+            let onlineOrders = filteredList.filter(o => String(o.order_type || '').includes('Online'));
+            let posOrders = filteredList.filter(o => String(o.order_type || '').includes('Walk-in'));
+            let verifiedOrders = filteredList.filter(o => String(o.payment_status || '').toUpperCase() === 'YES' || String(o.approval_status || '').toUpperCase() === 'APPROVED');
             let verifiedRevenue = verifiedOrders.reduce((acc, o) => acc + (parseFloat(o.total_amount || o.total) || 0), 0);
-            let bizLeadsCount = adminOrdersList.filter(o => String(o.business_interest || '').toUpperCase() === 'YES').length;
+            let bizLeadsCount = filteredList.filter(o => String(o.business_interest || '').toUpperCase() === 'YES').length;
 
             document.getElementById("analyticsOnlineCount").innerText = onlineOrders.length;
             document.getElementById("analyticsPosCount").innerText = posOrders.length;
             document.getElementById("analyticsVerifiedRevenue").innerText = "₹" + verifiedRevenue.toLocaleString('en-IN');
             document.getElementById("analyticsBizLeads").innerText = bizLeadsCount;
 
-            // 2. Staff Performance Calculation
+            // 3. Staff Performance Calculation (Chart + Detailed Table Report)
             let staffData = {};
-            adminOrdersList.forEach(o => {
+            filteredList.forEach(o => {
                 let st = String(o.allocated_staff || 'Unassigned').trim();
                 let rev = parseFloat(o.total_amount || o.total) || 0;
                 if (!staffData[st]) staffData[st] = { count: 0, revenue: 0 };
@@ -1302,20 +1378,31 @@
             staffPerfChartInst = new Chart(ctxStaff, {
                 type: 'bar',
                 data: {
-                    labels: staffLabels,
+                    labels: staffLabels.length > 0 ? staffLabels : ['No Data'],
                     datasets: [{
                         label: 'Total Revenue (₹)',
-                        data: staffRevenues,
+                        data: staffRevenues.length > 0 ? staffRevenues : [0],
                         backgroundColor: '#3b82f6',
                         borderRadius: 6
                     }]
                 },
-                options: { responsive: true, plugins: { legend: { display: false } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
 
-            // 3. Payment Mode Revenue Breakup
+            // Render Staff Table Report
+            let staffTableHtml = "";
+            staffLabels.forEach(st => {
+                staffTableHtml += `<tr>
+                    <td><b>👤 ${st}</b></td>
+                    <td class="text-center"><span class="badge bg-light text-dark border">${staffData[st].count}</span></td>
+                    <td class="text-end fw-bold text-success">₹${staffData[st].revenue.toLocaleString('en-IN')}</td>
+                </tr>`;
+            });
+            document.getElementById("analyticsStaffTableBody").innerHTML = staffTableHtml || "<tr><td colspan='3' class='text-center text-muted'>விவரங்கள் இல்லை</td></tr>";
+
+            // 4. Payment Mode Revenue Breakup Chart
             let payModes = { 'GPay': 0, 'PhonePe': 0, 'Paytm': 0, 'Bank Transfer': 0, 'Cash': 0 };
-            adminOrdersList.forEach(o => {
+            filteredList.forEach(o => {
                 let pm = String(o.payment_mode || 'GPay').trim();
                 let rev = parseFloat(o.total_amount || o.total) || 0;
                 if (payModes[pm] !== undefined) payModes[pm] += rev;
@@ -1333,45 +1420,59 @@
                         backgroundColor: ['#10b981', '#06b6d4', '#f59e0b', '#8b5cf6', '#ef4444']
                     }]
                 },
-                options: { responsive: true }
+                options: { responsive: true, maintainAspectRatio: false }
             });
 
-            // 4. Top Selling Cracker Items
+            // 5. Top Selling Cracker Items Chart + Detailed Table Report
             let itemQuantities = {};
-            adminOrdersList.forEach(o => {
+            let itemRevenues = {};
+            filteredList.forEach(o => {
                 let items = [];
                 try { items = typeof o.items === 'string' ? JSON.parse(o.items) : (o.items || []); } catch(e){}
                 items.forEach(it => {
                     let name = String(it.name || it.eng || 'Cracker Item').trim();
                     let q = parseInt(it.qty) || 0;
+                    let r = parseFloat(it.total || (q * (it.rate || 0))) || 0;
                     itemQuantities[name] = (itemQuantities[name] || 0) + q;
+                    itemRevenues[name] = (itemRevenues[name] || 0) + r;
                 });
             });
 
             let sortedProducts = Object.keys(itemQuantities)
-                .map(k => ({ name: k, qty: itemQuantities[k] }))
+                .map(k => ({ name: k, qty: itemQuantities[k], revenue: itemRevenues[k] || 0 }))
                 .sort((a, b) => b.qty - a.qty)
-                .slice(0, 5);
+                .slice(0, 10); // Top 10 Items for Table
 
             let ctxProd = document.getElementById('topProductsChart').getContext('2d');
             if (topProductsChartInst) topProductsChartInst.destroy();
             topProductsChartInst = new Chart(ctxProd, {
                 type: 'bar',
                 data: {
-                    labels: sortedProducts.map(p => p.name),
+                    labels: sortedProducts.length > 0 ? sortedProducts.slice(0, 5).map(p => p.name) : ['No Data'],
                     datasets: [{
                         label: 'Total Quantity Sold',
-                        data: sortedProducts.map(p => p.qty),
+                        data: sortedProducts.length > 0 ? sortedProducts.slice(0, 5).map(p => p.qty) : [0],
                         backgroundColor: '#ef4444',
                         borderRadius: 6
                     }]
                 },
-                options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } } }
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
 
-            // 5. Business Interest Split
-            let bizYes = adminOrdersList.filter(o => String(o.business_interest || '').toUpperCase() === 'YES').length;
-            let bizNo = adminOrdersList.length - bizYes;
+            // Render Top Products Table Report
+            let prodTableHtml = "";
+            sortedProducts.forEach(p => {
+                prodTableHtml += `<tr>
+                    <td><b>💥 ${p.name}</b></td>
+                    <td class="text-center"><span class="badge bg-warning text-dark">${p.qty}</span></td>
+                    <td class="text-end fw-bold text-danger">₹${p.revenue.toLocaleString('en-IN')}</td>
+                </tr>`;
+            });
+            document.getElementById("analyticsTopProductsTableBody").innerHTML = prodTableHtml || "<tr><td colspan='3' class='text-center text-muted'>விவரங்கள் இல்லை</td></tr>";
+
+            // 6. Business Interest Inquiries Chart
+            let bizYes = filteredList.filter(o => String(o.business_interest || '').toUpperCase() === 'YES').length;
+            let bizNo = filteredList.length - bizYes;
 
             let ctxBiz = document.getElementById('bizInterestChart').getContext('2d');
             if (bizInterestChartInst) bizInterestChartInst.destroy();
@@ -1384,7 +1485,7 @@
                         backgroundColor: ['#f59e0b', '#cbd5e1']
                     }]
                 },
-                options: { responsive: true }
+                options: { responsive: true, maintainAspectRatio: false }
             });
         }
 
