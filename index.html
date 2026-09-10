@@ -361,73 +361,97 @@
             loadShopSettingsAndProducts();
         };
 
-        function loadShopSettingsAndProducts() {
-            // ⚙️ Load Dynamic Shop Settings from Supabase
-            fetch(`${SUPABASE_URL}/rest/v1/settings?id=eq.1&select=*`, {
-                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
-            })
-            .then(r => r.json())
-            .then(data => {
-                if(Array.isArray(data) && data.length > 0) {
-                    var cfg = data[0];
-                    if(cfg.shop_name) {
-                        document.getElementById("hdr_shop_name").innerText = cfg.shop_name;
-                        document.getElementById("navShopTitle").innerText = "💥 " + cfg.shop_name;
-                        document.getElementById("pdfShopTitle").innerText = cfg.shop_name;
-                    }
-                    if(cfg.address) {
-                        document.getElementById("hdr_address").innerText = "📍 " + cfg.address;
-                        document.getElementById("pdfShopAddress").innerText = cfg.address;
-                    }
-                    if(cfg.contacts) {
-                        document.getElementById("hdr_contacts").innerText = "📞 Contact: " + cfg.contacts;
-                    }
-                    if(cfg.whatsapp) {
-                        targetShopWhatsApp = cfg.whatsapp.replace(/[^0-9]/g, '');
-                    }
-                    if(cfg.logo_url) {
-                        var logoImg = document.getElementById("hdr_shop_logo");
-                        logoImg.src = cfg.logo_url;
-                        logoImg.style.display = "block";
-                    }
-                }
-            })
-            .catch(err => console.error("Error loading settings:", err));
-
-            // Load Products
-            fetch(`${API_BASE}/products`)
-            .then(r => r.json())
-            .then(data => {
-                if (Array.isArray(data)) {
-                    rawProducts = data.map(p => {
-                        var rVal = parseFloat(p.rate) || 0;
-                        var sQty = p.stock_qty !== undefined ? parseInt(p.stock_qty) : 100;
-                        return {
-                            id: p.id,
-                            category: p.category || 'General',
-                            eng: p.eng_name || p.eng || p.name || 'Cracker Item',
-                            tam: p.tam_name || p.tam || p.tamil || '',
-                            per: p.per_unit || p.per || p.unit || 'pkt',
-                            rate: rVal,
-                            stock: sQty,
-                            isOutOfStock: (p.status === 'Out of Stock' || sQty <= 0)
-                        };
-                    });
-                } else {
-                    rawProducts = [];
-                }
-
-                document.getElementById("loaderScreen").style.display = "none";
-                setupPriceSliderRange();
-                populateCategoryDropdown();
-                renderProducts();
-            })
-            .catch(err => {
-                console.error("Error loading products:", err);
-                document.getElementById("loaderScreen").style.display = "none";
-            });
+        // 1. Load Dynamic Settings from Supabase
+function loadShopSettingsAndProducts() {
+    fetch(`${SUPABASE_URL}/rest/v1/settings?id=eq.1&select=*`, {
+        headers: { 
+            'apikey': SUPABASE_ANON_KEY, 
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY 
         }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(Array.isArray(data) && data.length > 0) {
+            var cfg = data[0];
+            if(cfg.shop_name) {
+                document.getElementById("hdr_shop_name").innerText = cfg.shop_name;
+                document.getElementById("navShopTitle").innerText = "💥 " + cfg.shop_name;
+                document.getElementById("pdfShopTitle").innerText = cfg.shop_name;
+            }
+            if(cfg.address) {
+                document.getElementById("hdr_address").innerText = "📍 " + cfg.address;
+                document.getElementById("pdfShopAddress").innerText = cfg.address;
+            }
+            if(cfg.contacts) {
+                document.getElementById("hdr_contacts").innerText = "📞 Contact: " + cfg.contacts;
+            }
+            if(cfg.whatsapp) {
+                targetShopWhatsApp = cfg.whatsapp.replace(/[^0-9]/g, '');
+            }
+            if(cfg.logo_url) {
+                var logoImg = document.getElementById("hdr_shop_logo");
+                logoImg.src = cfg.logo_url;
+                logoImg.style.display = "block";
+            }
+        }
+    })
+    .catch(err => console.error("Error loading settings:", err));
 
+    // Products Fetch
+    fetch(`${API_BASE}/products`)
+    .then(r => r.json())
+    .then(data => {
+        if (Array.isArray(data)) {
+            rawProducts = data.map(p => ({
+                id: p.id,
+                category: p.category || 'General',
+                eng: p.eng_name || p.eng || p.name || 'Cracker Item',
+                tam: p.tam_name || p.tam || p.tamil || '',
+                per: p.per_unit || p.per || p.unit || 'pkt',
+                rate: parseFloat(p.rate) || 0,
+                stock: p.stock_qty !== undefined ? parseInt(p.stock_qty) : 100,
+                isOutOfStock: (p.status === 'Out of Stock' || p.stock_qty <= 0)
+            }));
+        } else { rawProducts = []; }
+
+        document.getElementById("loaderScreen").style.display = "none";
+        setupPriceSliderRange();
+        populateCategoryDropdown();
+        renderProducts();
+    })
+    .catch(err => {
+        console.error("Error loading products:", err);
+        document.getElementById("loaderScreen").style.display = "none";
+    });
+}
+
+// 2. Save Settings Fix (Correct Query Parameter)
+function saveShopSettings() {
+    var payload = {
+        shop_name: document.getElementById("cfg_shop_name").value.trim(),
+        address: document.getElementById("cfg_shop_address").value.trim(),
+        contacts: document.getElementById("cfg_shop_contacts").value.trim(),
+        whatsapp: document.getElementById("cfg_shop_whatsapp").value.trim(),
+        logo_url: document.getElementById("cfg_shop_logo").value.trim()
+    };
+
+    fetch(`${SUPABASE_URL}/rest/v1/settings?id=eq.1`, {
+        method: "PATCH",
+        headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(res => {
+        alert("✅ கடை விவரங்கள் வெற்றிகரமாகப் புதுப்பிக்கப்பட்டன!");
+        location.reload();
+    })
+    .catch(err => alert("❌ பிழை: " + err));
+}
         function openAdminSettingsTool() {
             if (userRole !== "ADMIN") {
                 alert("❌ Admin-க்கு மட்டுமே Settings மாற்ற அனுமதி உண்டு!");
