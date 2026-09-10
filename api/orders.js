@@ -16,14 +16,15 @@ export default async function handler(req, res) {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // 💥 FIX: Confirm Payment with Exact Order ID Filter & Direct Supabase REST Logic
+  // 1. Confirm Payment Action (Strong Multi-field Search)
   if (req.method === 'POST' && req.body && req.body.action === 'confirm_payment') {
     try {
-      const orderIdStr = String(req.body.order_id || '').trim();
+      const targetId = String(req.body.order_id || '').trim();
+      const cleanNumericId = targetId.replace(/[^0-9]/g, ''); // Extract only numbers (e.g. SDC-123456 -> 123456)
       const payMode = req.body.payment_mode || 'GPay';
       const transRef = req.body.transaction_ref || 'Verified';
 
-      // Update both payment_status and approval_status
+      // Update in Supabase across all possible ID column representations
       const { data, error } = await supabase
         .from('orders')
         .update({ 
@@ -32,7 +33,7 @@ export default async function handler(req, res) {
           payment_mode: payMode,
           transaction_ref: transRef
         })
-        .or(`id.eq.${orderIdStr},order_id.eq.${orderIdStr}`);
+        .or(`id.eq.${targetId},id.eq.${cleanNumericId},order_id.eq.${targetId},order_id.eq.${cleanNumericId}`);
 
       if (error) return res.status(500).json({ error: error.message });
       return res.status(200).json({ success: true, message: "Payment Verified Successfully!", data });
@@ -41,7 +42,26 @@ export default async function handler(req, res) {
     }
   }
 
-  // Save Order
+  // 2. Re-assign Staff Action
+  if (req.method === 'POST' && req.body && req.body.action === 'reassign_staff') {
+    try {
+      const targetId = String(req.body.order_id || '').trim();
+      const cleanNumericId = targetId.replace(/[^0-9]/g, '');
+      const newStaff = req.body.allocated_staff;
+
+      const { data, error } = await supabase
+        .from('orders')
+        .update({ allocated_staff: newStaff })
+        .or(`id.eq.${targetId},id.eq.${cleanNumericId},order_id.eq.${targetId},order_id.eq.${cleanNumericId}`);
+
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ success: true, data });
+    } catch(err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // 3. Save New Order
   if (req.method === 'POST') {
     try {
       const body = req.body;
@@ -117,7 +137,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // GET Orders
+  // 4. GET Orders List
   else if (req.method === 'GET') {
     try {
       const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
