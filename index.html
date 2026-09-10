@@ -159,7 +159,7 @@
         </div>
     </div>
 
-    <!-- Business Interest Inquiry Modal -->
+    <!-- 💼 Business Interest Inquiry Modal -->
     <div class="modal fade" id="businessInterestModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-4 text-center border-danger shadow-lg text-dark">
@@ -177,7 +177,7 @@
         </div>
     </div>
 
-    <!-- Payment Confirmation Modal -->
+    <!-- 💳 Payment Confirmation Modal (GPay / PhonePe / Cash / Bank Transfer) -->
     <div class="modal fade" id="paymentVerifyModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3 text-dark">
@@ -204,7 +204,7 @@
         </div>
     </div>
 
-    <!-- POS Passkey Entry Modal -->
+    <!-- 🏪 POS Passkey Entry Modal -->
     <div class="modal fade" id="posKeyModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3 text-center shadow-lg text-dark">
@@ -216,7 +216,7 @@
         </div>
     </div>
 
-    <!-- Admin Passkey Tool Modal -->
+    <!-- 🔑 Admin Passkey Tool Modal -->
     <div class="modal fade" id="adminPasskeyModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3 text-center text-dark">
@@ -228,7 +228,7 @@
         </div>
     </div>
 
-    <!-- Admin Shop Settings Modal -->
+    <!-- ⚙️ Admin Shop Settings Modal -->
     <div class="modal fade" id="adminSettingsModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3 text-dark">
@@ -251,7 +251,7 @@
         </div>
     </div>
 
-    <!-- Single Product Add/Edit Modal -->
+    <!-- ➕ Single Product Add/Edit Modal -->
     <div class="modal fade" id="productFormModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3 text-dark">
@@ -293,6 +293,7 @@
 
     <!-- MAIN ADMIN PANEL VIEW -->
     <div id="adminPanelView" class="p-3" style="display:none; background: #f8fafc; min-height: 100vh;">
+        <!-- Top Navigation Bar -->
         <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded-3 shadow-sm text-white" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
             <div class="d-flex align-items-center gap-2">
                 <span id="currentUserBadge" class="badge bg-warning text-dark fw-bold px-3 py-2 fs-6">Role: ADMIN</span>
@@ -308,6 +309,7 @@
             </div>
         </div>
 
+        <!-- Admin Navigation Tabs -->
         <div class="d-flex gap-2 mb-3 bg-white p-2 rounded shadow-sm overflow-auto">
             <button class="btn btn-danger admin-tab-btn active" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fas fa-shopping-bag me-1"></i>Orders List</button>
             <button class="btn btn-outline-danger admin-tab-btn" id="tabBtnStock" onclick="switchAdminTab('stock')"><i class="fas fa-boxes me-1"></i>Stock & Price Edit</button>
@@ -341,6 +343,7 @@
                 </div>
             </div>
 
+            <!-- Orders Table Format -->
             <div class="card border-0 shadow-sm p-3">
                 <h6 class="fw-bold text-danger border-bottom pb-2 mb-2"><i class="fas fa-list me-1"></i>Received Orders Master Table</h6>
                 <div class="table-responsive">
@@ -449,7 +452,7 @@
         </div>
     </div>
 
-    <!-- Printable PDF Layout -->
+    <!-- Printable PDF Layout (Hidden) -->
     <div id="hiddenBillWrap">
         <div id="printableBill" style="padding: 20px; font-family: 'Helvetica', 'Arial', sans-serif; color: #2d3748; background: #ffffff; width: 700px; margin: auto;">
             <div style="text-align: center; border-bottom: 2px solid #8c1d1d; padding-bottom: 10px; margin-bottom: 15px;">
@@ -512,6 +515,7 @@
             loadShopSettingsAndProducts();
         };
 
+        // Load Settings & Products via Vercel Backend API
         function loadShopSettingsAndProducts() {
             fetch(`${API_BASE}/settings`)
             .then(r => r.json())
@@ -547,6 +551,7 @@
             })
             .catch(err => console.error("Error loading settings:", err));
 
+            // Products Fetch
             fetch(`${API_BASE}/products`)
             .then(r => r.json())
             .then(data => {
@@ -579,6 +584,7 @@
             });
         }
 
+        // Low Stock Checker (< 100 Qty)
         function checkLowStockAlerts() {
             var lowStockItems = rawProducts.filter(p => p.stock <= 100);
             var badge = document.getElementById("lowStockAlertBadge");
@@ -642,6 +648,7 @@
             }
         }
 
+        // 🟢 Payment Verification Submit Function
         function submitPaymentConfirmation() {
             var orderId = document.getElementById("pay_order_id").value;
             var mode = document.getElementById("pay_mode_select").value;
@@ -672,6 +679,7 @@
             .catch(err => alert("❌ பிழை: " + err));
         }
 
+        // 🟢 Table Renderer - Correct Payment Status & Telecaller Unlock Check
         function renderAdminOrders() {
             var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
             var tbody = document.getElementById("adminOrdersTableBody");
@@ -710,6 +718,7 @@
                 var payStatus = String(o.payment_status || "NO").trim().toUpperCase();
                 var appStatus = String(o.approval_status || "").trim().toUpperCase();
                 
+                // Payment Status Logic Check
                 var isPaid = (payStatus === "YES" || payStatus === "VERIFIED" || appStatus === "APPROVED" || appStatus === "PAYMENT APPROVED");
                 
                 var allocatedStaff = String(o.allocated_staff || "Unassigned");
@@ -752,12 +761,14 @@
             tbody.innerHTML = html || "<tr><td colspan='8' class='text-center text-muted p-3'>ஆர்டர்கள் எதுவும் இல்லை!</td></tr>";
         }
 
+        // Open Payment Verification Modal
         function openPaymentVerifyModal(orderId) {
             document.getElementById("pay_order_id").value = orderId;
             document.getElementById("pay_ref_input").value = "";
             new bootstrap.Modal(document.getElementById("paymentVerifyModal")).show();
         }
 
+        // Customer View: Shows IN STOCK / OUT OF STOCK Badge only (Stock Qty Numbers Hidden!)
         function renderProducts() {
             var container = document.getElementById("items-container");
             var searchTxt = (document.getElementById("searchInput").value || "").toLowerCase();
@@ -815,6 +826,7 @@
             container.innerHTML = html || "<div class='p-4 text-center text-muted'>பொருட்கள் எதுவும் கிடைக்கவில்லை!</div>";
         }
 
+        // --- STOCK & PRICE MANAGEMENT FUNCTIONS ---
         function renderAdminStockTable() {
             var searchTxt = (document.getElementById("stockSearchInput").value || "").trim().toLowerCase();
             var tbody = document.getElementById("adminStockTableBody");
@@ -1033,6 +1045,7 @@
             reader.readAsText(file);
         }
 
+        // --- ANALYTICS CHARTS ---
         function renderAnalyticsCharts() {
             var ctx1 = document.getElementById('salesChart').getContext('2d');
             var ctx2 = document.getElementById('orderTypeChart').getContext('2d');
