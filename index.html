@@ -57,6 +57,14 @@
         .cursor-pointer { cursor: pointer; }
         .chart-container { position: relative; height: 240px; width: 100%; }
         .row-greyout { opacity: 0.55; background-color: #f1f5f9; }
+        
+        /* Tracking Timeline CSS */
+        .track-step { flex: 1; text-align: center; position: relative; }
+        .track-step::after { content: ''; position: absolute; top: 15px; width: 100%; height: 3px; background: #e2e8f0; z-index: 1; left: 50%; }
+        .track-step:last-child::after { display: none; }
+        .track-step.active .track-icon { background: #22c55e; color: white; border-color: #22c55e; }
+        .track-step.active::after { background: #22c55e; }
+        .track-icon { width: 32px; height: 32px; border-radius: 50%; background: #e2e8f0; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; position: relative; z-index: 2; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -75,6 +83,39 @@
         <div>
             <button class="btn btn-sm btn-success fw-bold me-1 py-0" style="font-size:12px;" onclick="openPOSDirectMode()">🏪 POS Counter</button>
             <button class="btn btn-outline-warning btn-sm py-0" style="font-size:11px;" onclick="openLoginModal()">🔒 Staff Login</button>
+        </div>
+    </div>
+
+    <!-- Live Customer Tracking Page View -->
+    <div id="customerTrackingView" class="container py-4" style="display:none; max-width: 650px;">
+        <div class="card border-0 shadow-lg p-4 text-center">
+            <h4 class="fw-bold text-danger mb-1">💥 SRI DHANUSH CRACKERS</h4>
+            <p class="small text-muted mb-3">Live Order Tracking Portal</p>
+            
+            <div class="bg-light p-3 rounded-3 mb-3 text-start small">
+                <div class="d-flex justify-content-between"><b>Order ID:</b> <span id="trkOrderId" class="fw-bold text-primary">-</span></div>
+                <div class="d-flex justify-content-between"><b>Customer:</b> <span id="trkCustName">-</span></div>
+                <div class="d-flex justify-content-between"><b>Mobile:</b> <span id="trkMobile">-</span></div>
+                <div class="d-flex justify-content-between"><b>Destination:</b> <span id="trkDistrict">-</span></div>
+            </div>
+
+            <!-- Status Timeline -->
+            <h6 class="fw-bold text-start mb-3">🚚 Order Progress Status:</h6>
+            <div class="d-flex justify-content-between mb-4">
+                <div class="track-step" id="stepBooked"><div class="track-icon">1</div><small class="d-block fw-bold">Booked</small></div>
+                <div class="track-step" id="stepPacking"><div class="track-icon">2</div><small class="d-block fw-bold">Packing</small></div>
+                <div class="track-step" id="stepTransport"><div class="track-icon">3</div><small class="d-block fw-bold">In Transport</small></div>
+                <div class="track-step" id="stepDespatched"><div class="track-icon">4</div><small class="d-block fw-bold">Despatched</small></div>
+                <div class="track-step" id="stepReceived"><div class="track-icon">5</div><small class="d-block fw-bold">Received</small></div>
+            </div>
+
+            <!-- LR Copy Box -->
+            <div id="trkLrBox" class="border rounded p-3 bg-light" style="display:none;">
+                <h6 class="fw-bold text-success"><i class="fas fa-file-invoice me-1"></i>Transport LR Copy / Receipt</h6>
+                <div id="trkLrContent" class="my-2"></div>
+            </div>
+
+            <a href="/" class="btn btn-outline-danger btn-sm fw-bold mt-4">🛍️ Back to Store / New Order</a>
         </div>
     </div>
 
@@ -175,6 +216,23 @@
                 <div class="d-flex justify-content-center gap-3 mt-2">
                     <button class="btn btn-success fw-bold px-4 py-2" onclick="recordBusinessChoice('YES')"><i class="fas fa-check-circle me-1"></i> ஆம் / YES 👍</button>
                     <button class="btn btn-outline-secondary fw-bold px-4 py-2" onclick="recordBusinessChoice('NO')"><i class="fas fa-times-circle me-1"></i> இல்லை / NO 👎</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload LR Copy Modal -->
+    <div class="modal fade" id="lrUploadModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content p-3 text-dark">
+                <h6 class="fw-bold text-success border-bottom pb-2 mb-2"><i class="fas fa-upload me-1"></i>Upload Transport LR Copy</h6>
+                <input type="hidden" id="lr_target_order_id">
+                <label class="form-label small fw-bold">LR Slip URL / Image Link:</label>
+                <input type="text" id="lr_copy_url_input" class="form-control form-control-sm mb-2" placeholder="e.g. https://...image.jpg">
+                <small class="text-muted d-block mb-3">அல்லது LR எண்களை உள்ளிடவும்.</small>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-secondary btn-sm w-50" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-success btn-sm w-50 fw-bold" onclick="submitLRUpload()">Save LR Slip 💾</button>
                 </div>
             </div>
         </div>
@@ -358,12 +416,27 @@
             </div>
 
             <div class="card border-0 shadow-sm p-3 mb-3">
-                <div class="d-flex gap-2">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
-                        <input type="text" id="adminOrderSearch" class="form-control border-start-0 ps-0" placeholder="Search by Order ID, Mobile, Name..." onkeyup="renderAdminOrders()">
+                <div class="row g-2">
+                    <div class="col-md-7">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" id="adminOrderSearch" class="form-control border-start-0 ps-0" placeholder="Search by Order ID, Mobile, Name..." onkeyup="renderAdminOrders()">
+                        </div>
                     </div>
-                    <button class="btn btn-outline-primary fw-bold text-nowrap" onclick="loadAdminOrders()"><i class="fas fa-sync-alt me-1"></i>Refresh Orders</button>
+                    <div class="col-md-3">
+                        <select id="adminStatusFilterSelect" class="form-select fw-bold text-danger border-danger" onchange="renderAdminOrders()">
+                            <option value="ALL">All Order Status 📋</option>
+                            <option value="PENDING_PAYMENT">Pending Payments ⏳</option>
+                            <option value="Booked">Booked 📦</option>
+                            <option value="Packing in Progress">Packing in Progress 📦</option>
+                            <option value="Moved to Transport">Moved to Transport 🚛</option>
+                            <option value="Despatched">Despatched ✅</option>
+                            <option value="Parcel Received">Parcel Received (Completed Bucket) 🏁</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-primary fw-bold text-nowrap w-100" onclick="loadAdminOrders()"><i class="fas fa-sync-alt me-1"></i>Refresh</button>
+                    </div>
                 </div>
             </div>
 
@@ -377,7 +450,7 @@
                                 <th>Order ID / Date</th>
                                 <th>Customer Name</th>
                                 <th>Mobile / District</th>
-                                <th>Type</th>
+                                <th>Type / Status</th>
                                 <th>Staff</th>
                                 <th>Total Amount</th>
                                 <th>Payment Status</th>
@@ -707,8 +780,73 @@
         }
 
         window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const trackId = urlParams.get('track');
+            if (trackId) {
+                openCustomerLiveTracking(trackId);
+                return;
+            }
+
             loadShopSettingsAndProducts();
         };
+
+        // 🚚 Live Customer Tracking Engine
+        function openCustomerLiveTracking(orderId) {
+            document.getElementById("customerStoreView").style.display = "none";
+            document.getElementById("loaderScreen").style.display = "flex";
+
+            fetch(`${API_BASE}/orders`)
+            .then(r => r.json())
+            .then(res => {
+                document.getElementById("loaderScreen").style.display = "none";
+                document.getElementById("customerTrackingView").style.display = "block";
+
+                let order = (res || []).find(o => String(o.id || o.order_id).toLowerCase() === String(orderId).toLowerCase());
+                if (!order) {
+                    alert("❌ தவறான Order ID! ஆர்டர் விபரங்கள் கிடைக்கவில்லை.");
+                    window.location.href = "/";
+                    return;
+                }
+
+                document.getElementById("trkOrderId").innerText = order.id || order.order_id;
+                document.getElementById("trkCustName").innerText = order.customer_name || order.name;
+                document.getElementById("trkMobile").innerText = order.mobile;
+                document.getElementById("trkDistrict").innerText = order.district || "Sivakasi";
+
+                let st = String(order.order_status || 'Booked');
+                document.querySelectorAll('.track-step').forEach(s => s.classList.remove('active'));
+
+                document.getElementById('stepBooked').classList.add('active');
+                if (st === 'Packing in Progress' || st === 'Moved to Transport' || st === 'Despatched' || st === 'Parcel Received') {
+                    document.getElementById('stepPacking').classList.add('active');
+                }
+                if (st === 'Moved to Transport' || st === 'Despatched' || st === 'Parcel Received') {
+                    document.getElementById('stepTransport').classList.add('active');
+                }
+                if (st === 'Despatched' || st === 'Parcel Received') {
+                    document.getElementById('stepDespatched').classList.add('active');
+                }
+                if (st === 'Parcel Received') {
+                    document.getElementById('stepReceived').classList.add('active');
+                }
+
+                if (order.lr_copy_url && order.lr_copy_url.trim() !== '') {
+                    document.getElementById("trkLrBox").style.display = "block";
+                    let lrUrl = order.lr_copy_url.trim();
+                    if (lrUrl.startsWith('http')) {
+                        document.getElementById("trkLrContent").innerHTML = `<a href="${lrUrl}" target="_blank"><img src="${lrUrl}" class="img-fluid rounded border shadow-sm" style="max-height:300px;"></a>`;
+                    } else {
+                        document.getElementById("trkLrContent").innerHTML = `<div class="p-2 bg-white fw-bold text-dark border rounded">${lrUrl}</div>`;
+                    }
+                } else {
+                    document.getElementById("trkLrBox").style.display = "none";
+                }
+            })
+            .catch(err => {
+                document.getElementById("loaderScreen").style.display = "none";
+                alert("❌ லோடு செய்வதில் பிழை: " + err);
+            });
+        }
 
         function loadShopSettingsAndProducts() {
             fetch(`${API_BASE}/settings`)
@@ -887,9 +1025,10 @@
             .catch(err => alert("❌ பிழை: " + err));
         }
 
-        // 🟢 Table Renderer - Telecaller Lock/Grey-out & Admin Delete Options
+        // 🟢 Table Renderer - With Status Wise Filter Dropdown & Completed Parcel Received Auto Grey-out
         function renderAdminOrders() {
             var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
+            var statusFilter = document.getElementById("adminStatusFilterSelect") ? document.getElementById("adminStatusFilterSelect").value : "ALL";
             var tbody = document.getElementById("adminOrdersTableBody");
             if (!tbody) return;
 
@@ -899,14 +1038,15 @@
                 var oType = String(o.order_type || "Online Customer").trim();
                 var allocated = String(o.allocated_staff || "").trim().toLowerCase();
                 var currentLoggedUser = String(loggedInUsername || "").trim().toLowerCase();
+                var oStatus = String(o.order_status || "Booked");
+                var payStatus = String(o.payment_status || "NO").trim().toUpperCase();
 
-                if (oType === "Walk-in Customer" && userRole === "TELECALLER") {
-                    return false;
-                }
+                if (oType === "Walk-in Customer" && userRole === "TELECALLER") return false;
+                if (userRole === "TELECALLER" && allocated !== currentLoggedUser) return false;
 
-                if (userRole === "TELECALLER" && allocated !== currentLoggedUser) {
-                    return false;
-                }
+                // Status Wise Dropdown Filter Bucket Logic
+                if (statusFilter === "PENDING_PAYMENT" && payStatus === "YES") return false;
+                if (statusFilter !== "ALL" && statusFilter !== "PENDING_PAYMENT" && oStatus !== statusFilter) return false;
 
                 if (!searchTxt) return true;
                 var id = String(o.id || o.order_id || "").toLowerCase();
@@ -923,6 +1063,8 @@
                 var oDistrict = String(o.district || "Local");
                 var oType = String(o.order_type || "Online Customer");
                 var oTotal = parseFloat(o.total_amount || o.total || 0);
+                var oStatus = String(o.order_status || "Booked");
+                var oLrUrl = o.lr_copy_url || "";
                 
                 var payStatus = String(o.payment_status || "NO").trim().toUpperCase();
                 var appStatus = String(o.approval_status || "").trim().toUpperCase();
@@ -941,14 +1083,24 @@
                     } catch(e){}
                 }
 
-                var isTelecallerLocked = (userRole === "TELECALLER" && !isPaid);
-                var rowClass = isTelecallerLocked ? 'class="row-greyout"' : '';
+                var isCompletedParcel = (oStatus === "Parcel Received");
+                var isTelecallerLocked = (userRole === "TELECALLER" && (!isPaid || isCompletedParcel));
+                var rowClass = (isTelecallerLocked || isCompletedParcel) ? 'class="row-greyout"' : '';
 
                 html += `<tr ${rowClass}>
                     <td><b>${oId}</b><br><small class="text-muted">${orderDateStr}</small></td>
                     <td><b>${oName}</b></td>
                     <td>${oMobile}<br><small class="text-muted">📍 ${oDistrict}</small></td>
-                    <td><span class="badge bg-warning text-dark">${oType}</span></td>
+                    <td>
+                        <span class="badge bg-warning text-dark mb-1">${oType}</span><br>
+                        <select class="form-select form-select-sm py-0 fw-bold border-danger" style="font-size:11px;" onchange="confirmAndChangeOrderStatus('${oId}', this.value, '${oStatus}')" ${isTelecallerLocked ? 'disabled' : ''}>
+                            <option value="Booked" ${oStatus === 'Booked' ? 'selected' : ''}>📦 Booked</option>
+                            <option value="Packing in Progress" ${oStatus === 'Packing in Progress' ? 'selected' : ''}>📦 Packing</option>
+                            <option value="Moved to Transport" ${oStatus === 'Moved to Transport' ? 'selected' : ''}>🚛 Transport</option>
+                            <option value="Despatched" ${oStatus === 'Despatched' ? 'selected' : ''}>✅ Despatched</option>
+                            <option value="Parcel Received" ${oStatus === 'Parcel Received' ? 'selected' : ''}>🏁 Parcel Received</option>
+                        </select>
+                    </td>
                     <td>
                         <span class="badge bg-secondary cursor-pointer" title="Click to Change Staff" onclick="openReassignStaffModal('${oId}', '${allocatedStaff}')">
                             👤 ${allocatedStaff} ✏️
@@ -963,21 +1115,81 @@
                     </td>
                     <td class="text-center text-nowrap">
                         ${isTelecallerLocked 
-                            ? '<span class="badge bg-secondary p-2"><i class="fas fa-lock me-1"></i>Locked</span>' 
-                            : `<button class="btn btn-sm btn-outline-dark fw-bold me-1" onclick="viewOrderItems('${oId}')">👁️ View</button>
-                               <button class="btn btn-sm btn-outline-primary fw-bold me-1" onclick="printSingleAdminOrderPDF('${oId}')">🖨️ Print Set</button>`
+                            ? `<span class="badge bg-secondary p-2"><i class="fas fa-lock me-1"></i>${isCompletedParcel ? 'Completed' : 'Locked'}</span>` 
+                            : `<button class="btn btn-sm btn-outline-dark fw-bold me-1 py-0" onclick="viewOrderItems('${oId}')">👁️ View</button>
+                               <button class="btn btn-sm btn-outline-primary fw-bold me-1 py-0" onclick="printSingleAdminOrderPDF('${oId}')">🖨️ Print Set</button>
+                               <button class="btn btn-sm btn-outline-success fw-bold me-1 py-0" onclick="openLRUploadModal('${oId}', '${oLrUrl}')">📸 ${oLrUrl ? 'Edit LR' : '+ LR'}</button>`
                         }
                         ${((userRole === "ADMIN" || userRole === "ACCOUNTS") && !isPaid) 
-                            ? `<button class="btn btn-sm btn-danger fw-bold me-1" onclick="openPaymentVerifyModal('${oId}')">💳 Confirm Payment</button>` 
+                            ? `<button class="btn btn-sm btn-danger fw-bold me-1 py-0" onclick="openPaymentVerifyModal('${oId}')">💳 Confirm</button>` 
                             : ''}
                         ${userRole === "ADMIN" 
-                            ? `<button class="btn btn-sm btn-outline-danger fw-bold" onclick="deleteSingleOrder('${oId}')">🗑️ Delete</button>` 
+                            ? `<button class="btn btn-sm btn-outline-danger fw-bold py-0" onclick="deleteSingleOrder('${oId}')">🗑️ Delete</button>` 
                             : ''}
                     </td>
                 </tr>`;
             });
 
             tbody.innerHTML = html || "<tr><td colspan='8' class='text-center text-muted p-3'>ஆர்டர்கள் எதுவும் இல்லை!</td></tr>";
+        }
+
+        // 🟢 Confirmation Prompt Before Status Change
+        function confirmAndChangeOrderStatus(orderId, newStatus, oldStatus) {
+            if (confirm(`⚠️ Order ID: ${orderId}-ன் நிலையை "${newStatus}" என மாற்ற விரும்புகிறீர்களா?`)) {
+                fetch(`${API_BASE}/orders`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "update_order_status", order_id: orderId, order_status: newStatus })
+                })
+                .then(r => r.json())
+                .then(() => {
+                    alert(`✅ Order ${orderId} status changed to ${newStatus}!`);
+                    loadAdminOrders();
+                })
+                .catch(err => alert("❌ பிழை: " + err));
+            } else {
+                loadAdminOrders(); // Reset dropdown if cancelled
+            }
+        }
+
+        // 🟢 Open LR Upload Modal
+        function openLRUploadModal(orderId, currentUrl) {
+            document.getElementById("lr_target_order_id").value = orderId;
+            document.getElementById("lr_copy_url_input").value = (currentUrl && currentUrl !== 'null') ? currentUrl : '';
+            new bootstrap.Modal(document.getElementById("lrUploadModal")).show();
+        }
+
+        // 🟢 Submit LR Upload
+        function submitLRUpload() {
+            var orderId = document.getElementById("lr_target_order_id").value;
+            var lrUrl = document.getElementById("lr_copy_url_input").value.trim();
+
+            if (!orderId || !lrUrl) {
+                alert("⚠️ தயவுசெய்து LR Slip Image URL / நம்பரை உள்ளிடவும்!");
+                return;
+            }
+
+            fetch(`${API_BASE}/orders`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    action: "update_order_status", 
+                    order_id: orderId, 
+                    order_status: "Despatched", 
+                    lr_copy_url: lrUrl 
+                })
+            })
+            .then(r => r.json())
+            .then(() => {
+                alert("✅ LR Slip Successfully Saved & Order Marked Despatched!");
+                var mElem = document.getElementById("lrUploadModal");
+                if (mElem) {
+                    var mInst = bootstrap.Modal.getInstance(mElem);
+                    if (mInst) mInst.hide();
+                }
+                loadAdminOrders();
+            })
+            .catch(err => alert("❌ பிழை: " + err));
         }
 
         // 🟢 Delete Order Function for Admin Only
@@ -1257,7 +1469,7 @@
                     tam_name: item.tam,
                     per_unit: item.per,
                     rate: item.rate,
-                    stock_qty: newQty,
+                    stock_qty: item.stock,
                     status: newStatus
                 }
             };
@@ -1392,11 +1604,10 @@
         // Global Chart Instance Variables
         let staffPerfChartInst = null, paymentModeChartInst = null, topProductsChartInst = null, bizInterestChartInst = null;
 
-        // 📊 Complete Executive Analytics & Charts Engine with Date Range Filter & Data Tables
+        // 📊 Complete Executive Analytics & Charts Engine
         function renderAnalyticsCharts() {
             if (!adminOrdersList || adminOrdersList.length === 0) return;
 
-            // 1. Date Filter Range Logic
             let filterType = document.getElementById("analyticsDateRange") ? document.getElementById("analyticsDateRange").value : "ALL";
             let now = new Date();
             let filteredList = adminOrdersList.filter(o => {
@@ -1405,15 +1616,12 @@
                 let oDate = new Date(o.created_at || o.order_date || Date.now());
                 let isSameDay = (d1, d2) => d1.getDate() === d2.getDate() && d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear();
 
-                if (filterType === "TODAY") {
-                    return isSameDay(oDate, now);
-                } else if (filterType === "YESTERDAY") {
-                    let yest = new Date(now);
-                    yest.setDate(now.getDate() - 1);
+                if (filterType === "TODAY") return isSameDay(oDate, now);
+                else if (filterType === "YESTERDAY") {
+                    let yest = new Date(now); yest.setDate(now.getDate() - 1);
                     return isSameDay(oDate, yest);
                 } else if (filterType === "LAST_7_DAYS") {
-                    let diffTime = Math.abs(now - oDate);
-                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    let diffDays = Math.ceil(Math.abs(now - oDate) / (1000 * 60 * 60 * 24));
                     return diffDays <= 7;
                 } else if (filterType === "THIS_MONTH") {
                     return oDate.getMonth() === now.getMonth() && oDate.getFullYear() === now.getFullYear();
@@ -1421,7 +1629,6 @@
                 return true;
             });
 
-            // 2. Summary Cards Calculation
             let onlineOrders = filteredList.filter(o => String(o.order_type || '').includes('Online'));
             let posOrders = filteredList.filter(o => String(o.order_type || '').includes('Walk-in'));
             let verifiedOrders = filteredList.filter(o => String(o.payment_status || '').toUpperCase() === 'YES' || String(o.approval_status || '').toUpperCase() === 'APPROVED');
@@ -1433,7 +1640,6 @@
             if(document.getElementById("analyticsVerifiedRevenue")) document.getElementById("analyticsVerifiedRevenue").innerText = "₹" + verifiedRevenue.toLocaleString('en-IN');
             if(document.getElementById("analyticsBizLeads")) document.getElementById("analyticsBizLeads").innerText = bizLeadsCount;
 
-            // 3. Staff Performance Calculation (Chart + Detailed Table Report)
             let staffData = {};
             filteredList.forEach(o => {
                 let st = String(o.allocated_staff || 'Unassigned').trim();
@@ -1452,34 +1658,20 @@
                 if (staffPerfChartInst) staffPerfChartInst.destroy();
                 staffPerfChartInst = new Chart(ctxStaff, {
                     type: 'bar',
-                    data: {
-                        labels: staffLabels.length > 0 ? staffLabels : ['No Data'],
-                        datasets: [{
-                            label: 'Total Revenue (₹)',
-                            data: staffRevenues.length > 0 ? staffRevenues : [0],
-                            backgroundColor: '#3b82f6',
-                            borderRadius: 6
-                        }]
-                    },
+                    data: { labels: staffLabels.length > 0 ? staffLabels : ['No Data'], datasets: [{ label: 'Total Revenue (₹)', data: staffRevenues.length > 0 ? staffRevenues : [0], backgroundColor: '#3b82f6', borderRadius: 6 }] },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
                 });
             }
 
-            // Render Staff Table Report
             let staffTableElem = document.getElementById("analyticsStaffTableBody");
             if (staffTableElem) {
                 let staffTableHtml = "";
                 staffLabels.forEach(st => {
-                    staffTableHtml += `<tr>
-                        <td><b>👤 ${st}</b></td>
-                        <td class="text-center"><span class="badge bg-light text-dark border">${staffData[st].count}</span></td>
-                        <td class="text-end fw-bold text-success">₹${staffData[st].revenue.toLocaleString('en-IN')}</td>
-                    </tr>`;
+                    staffTableHtml += `<tr><td><b>👤 ${st}</b></td><td class="text-center"><span class="badge bg-light text-dark border">${staffData[st].count}</span></td><td class="text-end fw-bold text-success">₹${staffData[st].revenue.toLocaleString('en-IN')}</td></tr>`;
                 });
                 staffTableElem.innerHTML = staffTableHtml || "<tr><td colspan='3' class='text-center text-muted'>விவரங்கள் இல்லை</td></tr>";
             }
 
-            // 4. Payment Mode Revenue Breakup Chart
             let payModes = { 'GPay': 0, 'PhonePe': 0, 'Paytm': 0, 'Bank Transfer': 0, 'Cash': 0 };
             filteredList.forEach(o => {
                 let pm = String(o.payment_mode || 'GPay').trim();
@@ -1494,20 +1686,12 @@
                 if (paymentModeChartInst) paymentModeChartInst.destroy();
                 paymentModeChartInst = new Chart(ctxPay, {
                     type: 'doughnut',
-                    data: {
-                        labels: Object.keys(payModes),
-                        datasets: [{
-                            data: Object.values(payModes),
-                            backgroundColor: ['#10b981', '#06b6d4', '#f59e0b', '#8b5cf6', '#ef4444']
-                        }]
-                    },
+                    data: { labels: Object.keys(payModes), datasets: [{ data: Object.values(payModes), backgroundColor: ['#10b981', '#06b6d4', '#f59e0b', '#8b5cf6', '#ef4444'] }] },
                     options: { responsive: true, maintainAspectRatio: false }
                 });
             }
 
-            // 5. Top Selling Cracker Items Chart + Detailed Table Report
-            let itemQuantities = {};
-            let itemRevenues = {};
+            let itemQuantities = {}, itemRevenues = {};
             filteredList.forEach(o => {
                 let items = [];
                 try { items = typeof o.items === 'string' ? JSON.parse(o.items) : (o.items || []); } catch(e){}
@@ -1531,34 +1715,20 @@
                 if (topProductsChartInst) topProductsChartInst.destroy();
                 topProductsChartInst = new Chart(ctxProd, {
                     type: 'bar',
-                    data: {
-                        labels: sortedProducts.length > 0 ? sortedProducts.slice(0, 5).map(p => p.name) : ['No Data'],
-                        datasets: [{
-                            label: 'Total Quantity Sold',
-                            data: sortedProducts.length > 0 ? sortedProducts.slice(0, 5).map(p => p.qty) : [0],
-                            backgroundColor: '#ef4444',
-                            borderRadius: 6
-                        }]
-                    },
+                    data: { labels: sortedProducts.length > 0 ? sortedProducts.slice(0, 5).map(p => p.name) : ['No Data'], datasets: [{ label: 'Total Quantity Sold', data: sortedProducts.length > 0 ? sortedProducts.slice(0, 5).map(p => p.qty) : [0], backgroundColor: '#ef4444', borderRadius: 6 }] },
                     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
                 });
             }
 
-            // Render Top Products Table Report
             let prodTableElem = document.getElementById("analyticsTopProductsTableBody");
             if (prodTableElem) {
                 let prodTableHtml = "";
                 sortedProducts.forEach(p => {
-                    prodTableHtml += `<tr>
-                        <td><b>💥 ${p.name}</b></td>
-                        <td class="text-center"><span class="badge bg-warning text-dark">${p.qty}</span></td>
-                        <td class="text-end fw-bold text-danger">₹${p.revenue.toLocaleString('en-IN')}</td>
-                    </tr>`;
+                    prodTableHtml += `<tr><td><b>💥 ${p.name}</b></td><td class="text-center"><span class="badge bg-warning text-dark">${p.qty}</span></td><td class="text-end fw-bold text-danger">₹${p.revenue.toLocaleString('en-IN')}</td></tr>`;
                 });
                 prodTableElem.innerHTML = prodTableHtml || "<tr><td colspan='3' class='text-center text-muted'>விவரங்கள் இல்லை</td></tr>";
             }
 
-            // 6. Business Interest Inquiries Chart
             let bizYes = filteredList.filter(o => String(o.business_interest || '').toUpperCase() === 'YES').length;
             let bizNo = filteredList.length - bizYes;
 
@@ -1568,13 +1738,7 @@
                 if (bizInterestChartInst) bizInterestChartInst.destroy();
                 bizInterestChartInst = new Chart(ctxBiz, {
                     type: 'pie',
-                    data: {
-                        labels: ['Interested (YES 👍)', 'Not Interested (NO 👎)'],
-                        datasets: [{
-                            data: [bizYes, bizNo],
-                            backgroundColor: ['#f59e0b', '#cbd5e1']
-                        }]
-                    },
+                    data: { labels: ['Interested (YES 👍)', 'Not Interested (NO 👎)'], datasets: [{ data: [bizYes, bizNo], backgroundColor: ['#f59e0b', '#cbd5e1'] }] },
                     options: { responsive: true, maintainAspectRatio: false }
                 });
             }
@@ -1851,6 +2015,8 @@
             var address = document.getElementById("cust_address").value.trim() || "N/A";
             var district = document.getElementById("cust_district").value.trim() || "Sivakasi";
 
+            var trackingUrl = window.location.origin + "/?track=" + orderId;
+
             var itemsObj = [];
             var pdfTableRows = "", transportRows = "";
             var sno = 1;
@@ -1863,6 +2029,8 @@
                             "📞 *Mobile:* " + rawMobile + "\n" +
                             "📍 *Location:* " + district + "\n" +
                             "💼 *Business Interested:* " + (userBusinessInterest === "YES" ? "YES 👍" : "NO 👎") + "\n" +
+                            "----------------------------------------\n" +
+                            "🚚 *TRACK YOUR ORDER LIVE:*\n" + trackingUrl + "\n" +
                             "----------------------------------------\n" +
                             "📦 *ORDERED ITEMS LIST:*\n" +
                             "----------------------------------------\n";
@@ -1902,7 +2070,6 @@
                          "✨ *Thank you for ordering with us!*\n" +
                          "🎆 *Wish you a Happy & Safe Diwali!* 💥";
 
-            // Update Text Elements in 3 PDF Pages
             document.querySelectorAll(".pdfOrderId").forEach(e => e.innerText = orderId);
             document.querySelectorAll(".pdfDate").forEach(e => e.innerText = new Date().toLocaleDateString());
             document.querySelectorAll(".pdfCustName").forEach(e => e.innerText = name);
@@ -1916,7 +2083,6 @@
             document.getElementById("pdfStaffName").innerText = loggedInUsername || "Online System";
             document.getElementById("pdfPaymentDetails").innerText = (currentSessionType === "Walk-in Customer") ? "Cash / Counter Paid" : "Pending Verification";
 
-            // Single Click - Download 3 Pages PDF
             setTimeout(function() {
                 var element = document.getElementById('printableBill');
                 var opt = {
@@ -1933,7 +2099,8 @@
                 order_id: orderId, customer_name: name, mobile: rawMobile, address: address, district: district,
                 total_amount: total, order_type: currentSessionType, items: itemsObj, business_interest: userBusinessInterest,
                 payment_status: (currentSessionType === "Walk-in Customer") ? "YES" : "NO",
-                approval_status: (currentSessionType === "Walk-in Customer") ? "Approved" : "Pending"
+                approval_status: (currentSessionType === "Walk-in Customer") ? "Approved" : "Pending",
+                order_status: "Booked"
             };
 
             fetch(`${API_BASE}/orders`, {
@@ -1992,7 +2159,7 @@
             });
         }
 
-        // 🟢 Role-based Navigation Tabs & View Restrictions
+        // 🟢 Role Restrictions Engine
         function showAdminView(role, username) {
             userRole = role;
             loggedInUsername = username;
@@ -2011,7 +2178,6 @@
             var settingsToolBtn = document.getElementById("btnAdminSettingsTool");
             if(settingsToolBtn) settingsToolBtn.style.display = (role === "ADMIN") ? "inline-block" : "none";
 
-            // Role Restrictions for Tabs
             var tabStock = document.getElementById("tabBtnStock");
             if(tabStock) tabStock.style.display = (role === "ADMIN" || role === "ACCOUNTS") ? "inline-block" : "none";
 
@@ -2059,7 +2225,6 @@
             var appStatus = String(order.approval_status || "").trim().toUpperCase();
             var isPaid = (payStatus === "YES" || payStatus === "VERIFIED" || appStatus === "APPROVED" || appStatus === "PAYMENT APPROVED");
 
-            // Strict Telecaller Locked Order Prevention
             if (userRole === "TELECALLER" && !isPaid) {
                 alert("🔒 இந்த ஆர்டரின் பணம் இன்னும் உறுதி செய்யப்படவில்லை! பார்க்க அனுமதி இல்லை.");
                 return;
