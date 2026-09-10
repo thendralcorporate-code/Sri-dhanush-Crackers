@@ -159,7 +159,7 @@
         </div>
     </div>
 
-    <!-- Business Interest Inquiry Modal -->
+    <!-- 💼 Business Interest Inquiry Modal -->
     <div class="modal fade" id="businessInterestModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-4 text-center border-danger shadow-lg text-dark">
@@ -177,7 +177,7 @@
         </div>
     </div>
 
-    <!-- Payment Confirmation Modal -->
+    <!-- 💳 Payment Confirmation Modal (GPay / PhonePe / Cash / Bank Transfer) -->
     <div class="modal fade" id="paymentVerifyModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3 text-dark">
@@ -204,7 +204,7 @@
         </div>
     </div>
 
-    <!-- POS Passkey Entry Modal -->
+    <!-- 🏪 POS Passkey Entry Modal -->
     <div class="modal fade" id="posKeyModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3 text-center shadow-lg text-dark">
@@ -216,7 +216,7 @@
         </div>
     </div>
 
-    <!-- Admin Passkey Tool Modal -->
+    <!-- 🔑 Admin Passkey Tool Modal -->
     <div class="modal fade" id="adminPasskeyModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3 text-center text-dark">
@@ -228,7 +228,7 @@
         </div>
     </div>
 
-    <!-- Admin Shop Settings Modal -->
+    <!-- ⚙️ Admin Shop Settings Modal -->
     <div class="modal fade" id="adminSettingsModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3 text-dark">
@@ -251,7 +251,7 @@
         </div>
     </div>
 
-    <!-- Single Product Add/Edit Modal -->
+    <!-- ➕ Single Product Add/Edit Modal -->
     <div class="modal fade" id="productFormModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3 text-dark">
@@ -1211,89 +1211,88 @@
         }
 
         // 1. Open POS Passkey Modal
-function openPOSDirectMode() {
-    var inputElem = document.getElementById("pos_passkey_input");
-    if(inputElem) inputElem.value = "";
-    var modalElem = document.getElementById("posKeyModal");
-    if(modalElem) {
-        var posModal = bootstrap.Modal.getInstance(modalElem) || new bootstrap.Modal(modalElem);
-        posModal.show();
-    }
-}
-
-// 2. Validate POS Passkey
-function validatePOSPasskey() {
-    var savedKey = localStorage.getItem("POS_PASSKEY") || "9999";
-    var enteredKey = (document.getElementById("pos_passkey_input").value || "").trim();
-
-    if (!enteredKey) {
-        alert("⚠️ தயவுசெய்து Passkey-ஐ உள்ளிடவும்!");
-        return;
-    }
-
-    if (enteredKey === savedKey || enteredKey === "9999" || enteredKey === "admin123") {
-        userRole = "POS";
-        loggedInUsername = "POS Counter";
-        currentSessionType = "Walk-in Customer";
-        
-        var modalElem = document.getElementById("posKeyModal");
-        if(modalElem) {
-            var posModal = bootstrap.Modal.getInstance(modalElem);
-            if(posModal) posModal.hide();
+        function openPOSDirectMode() {
+            var inputElem = document.getElementById("pos_passkey_input");
+            if(inputElem) inputElem.value = "";
+            var modalElem = document.getElementById("posKeyModal");
+            if(modalElem) {
+                var posModal = bootstrap.Modal.getInstance(modalElem) || new bootstrap.Modal(modalElem);
+                posModal.show();
+            }
         }
 
-        // POS Dark Blue Theme & Title Update
-        document.body.classList.add("pos-mode");
-        var hdrName = document.getElementById("hdr_shop_name");
-        if(hdrName) {
-            hdrName.innerText = "🏪 WALKIN COUNTER BILLING MODE";
-            hdrName.style.color = "#38bdf8";
+        // 2. Validate POS Passkey
+        function validatePOSPasskey() {
+            var savedKey = localStorage.getItem("POS_PASSKEY") || "9999";
+            var enteredKey = (document.getElementById("pos_passkey_input").value || "").trim();
+
+            if (!enteredKey) {
+                alert("⚠️ தயவுசெய்து Passkey-ஐ உள்ளிடவும்!");
+                return;
+            }
+
+            if (enteredKey === savedKey || enteredKey === "9999" || enteredKey === "admin123") {
+                userRole = "POS";
+                loggedInUsername = "POS Counter";
+                currentSessionType = "Walk-in Customer";
+                
+                var modalElem = document.getElementById("posKeyModal");
+                if(modalElem) {
+                    var posModal = bootstrap.Modal.getInstance(modalElem);
+                    if(posModal) posModal.hide();
+                }
+
+                document.body.classList.add("pos-mode");
+                var hdrName = document.getElementById("hdr_shop_name");
+                if(hdrName) {
+                    hdrName.innerText = "🏪 WALKIN COUNTER BILLING MODE";
+                    hdrName.style.color = "#38bdf8";
+                }
+                
+                if(document.getElementById("cust_name")) document.getElementById("cust_name").value = "";
+                if(document.getElementById("cust_mobile")) document.getElementById("cust_mobile").value = "";
+                if(document.getElementById("cust_address")) document.getElementById("cust_address").value = "";
+                if(document.getElementById("cust_district")) document.getElementById("cust_district").value = "Sivakasi Walk-in";
+
+                goToStep1();
+                alert("✅ POS Counter Unlocked! வாடிக்கையாளர் விவரங்களை உள்ளிட்டு தொடரவும்.");
+            } else {
+                alert("❌ தவறான Passkey! அணுகல் மறுக்கப்பட்டது.");
+            }
         }
-        
-        // Form Reset for POS Walk-in Entry
-        if(document.getElementById("cust_name")) document.getElementById("cust_name").value = "";
-        if(document.getElementById("cust_mobile")) document.getElementById("cust_mobile").value = "";
-        if(document.getElementById("cust_address")) document.getElementById("cust_address").value = "";
-        if(document.getElementById("cust_district")) document.getElementById("cust_district").value = "Sivakasi Walk-in";
 
-        goToStep1();
-        alert("✅ POS Counter Unlocked! வாடிக்கையாளர் விவரங்களை உள்ளிட்டு தொடரவும்.");
-    } else {
-        alert("❌ தவறான Passkey! அணுகல் மறுக்கப்பட்டது.");
-    }
-}
+        // 3. Open Admin Passkey Config Modal
+        function openAdminPasskeyTool() {
+            if (userRole !== "ADMIN") {
+                alert("❌ Admin-க்கு மட்டுமே Passkey மாற்ற அனுமதி உண்டு!");
+                return;
+            }
+            var newKeyInput = document.getElementById("new_pos_passkey_input");
+            if(newKeyInput) {
+                newKeyInput.value = localStorage.getItem("POS_PASSKEY") || "9999";
+            }
+            var modalElem = document.getElementById("adminPasskeyModal");
+            if(modalElem) {
+                new bootstrap.Modal(modalElem).show();
+            }
+        }
 
-// 3. Open Admin Passkey Config Modal
-function openAdminPasskeyTool() {
-    if (userRole !== "ADMIN") {
-        alert("❌ Admin-க்கு மட்டுமே Passkey மாற்ற அனுமதி உண்டு!");
-        return;
-    }
-    var newKeyInput = document.getElementById("new_pos_passkey_input");
-    if(newKeyInput) {
-        newKeyInput.value = localStorage.getItem("POS_PASSKEY") || "9999";
-    }
-    var modalElem = document.getElementById("adminPasskeyModal");
-    if(modalElem) {
-        new bootstrap.Modal(modalElem).show();
-    }
-}
+        // 4. Save New POS Passkey
+        function saveNewPOSPasskey() {
+            var newKey = (document.getElementById("new_pos_passkey_input").value || "").trim();
+            if (!newKey) {
+                alert("⚠️ சரியான Passkey-ஐ உள்ளிடவும்!");
+                return;
+            }
+            localStorage.setItem("POS_PASSKEY", newKey);
+            alert("✅ புதிய POS Passkey வெற்றிகரமாகச் சேமிக்கப்பட்டது: " + newKey);
+            var modalElem = document.getElementById("adminPasskeyModal");
+            if(modalElem) {
+                var mInst = bootstrap.Modal.getInstance(modalElem);
+                if (mInst) mInst.hide();
+            }
+        }
 
-// 4. Save New POS Passkey
-function saveNewPOSPasskey() {
-    var newKey = (document.getElementById("new_pos_passkey_input").value || "").trim();
-    if (!newKey) {
-        alert("⚠️ சரியான Passkey-ஐ உள்ளிடவும்!");
-        return;
-    }
-    localStorage.setItem("POS_PASSKEY", newKey);
-    alert("✅ புதிய POS Passkey வெற்றிகரமாகச் சேமிக்கப்பட்டது: " + newKey);
-    var modalElem = document.getElementById("adminPasskeyModal");
-    if(modalElem) {
-        var mInst = bootstrap.Modal.getInstance(modalElem);
-        if (mInst) mInst.hide();
-    }
-}
         function openReviewModal() {
             var html = "<table class='table table-sm table-striped'><thead><tr><th>Item</th><th class='text-end'>Qty</th><th class='text-end'>Total</th></tr></thead><tbody>";
             var tot = 0, count = 0;
@@ -1343,134 +1342,88 @@ function saveNewPOSPasskey() {
         }
 
         function processFinalOrderSave() {
-    var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
-    var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
-    var name = document.getElementById("cust_name").value.trim() || "Customer";
-    var rawMobile = document.getElementById("cust_mobile").value.replace(/[^0-9]/g, '') || "9999999999";
-    var custMobileFormatted = rawMobile.length === 10 ? "91" + rawMobile : rawMobile;
-    var address = document.getElementById("cust_address").value.trim() || "N/A";
-    var district = document.getElementById("cust_district").value.trim() || "Sivakasi";
+            var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
+            var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
+            var name = document.getElementById("cust_name").value.trim() || "Customer";
+            var rawMobile = document.getElementById("cust_mobile").value.replace(/[^0-9]/g, '') || "9999999999";
+            var custMobileFormatted = rawMobile.length === 10 ? "91" + rawMobile : rawMobile;
+            var address = document.getElementById("cust_address").value.trim() || "N/A";
+            var district = document.getElementById("cust_district").value.trim() || "Sivakasi";
 
-    var itemsObj = [];
-    var pdfTableRows = "";
-    var sno = 1;
+            var itemsObj = [];
+            var pdfTableRows = "";
+            var sno = 1;
 
-    var waHeaderTitle = (currentSessionType === "Online Customer") ? "NEW ONLINE ORDER RECEIVED" : "🏪 POS COUNTER BILL";
-    
-    // 💥 WhatsApp Message Header Structure
-    var waMessage = "💥 *" + waHeaderTitle + "* 💥\n" +
-                    "----------------------------------------\n" +
-                    "🆔 *Order ID:* " + orderId + "\n" +
-                    "👤 *Customer Name:* " + name + "\n" +
-                    "📞 *Mobile:* " + rawMobile + "\n" +
-                    "📍 *Location:* " + district + "\n" +
-                    "💼 *Business Interested:* " + (userBusinessInterest === "YES" ? "YES 👍" : "NO 👎") + "\n" +
-                    "----------------------------------------\n" +
-                    "📦 *ORDERED ITEMS LIST:*\n" +
-                    "----------------------------------------\n";
-
-    rawProducts.forEach(function(p) {
-        var q = selectedQty[p.id] || 0;
-        if(q > 0) {
-            var itemName = p.eng || p.name || "Cracker Item";
-            var rateVal = parseFloat(p.rate) || 0;
-            var tot = q * rateVal;
+            var waHeaderTitle = (currentSessionType === "Online Customer") ? "NEW ONLINE ORDER RECEIVED" : "🏪 POS COUNTER BILL";
             
-            itemsObj.push({ 
-                id: p.id, 
-                name: itemName, 
-                qty: q, 
-                rate: rateVal, 
-                total: tot, 
-                category: p.category || 'General' 
+            var waMessage = "💥 *" + waHeaderTitle + "* 💥\n" +
+                            "----------------------------------------\n" +
+                            "🆔 *Order ID:* " + orderId + "\n" +
+                            "👤 *Customer Name:* " + name + "\n" +
+                            "📞 *Mobile:* " + rawMobile + "\n" +
+                            "📍 *Location:* " + district + "\n" +
+                            "💼 *Business Interested:* " + (userBusinessInterest === "YES" ? "YES 👍" : "NO 👎") + "\n" +
+                            "----------------------------------------\n" +
+                            "📦 *ORDERED ITEMS LIST:*\n" +
+                            "----------------------------------------\n";
+
+            rawProducts.forEach(function(p) {
+                var q = selectedQty[p.id] || 0;
+                if(q > 0) {
+                    var itemName = p.eng || p.name || "Cracker Item";
+                    var rateVal = parseFloat(p.rate) || 0;
+                    var tot = q * rateVal;
+                    
+                    itemsObj.push({ 
+                        id: p.id, 
+                        name: itemName, 
+                        qty: q, 
+                        rate: rateVal, 
+                        total: tot, 
+                        category: p.category || 'General' 
+                    });
+                    
+                    waMessage += sno + ". *" + itemName + "*\n" +
+                                 "    ▶ Qty: " + q + " " + (p.per || 'pkt') + "  |  Rate: ₹" + rateVal + "  |  Total: ₹" + tot.toFixed(2) + "\n\n";
+                    
+                    pdfTableRows += '<tr style="border-bottom: 1px solid #e2e8f0;">' +
+                        '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + sno + '</td>' +
+                        '<td style="padding: 6px; border: 1px solid #cbd5e0;"><b>' + itemName + '</b></td>' +
+                        '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + q + '</td>' +
+                        '<td style="padding: 6px; text-align: right; border: 1px solid #cbd5e0;">Rs. ' + rateVal.toFixed(2) + '</td>' +
+                        '<td style="padding: 6px; text-align: right; border: 1px solid #cbd5e0;">Rs. ' + tot.toFixed(2) + '</td>' +
+                    '</tr>';
+                    sno++;
+                }
             });
-            
-            // 💥 Add Item to WhatsApp Body
-            waMessage += sno + ". *" + itemName + "*\n" +
-                         "    ▶ Qty: " + q + " " + (p.per || 'pkt') + "  |  Rate: ₹" + rateVal + "  |  Total: ₹" + tot.toFixed(2) + "\n\n";
-            
-            pdfTableRows += '<tr style="border-bottom: 1px solid #e2e8f0;">' +
-                '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + sno + '</td>' +
-                '<td style="padding: 6px; border: 1px solid #cbd5e0;"><b>' + itemName + '</b></td>' +
-                '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + q + '</td>' +
-                '<td style="padding: 6px; text-align: right; border: 1px solid #cbd5e0;">Rs. ' + rateVal.toFixed(2) + '</td>' +
-                '<td style="padding: 6px; text-align: right; border: 1px solid #cbd5e0;">Rs. ' + tot.toFixed(2) + '</td>' +
-            '</tr>';
-            sno++;
-        }
-    });
 
-    waMessage += "----------------------------------------\n" +
-                 "💰 *ESTIMATE TOTAL: ₹" + total.toLocaleString('en-IN') + ".00*\n" +
-                 "----------------------------------------\n\n" +
-                 "✨ *Thank you for ordering with us!*\n" +
-                 "🎆 *Wish you a Happy & Safe Diwali!* 💥";
+            waMessage += "----------------------------------------\n" +
+                         "💰 *ESTIMATE TOTAL: ₹" + total.toLocaleString('en-IN') + ".00*\n" +
+                         "----------------------------------------\n\n" +
+                         "✨ *Thank you for ordering with us!*\n" +
+                         "🎆 *Wish you a Happy & Safe Diwali!* 💥";
 
-    document.getElementById("billOrderId").innerText = orderId;
-    document.getElementById("billDate").innerText = new Date().toLocaleDateString();
-    document.getElementById("billCustName").innerText = name;
-    document.getElementById("billCustPhone").innerText = rawMobile;
-    document.getElementById("billCustAddress").innerText = address;
-    document.getElementById("billOrderType").innerText = currentSessionType;
-    document.getElementById("billItemsBody").innerHTML = pdfTableRows;
-    document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN') + ".00";
+            document.getElementById("billOrderId").innerText = orderId;
+            document.getElementById("billDate").innerText = new Date().toLocaleDateString();
+            document.getElementById("billCustName").innerText = name;
+            document.getElementById("billCustPhone").innerText = rawMobile;
+            document.getElementById("billCustAddress").innerText = address;
+            document.getElementById("billOrderType").innerText = currentSessionType;
+            document.getElementById("billItemsBody").innerHTML = pdfTableRows;
+            document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN') + ".00";
 
-    // Save PDF Download
-    setTimeout(function() {
-        var element = document.getElementById('printableBill');
-        var opt = {
-            margin:       0.3,
-            filename:     'Sri_Dhanush_Crackers_Estimate_' + orderId + '.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, logging: false, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save();
-    }, 500);
+            setTimeout(function() {
+                var element = document.getElementById('printableBill');
+                var opt = {
+                    margin:       0.3,
+                    filename:     'Sri_Dhanush_Crackers_Estimate_' + orderId + '.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, logging: false, useCORS: true },
+                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save();
+            }, 500);
 
-    var payload = {
-        order_id: orderId, 
-        customer_name: name, 
-        mobile: rawMobile,
-        address: address, 
-        district: district,
-        total_amount: total, 
-        order_type: currentSessionType, 
-        items: itemsObj,
-        business_interest: userBusinessInterest,
-        payment_status: (currentSessionType === "Walk-in Customer") ? "YES" : "NO",
-        approval_status: (currentSessionType === "Walk-in Customer") ? "Approved" : "Pending"
-    };
-
-    fetch(`${API_BASE}/orders`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    })
-    .then(function(r) { return r.json(); })
-    .then(function() {
-        alert("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது!");
-
-        var shopWaUrl = "https://wa.me/" + targetShopWhatsApp + "?text=" + encodeURIComponent(waMessage);
-
-        if (currentSessionType === "Walk-in Customer") {
-            window.open(shopWaUrl, '_blank');
-            if (rawMobile.length === 10) {
-                var custWaUrl = "https://wa.me/" + custMobileFormatted + "?text=" + encodeURIComponent(waMessage);
-                setTimeout(function() { window.open(custWaUrl, '_blank'); }, 1000);
-            }
-        } else {
-            window.location.href = shopWaUrl;
-        }
-
-        setTimeout(function() {
-            location.reload();
-        }, 1500);
-    })
-    .catch(function(err) {
-        alert("ஆர்டர் சேமிப்பதில் பிழை: " + err);
-    });
-}
             var payload = {
                 order_id: orderId, 
                 customer_name: name, 
@@ -1490,8 +1443,8 @@ function saveNewPOSPasskey() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             })
-            .then(r => r.json())
-            .then(() => {
+            .then(function(r) { return r.json(); })
+            .then(function() {
                 alert("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது!");
 
                 var shopWaUrl = "https://wa.me/" + targetShopWhatsApp + "?text=" + encodeURIComponent(waMessage);
@@ -1510,7 +1463,7 @@ function saveNewPOSPasskey() {
                     location.reload();
                 }, 1500);
             })
-            .catch(err => {
+            .catch(function(err) {
                 alert("ஆர்டர் சேமிப்பதில் பிழை: " + err);
             });
         }
@@ -1608,7 +1561,7 @@ function saveNewPOSPasskey() {
             var items = [];
             try { items = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []); } catch(e){}
             var html = "<table class='table table-sm table-bordered'><thead><tr><th>Item</th><th>Qty</th><th>Total</th></tr></thead><tbody>";
-            items.forEach(it => { html += "<tr><td>" + (it.name || it.eng) + "</td><td>" + it.qty + "</td><td>₹" + (it.total || (it.qty * it.rate)) + "</h6>"; });
+            items.forEach(it => { html += "<tr><td>" + (it.name || it.eng) + "</td><td>" + it.qty + "</td><td>₹" + (it.total || (it.qty * it.rate)) + "</td></tr>"; });
             html += "</tbody></table><h6 class='text-end text-danger fw-bold'>Grand Total: ₹" + (order.total_amount || order.total) + "</h6>";
 
             document.getElementById("modalOrderItemsList").innerHTML = html;
