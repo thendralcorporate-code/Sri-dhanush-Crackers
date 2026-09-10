@@ -251,7 +251,47 @@
         </div>
     </div>
 
-    <!-- Admin Panel View -->
+    <!-- ➕ Single Product Add/Edit Modal -->
+    <div class="modal fade" id="productFormModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-3 text-dark">
+                <h5 class="fw-bold text-danger border-bottom pb-2 mb-3" id="prodModalTitle">➕ Add / Edit Product</h5>
+                <input type="hidden" id="edit_prod_id">
+                <div class="mb-2">
+                    <label class="form-label small fw-bold">Category:</label>
+                    <input type="text" id="edit_prod_cat" class="form-control form-control-sm" placeholder="e.g. Ground Chakkars">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small fw-bold">English Name *:</label>
+                    <input type="text" id="edit_prod_eng" class="form-control form-control-sm" placeholder="e.g. Deluxe Chakkar">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small fw-bold">Tamil Name:</label>
+                    <input type="text" id="edit_prod_tam" class="form-control form-control-sm" placeholder="e.g. டிலக்ஸ் சக்கரம்">
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-4">
+                        <label class="form-label small fw-bold">Unit:</label>
+                        <input type="text" id="edit_prod_per" class="form-control form-control-sm" placeholder="pkt/box">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label small fw-bold">Rate (₹) *:</label>
+                        <input type="number" id="edit_prod_rate" class="form-control form-control-sm" placeholder="100">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label small fw-bold">Stock Qty *:</label>
+                        <input type="number" id="edit_prod_stock" class="form-control form-control-sm" placeholder="50">
+                    </div>
+                </div>
+                <div class="d-flex gap-2 mt-3">
+                    <button class="btn btn-secondary btn-sm w-50" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-success btn-sm w-50 fw-bold" onclick="saveSingleProductManual()">Save Product 💾</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN ADMIN PANEL VIEW -->
     <div id="adminPanelView" class="p-3" style="display:none; background: #f8fafc; min-height: 100vh;">
         <!-- Top Navigation Bar -->
         <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded-3 shadow-sm text-white" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
@@ -678,7 +718,7 @@
                 var payStatus = String(o.payment_status || "NO").trim().toUpperCase();
                 var appStatus = String(o.approval_status || "").trim().toUpperCase();
                 
-                // 💥 FIX: Payment status is TRUE if payment_status='YES' OR approval_status='APPROVED'
+                // Payment Status Logic Check
                 var isPaid = (payStatus === "YES" || payStatus === "VERIFIED" || appStatus === "APPROVED" || appStatus === "PAYMENT APPROVED");
                 
                 var allocatedStaff = String(o.allocated_staff || "Unassigned");
@@ -765,6 +805,7 @@
                 } else if(currentLang === "both") {
                     titleDisplay = pNameEng + (pNameTam ? ' <small class="text-muted">(' + pNameTam + ')</small>' : '');
                 }
+
                 var q = selectedQty[item.id] || 0;
                 var rowTot = q * item.rate;
                 var isOutOfStock = (item.isOutOfStock === true);
