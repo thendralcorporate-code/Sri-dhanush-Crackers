@@ -475,6 +475,8 @@
                 </div>
             </div>
         </div>
+    </div>
+
     <!-- Order Items Detail Modal -->
     <div class="modal fade" id="orderDetailsModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -1282,7 +1284,7 @@
             document.getElementById("analyticsVerifiedRevenue").innerText = "₹" + verifiedRevenue.toLocaleString('en-IN');
             document.getElementById("analyticsBizLeads").innerText = bizLeadsCount;
 
-            // 2. Staff Performance Calculation (Orders & Revenue per Telecaller)
+            // 2. Staff Performance Calculation
             let staffData = {};
             adminOrdersList.forEach(o => {
                 let st = String(o.allocated_staff || 'Unassigned').trim();
@@ -1334,7 +1336,7 @@
                 options: { responsive: true }
             });
 
-            // 4. Top Selling Cracker Items (Extracted from Orders Json Items)
+            // 4. Top Selling Cracker Items
             let itemQuantities = {};
             adminOrdersList.forEach(o => {
                 let items = [];
@@ -1349,7 +1351,7 @@
             let sortedProducts = Object.keys(itemQuantities)
                 .map(k => ({ name: k, qty: itemQuantities[k] }))
                 .sort((a, b) => b.qty - a.qty)
-                .slice(0, 5); // Top 5 Items
+                .slice(0, 5);
 
             let ctxProd = document.getElementById('topProductsChart').getContext('2d');
             if (topProductsChartInst) topProductsChartInst.destroy();
@@ -1367,7 +1369,7 @@
                 options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } } }
             });
 
-            // 5. Business Interest Split (YES vs NO)
+            // 5. Business Interest Split
             let bizYes = adminOrdersList.filter(o => String(o.business_interest || '').toUpperCase() === 'YES').length;
             let bizNo = adminOrdersList.length - bizYes;
 
@@ -1385,6 +1387,7 @@
                 options: { responsive: true }
             });
         }
+
         function openAdminSettingsTool() {
             if (userRole !== "ADMIN") {
                 alert("❌ Admin-க்கு மட்டுமே Settings மாற்ற அனுமதி உண்டு!");
@@ -1721,7 +1724,7 @@
             document.getElementById("pdfStaffName").innerText = loggedInUsername || "Online System";
             document.getElementById("pdfPaymentDetails").innerText = (currentSessionType === "Walk-in Customer") ? "Cash / Counter Paid" : "Pending Verification";
 
-            // 💥 Single Click - Download 3 Pages PDF
+            // Single Click - Download 3 Pages PDF
             setTimeout(function() {
                 var element = document.getElementById('printableBill');
                 var opt = {
