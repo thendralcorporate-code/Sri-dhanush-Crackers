@@ -887,7 +887,7 @@
             .catch(err => alert("❌ பிழை: " + err));
         }
 
-        // 🟢 Table Renderer - Telecaller Lock/Grey-out & Dropdown Staff Re-assign Fix
+        // 🟢 Table Renderer - Telecaller Lock/Grey-out & Admin Delete Options
         function renderAdminOrders() {
             var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
             var tbody = document.getElementById("adminOrdersTableBody");
@@ -968,13 +968,45 @@
                                <button class="btn btn-sm btn-outline-primary fw-bold me-1" onclick="printSingleAdminOrderPDF('${oId}')">🖨️ Print Set</button>`
                         }
                         ${((userRole === "ADMIN" || userRole === "ACCOUNTS") && !isPaid) 
-                            ? `<button class="btn btn-sm btn-danger fw-bold" onclick="openPaymentVerifyModal('${oId}')">💳 Confirm Payment</button>` 
+                            ? `<button class="btn btn-sm btn-danger fw-bold me-1" onclick="openPaymentVerifyModal('${oId}')">💳 Confirm Payment</button>` 
+                            : ''}
+                        ${userRole === "ADMIN" 
+                            ? `<button class="btn btn-sm btn-outline-danger fw-bold" onclick="deleteSingleOrder('${oId}')">🗑️ Delete</button>` 
                             : ''}
                     </td>
                 </tr>`;
             });
 
             tbody.innerHTML = html || "<tr><td colspan='8' class='text-center text-muted p-3'>ஆர்டர்கள் எதுவும் இல்லை!</td></tr>";
+        }
+
+        // 🟢 Delete Order Function for Admin Only
+        function deleteSingleOrder(orderId) {
+            if (userRole !== "ADMIN") {
+                alert("❌ Admin-க்கு மட்டுமே ஆர்டர்களை நீக்க அனுமதி உண்டு!");
+                return;
+            }
+
+            if (confirm(`⚠️ Order ID: ${orderId}-ஐ நிரந்தரமாக நீக்க விரும்புகிறீர்களா?`)) {
+                fetch(`${API_BASE}/orders`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "delete_order",
+                        order_id: orderId
+                    })
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res && res.error) {
+                        alert("❌ நீக்குவதில் பிழை: " + res.error);
+                    } else {
+                        alert(`✅ Order ${orderId} வெற்றிகரமாக நீக்கப்பட்டது!`);
+                        loadAdminOrders();
+                    }
+                })
+                .catch(err => alert("❌ பிழை: " + err));
+            }
         }
 
         // 🟢 Open Dropdown Staff Re-assign Modal
@@ -1960,6 +1992,7 @@
             });
         }
 
+        // 🟢 Role-based Navigation Tabs & View Restrictions
         function showAdminView(role, username) {
             userRole = role;
             loggedInUsername = username;
@@ -1977,6 +2010,13 @@
 
             var settingsToolBtn = document.getElementById("btnAdminSettingsTool");
             if(settingsToolBtn) settingsToolBtn.style.display = (role === "ADMIN") ? "inline-block" : "none";
+
+            // Role Restrictions for Tabs
+            var tabStock = document.getElementById("tabBtnStock");
+            if(tabStock) tabStock.style.display = (role === "ADMIN" || role === "ACCOUNTS") ? "inline-block" : "none";
+
+            var tabAnalytics = document.getElementById("tabBtnAnalytics");
+            if(tabAnalytics) tabAnalytics.style.display = (role === "ADMIN") ? "inline-block" : "none";
 
             var modalElem = document.getElementById("loginModal");
             if(modalElem) {
@@ -2014,6 +2054,17 @@
         function viewOrderItems(orderId) {
             var order = adminOrdersList.find(o => String(o.id || o.order_id) === String(orderId));
             if(!order) return;
+
+            var payStatus = String(order.payment_status || "NO").trim().toUpperCase();
+            var appStatus = String(order.approval_status || "").trim().toUpperCase();
+            var isPaid = (payStatus === "YES" || payStatus === "VERIFIED" || appStatus === "APPROVED" || appStatus === "PAYMENT APPROVED");
+
+            // Strict Telecaller Locked Order Prevention
+            if (userRole === "TELECALLER" && !isPaid) {
+                alert("🔒 இந்த ஆர்டரின் பணம் இன்னும் உறுதி செய்யப்படவில்லை! பார்க்க அனுமதி இல்லை.");
+                return;
+            }
+
             document.getElementById("modalOrderTitle").innerText = orderId + " - " + (order.customer_name || order.name);
             document.getElementById("modalOrderCustomerInfo").innerHTML = "<b>Mobile:</b> " + order.mobile + " | <b>Address:</b> " + (order.address || 'N/A');
             
