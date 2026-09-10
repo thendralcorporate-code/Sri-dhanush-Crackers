@@ -631,14 +631,30 @@
         }
 
         function openPOSDirectMode() {
-            currentSessionType = "Walk-in Customer";
-            document.body.classList.add("pos-mode");
-            alert("🏪 Walk-in POS Billing Session Started!");
-            document.getElementById("cust_name").value = "Walk-in Customer";
-            document.getElementById("cust_mobile").value = "9999999999";
-            goToStep2();
-        }
+    // POS Passkey பட்டியல் (தேவைப்பட்டால் மேலும் PIN-களைச் சேர்த்துக் கொள்ளலாம்)
+    var VALID_POS_KEYS = ["9999", "1234", "8888"]; 
 
+    var enteredKey = prompt("🔑 POS Counter Passkey-ஐ உள்ளிடவும்:");
+
+    if (!enteredKey) {
+        return; // Cancel அழுத்தினால் வெளியேறும்
+    }
+
+    if (VALID_POS_KEYS.includes(enteredKey.trim())) {
+        userRole = "POS";
+        loggedInUsername = "POS Counter";
+        currentSessionType = "Walk-in Customer";
+        
+        document.body.classList.add("pos-mode");
+        alert("🏪 Walk-in POS Billing Session Started!");
+        
+        document.getElementById("cust_name").value = "Walk-in Customer";
+        document.getElementById("cust_mobile").value = "9999999999";
+        goToStep2();
+    } else {
+        alert("❌ தவறான Passkey! அணுகல் மறுக்கப்பட்டது.");
+    }
+}
         function openLoginModal() { new bootstrap.Modal(document.getElementById("loginModal")).show(); }
 function processLogin() {
     var u = (document.getElementById("login_user").value || "").trim();
