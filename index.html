@@ -648,38 +648,57 @@
             }
         }
 
-        // 🟢 Payment Verification Submit Function
-        function submitPaymentConfirmation() {
-            var orderId = document.getElementById("pay_order_id").value;
-            var mode = document.getElementById("pay_mode_select").value;
-            var ref = document.getElementById("pay_ref_input").value.trim() || "N/A";
+        // 🟢 Submit Payment Confirmation & Force UI Refresh
+function submitPaymentConfirmation() {
+    var orderId = document.getElementById("pay_order_id").value;
+    var mode = document.getElementById("pay_mode_select").value;
+    var ref = document.getElementById("pay_ref_input").value.trim() || "Verified";
 
-            if(!orderId) {
-                alert("⚠️ Order ID கிடைத்ததில் பிழை!");
-                return;
+    if(!orderId) {
+        alert("⚠️ Order ID கிடைத்ததில் பிழை!");
+        return;
+    }
+
+    fetch(`${API_BASE}/orders`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            action: "confirm_payment", 
+            order_id: orderId,
+            payment_mode: mode,
+            transaction_ref: ref
+        })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if(res && res.error) {
+            alert("❌ பிழை: " + res.error);
+        } else {
+            alert("✅ Payment Verified & Approved Successfully!");
+            
+            // Local State Immediate Update
+            var orderObj = adminOrdersList.find(o => String(o.id || o.order_id) === String(orderId));
+            if(orderObj) {
+                orderObj.payment_status = "YES";
+                orderObj.approval_status = "Approved";
+                orderObj.payment_mode = mode;
+                orderObj.transaction_ref = ref;
             }
 
-            fetch(`${API_BASE}/orders`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    action: "confirm_payment", 
-                    order_id: orderId,
-                    payment_mode: mode,
-                    transaction_ref: ref
-                })
-            })
-            .then(r => r.json())
-            .then(res => {
-                alert("✅ Payment Verified & Approved Successfully!");
-                var mInst = bootstrap.Modal.getInstance(document.getElementById("paymentVerifyModal"));
+            var modalElem = document.getElementById("paymentVerifyModal");
+            if(modalElem) {
+                var mInst = bootstrap.Modal.getInstance(modalElem);
                 if(mInst) mInst.hide();
-                loadAdminOrders();
-            })
-            .catch(err => alert("❌ பிழை: " + err));
-        }
+            }
 
-        // 🟢 Table Renderer - Fixed Case-Sensitivity Issue for Telecaller Order Visibility
+            // Force Reload Fresh Orders from Supabase Server
+            loadAdminOrders();
+        }
+    })
+    .catch(err => alert("❌ பிழை: " + err));
+}
+
+// 🟢 Table Renderer - Strict Payment Status Display Logic
 function renderAdminOrders() {
     var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
     var tbody = document.getElementById("adminOrdersTableBody");
@@ -692,12 +711,10 @@ function renderAdminOrders() {
         var allocated = String(o.allocated_staff || "").trim().toLowerCase();
         var currentLoggedUser = String(loggedInUsername || "").trim().toLowerCase();
 
-        // Hide POS Walk-in orders for Telecallers
         if (oType === "Walk-in Customer" && userRole === "TELECALLER") {
             return false;
         }
 
-        // 💥 FIX: Case-insensitive staff allocation matching
         if (userRole === "TELECALLER" && allocated !== currentLoggedUser) {
             return false;
         }
@@ -721,12 +738,12 @@ function renderAdminOrders() {
         var payStatus = String(o.payment_status || "NO").trim().toUpperCase();
         var appStatus = String(o.approval_status || "").trim().toUpperCase();
         
-        // Payment Status Check
+        // 💥 Strict Paid Check
         var isPaid = (payStatus === "YES" || payStatus === "VERIFIED" || appStatus === "APPROVED" || appStatus === "PAYMENT APPROVED");
         
         var allocatedStaff = String(o.allocated_staff || "Unassigned");
         var payMode = o.payment_mode || "GPay";
-        var transRef = o.transaction_ref || "Approved";
+        var transRef = o.transaction_ref || "Verified";
 
         var orderDateStr = "N/A";
         if (o.created_at || o.order_date) {
@@ -743,7 +760,11 @@ function renderAdminOrders() {
             <td><b>${oName}</b></td>
             <td>${oMobile}<br><small class="text-muted">📍 ${oDistrict}</small></td>
             <td><span class="badge bg-warning text-dark">${oType}</span></td>
-            <td><span class="badge bg-secondary">${allocatedStaff}</span></td>
+            <td>
+                <span class="badge bg-secondary cursor-pointer" title="Click to Change Staff" onclick="reassignStaffModal('${oId}', '${allocatedStaff}')">
+                    👤 ${allocatedStaff} ✏️
+                </span>
+            </td>
             <td><b class="text-danger fs-6">₹${oTotal.toLocaleString('en-IN')}</b></td>
             <td>
                 <span class="badge ${isPaid ? 'bg-success' : 'bg-danger'} p-2">
