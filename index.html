@@ -56,6 +56,7 @@
         .admin-tab-btn { font-weight: bold; font-size: 13px; border-radius: 6px; }
         .cursor-pointer { cursor: pointer; }
         .chart-container { position: relative; height: 240px; width: 100%; }
+        .row-greyout { opacity: 0.55; background-color: #f1f5f9; }
     </style>
 </head>
 <body>
@@ -201,6 +202,27 @@
                 <div class="d-flex gap-2">
                     <button class="btn btn-secondary btn-sm w-50" data-bs-dismiss="modal">Cancel</button>
                     <button class="btn btn-success btn-sm w-50 fw-bold" onclick="submitPaymentConfirmation()">Approve ✅</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reassign Staff Modal (Dropdown Select) -->
+    <div class="modal fade" id="reassignStaffModalElem" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content p-3 text-dark text-center">
+                <h6 class="fw-bold text-primary mb-2"><i class="fas fa-user-edit me-1"></i>Re-assign Staff</h6>
+                <input type="hidden" id="reassign_order_id">
+                <label class="form-label small fw-bold text-muted mb-1">Staff-ஐத் தேர்ந்தெடுக்கவும்:</label>
+                <select id="reassign_staff_select" class="form-select form-select-sm mb-3 text-center fw-bold">
+                    <option value="Priya">Priya</option>
+                    <option value="Vimala">Vimala</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Unassigned">Unassigned</option>
+                </select>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-secondary btn-sm w-50" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary btn-sm w-50 fw-bold" onclick="submitStaffReassignment()">Save 💾</button>
                 </div>
             </div>
         </div>
@@ -865,6 +887,7 @@
             .catch(err => alert("❌ பிழை: " + err));
         }
 
+        // 🟢 Table Renderer - Telecaller Lock/Grey-out & Dropdown Staff Re-assign Fix
         function renderAdminOrders() {
             var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
             var tbody = document.getElementById("adminOrdersTableBody");
@@ -919,14 +942,15 @@
                 }
 
                 var isTelecallerLocked = (userRole === "TELECALLER" && !isPaid);
+                var rowClass = isTelecallerLocked ? 'class="row-greyout"' : '';
 
-                html += `<tr>
+                html += `<tr ${rowClass}>
                     <td><b>${oId}</b><br><small class="text-muted">${orderDateStr}</small></td>
                     <td><b>${oName}</b></td>
                     <td>${oMobile}<br><small class="text-muted">📍 ${oDistrict}</small></td>
                     <td><span class="badge bg-warning text-dark">${oType}</span></td>
                     <td>
-                        <span class="badge bg-secondary cursor-pointer" title="Click to Change Staff" onclick="reassignStaffModal('${oId}', '${allocatedStaff}')">
+                        <span class="badge bg-secondary cursor-pointer" title="Click to Change Staff" onclick="openReassignStaffModal('${oId}', '${allocatedStaff}')">
                             👤 ${allocatedStaff} ✏️
                         </span>
                     </td>
@@ -938,12 +962,14 @@
                         ${isPaid ? `<br><small class="text-muted">${payMode} (${transRef})</small>` : ''}
                     </td>
                     <td class="text-center text-nowrap">
-                        <button class="btn btn-sm btn-outline-dark fw-bold me-1" onclick="viewOrderItems('${oId}')">👁️ View</button>
-                        <button class="btn btn-sm btn-outline-primary fw-bold me-1" onclick="printSingleAdminOrderPDF('${oId}')">🖨️ Print Set</button>
+                        ${isTelecallerLocked 
+                            ? '<span class="badge bg-secondary p-2"><i class="fas fa-lock me-1"></i>Locked</span>' 
+                            : `<button class="btn btn-sm btn-outline-dark fw-bold me-1" onclick="viewOrderItems('${oId}')">👁️ View</button>
+                               <button class="btn btn-sm btn-outline-primary fw-bold me-1" onclick="printSingleAdminOrderPDF('${oId}')">🖨️ Print Set</button>`
+                        }
                         ${((userRole === "ADMIN" || userRole === "ACCOUNTS") && !isPaid) 
                             ? `<button class="btn btn-sm btn-danger fw-bold" onclick="openPaymentVerifyModal('${oId}')">💳 Confirm Payment</button>` 
                             : ''}
-                        ${isTelecallerLocked ? '<span class="badge bg-secondary">🔒 Locked</span>' : ''}
                     </td>
                 </tr>`;
             });
@@ -951,26 +977,43 @@
             tbody.innerHTML = html || "<tr><td colspan='8' class='text-center text-muted p-3'>ஆர்டர்கள் எதுவும் இல்லை!</td></tr>";
         }
 
-        function reassignStaffModal(orderId, currentStaff) {
+        // 🟢 Open Dropdown Staff Re-assign Modal
+        function openReassignStaffModal(orderId, currentStaff) {
             if(userRole !== "ADMIN") return;
-            var newStaff = prompt(`Order ID ${orderId}-க்கான Staff-ஐ மாற்றவும்:\n(Current Staff: ${currentStaff})`, currentStaff);
-            if(newStaff && newStaff.trim() !== "" && newStaff !== currentStaff) {
-                fetch(`${API_BASE}/orders`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        action: "reassign_staff",
-                        order_id: orderId,
-                        allocated_staff: newStaff.trim()
-                    })
+            document.getElementById("reassign_order_id").value = orderId;
+            var sel = document.getElementById("reassign_staff_select");
+            if(sel) sel.value = currentStaff || "Unassigned";
+            
+            new bootstrap.Modal(document.getElementById("reassignStaffModalElem")).show();
+        }
+
+        // 🟢 Submit Dropdown Staff Re-assignment
+        function submitStaffReassignment() {
+            var orderId = document.getElementById("reassign_order_id").value;
+            var newStaff = document.getElementById("reassign_staff_select").value;
+
+            if(!orderId || !newStaff) return;
+
+            fetch(`${API_BASE}/orders`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "reassign_staff",
+                    order_id: orderId,
+                    allocated_staff: newStaff
                 })
-                .then(r => r.json())
-                .then(() => {
-                    alert(`✅ Order ${orderId} successfully assigned to ${newStaff.trim()}!`);
-                    loadAdminOrders();
-                })
-                .catch(err => alert("❌ பிழை: " + err));
-            }
+            })
+            .then(r => r.json())
+            .then(() => {
+                alert(`✅ Order ${orderId} successfully assigned to ${newStaff}!`);
+                var mElem = document.getElementById("reassignStaffModalElem");
+                if(mElem) {
+                    var mInst = bootstrap.Modal.getInstance(mElem);
+                    if(mInst) mInst.hide();
+                }
+                loadAdminOrders();
+            })
+            .catch(err => alert("❌ பிழை: " + err));
         }
 
         function printSingleAdminOrderPDF(orderId) {
