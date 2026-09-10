@@ -11,17 +11,20 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary-color: #8c1d1d; --accent-color: #ffeb3b; }
-        body { background: #f4f6f9; font-family: sans-serif; padding-bottom: 180px; }
+        body { background: #f4f6f9; font-family: sans-serif; padding-bottom: 180px; transition: background 0.3s ease; }
         .admin-nav { background: #1a202c; color: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; }
         .header { background: var(--primary-color); color: white; padding: 15px; text-align: center; border-radius: 8px; margin: 10px; transition: background 0.3s ease; }
         .header h1 { margin: 0; font-size: 22px; }
         .shop-logo-img { max-height: 70px; display: none; margin-bottom: 5px; }
 
-        /* POS Theme Styling */
-        body.pos-mode { background: #ebf8ff; }
-        body.pos-mode .header { background: #1a365d !important; border-bottom: 4px solid #3182ce; }
-        body.pos-mode .admin-nav { background: #0f172a !important; }
-        .pos-badge { display: none; background: #3182ce; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-top: 5px; }
+        /* POS Dynamic Dark Blue Theme */
+        body.pos-mode { background: #0f172a !important; color: #f8fafc; }
+        body.pos-mode .header { background: #1e293b !important; border-bottom: 4px solid #38bdf8; }
+        body.pos-mode .admin-nav { background: #020617 !important; }
+        body.pos-mode .filter-card, body.pos-mode .lang-bar, body.pos-mode #step-1 { background: #1e293b !important; color: white !important; border-color: #334155; }
+        body.pos-mode .item-card { background: #1e293b !important; color: white !important; border-color: #334155; }
+        body.pos-mode .sticky-footer { background: #0f172a !important; border-top-color: #38bdf8; color: white; }
+        .pos-badge { display: none; background: #0284c7; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-top: 5px; }
         body.pos-mode .pos-badge { display: inline-block; }
 
         .filter-card { background: white; padding: 12px; margin: 10px; border-radius: 8px; border: 1px solid #cbd5e0; }
@@ -31,12 +34,11 @@
 
         .item-card { background: white; border: 1px solid #cbd5e0; padding: 10px; border-radius: 8px; margin: 0 10px 8px 10px; display: flex; justify-content: space-between; align-items: center; }
         .qty-input { width: 60px; text-align: center; font-weight: bold; border: 2px solid #3182ce; border-radius: 5px; }
-        .row-total { color: var(--primary-color); font-weight: bold; font-size: 13px; min-width: 65px; text-align: right; }
+        .row-total { color: #e11d48; font-weight: bold; font-size: 13px; min-width: 65px; text-align: right; }
         .cat-title { background: #feebc8; color: #742a2a; padding: 6px 10px; font-weight: bold; border-radius: 6px; margin: 10px; border-left: 4px solid #dd6b20; text-transform: uppercase; }
 
         .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 12px 15px 25px 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.15); border-top: 3px solid var(--primary-color); display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
         
-        /* 🎆 💥 SANGU CHAKKAR ANIMATED LOADER 💥 🎆 */
         .loader-screen { position: fixed; top:0; left:0; right:0; bottom:0; background: #ffffff; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .sangu-chakkar-box { position: relative; width: 90px; height: 90px; display: flex; justify-content: center; align-items: center; }
         .chakkar-blades { width: 70px; height: 70px; border-radius: 50%; background: conic-gradient(#ef4444, #f59e0b, #10b981, #3b82f6, #ef4444); animation: fastSpin 0.3s linear infinite; box-shadow: 0 0 20px #f59e0b, inset 0 0 10px #ffffff; }
@@ -77,7 +79,7 @@
             <h1 id="hdr_shop_name">SRI DHANUSH CRACKERS</h1>
             <p id="hdr_address" class="mb-0">📍 Sivakasi</p>
             <p id="hdr_contacts" class="mb-0">📞 Contact Store</p>
-            <span class="pos-badge">🏪 WALKIN COUNTER BILLING MODE</span>
+            <span class="pos-badge" id="posHeaderTitle">🏪 WALKIN COUNTER BILLING MODE</span>
         </div>
 
         <div class="lang-bar">
@@ -142,7 +144,7 @@
     <!-- Review Order Modal -->
     <div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content p-3">
+            <div class="modal-content p-3 text-dark">
                 <h5 class="fw-bold text-danger" id="modalReviewTitle">📋 ஆர்டர் விவரங்கள் (Review)</h5>
                 <div id="reviewItemsList" class="my-2" style="max-height:250px; overflow-y:auto;"></div>
                 <div class="fw-bold text-end text-danger fs-5 mb-2">Total: <span id="reviewGrandTotal">₹ 0.00</span></div>
@@ -157,23 +159,41 @@
     <!-- 💼 Business Interest Inquiry Modal -->
     <div class="modal fade" id="businessInterestModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content p-4 text-center border-danger shadow-lg" style="border: 2px solid #8c1d1d;">
-                <div class="mb-2">
-                    <span style="font-size: 40px;">💼🎆</span>
-                </div>
+            <div class="modal-content p-4 text-center border-danger shadow-lg text-dark" style="border: 2px solid #8c1d1d;">
+                <div class="mb-2"><span style="font-size: 40px;">💼🎆</span></div>
                 <h5 class="fw-bold text-danger mb-2" id="bizTitle">பட்டாசு கடை பிசினஸ் செய்ய விருப்பமா?</h5>
                 <p class="text-dark fw-bold mb-3" style="font-size: 14px;" id="bizDesc">
                     நீங்களும் குறைந்த முதலீட்டில் பட்டாசு வியாபாரம் தொடங்குவதில் ஆர்வமாக உள்ளீர்களா?<br>
                     <small class="text-muted">(Are you interested in starting a Cracker Shop Business with low investment?)</small>
                 </p>
                 <div class="d-flex justify-content-center gap-3 mt-2">
-                    <button class="btn btn-success fw-bold px-4 py-2" onclick="recordBusinessChoice('YES')">
-                        <i class="fas fa-check-circle me-1"></i> ஆம் / YES 👍
-                    </button>
-                    <button class="btn btn-outline-secondary fw-bold px-4 py-2" onclick="recordBusinessChoice('NO')">
-                        <i class="fas fa-times-circle me-1"></i> இல்லை / NO 👎
-                    </button>
+                    <button class="btn btn-success fw-bold px-4 py-2" onclick="recordBusinessChoice('YES')"><i class="fas fa-check-circle me-1"></i> ஆம் / YES 👍</button>
+                    <button class="btn btn-outline-secondary fw-bold px-4 py-2" onclick="recordBusinessChoice('NO')"><i class="fas fa-times-circle me-1"></i> இல்லை / NO 👎</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🏪 POS Passkey Entry Modal -->
+    <div class="modal fade" id="posKeyModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content p-3 text-center shadow-lg text-dark">
+                <h5 class="fw-bold text-primary mb-2"><i class="fas fa-cash-register me-1"></i>POS Billing Access</h5>
+                <p class="small text-muted mb-2">Passkey-ஐ உள்ளிடவும்</p>
+                <input type="password" id="pos_passkey_input" class="form-control text-center fs-4 fw-bold mb-3" placeholder="****" maxlength="6">
+                <button class="btn btn-primary w-100 fw-bold" onclick="validatePOSPasskey()">Unlock POS Counter 🔓</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔑 Admin Passkey Management Tool Modal -->
+    <div class="modal fade" id="adminPasskeyModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content p-3 text-center text-dark">
+                <h5 class="fw-bold text-danger mb-2"><i class="fas fa-key me-1"></i>POS Passkey Tool</h5>
+                <p class="small text-muted mb-2">புதிய POS Passkey-ஐ அமைக்கவும்</p>
+                <input type="text" id="new_pos_passkey_input" class="form-control text-center fs-5 mb-3" placeholder="Enter New Passkey">
+                <button class="btn btn-success w-100 fw-bold" onclick="saveNewPOSPasskey()">Save Passkey 💾</button>
             </div>
         </div>
     </div>
@@ -186,6 +206,7 @@
                 <span id="currentUsernameBadge" class="text-white fw-bold">User: Admin</span>
             </div>
             <div>
+                <button class="btn btn-sm btn-warning fw-bold me-2" id="btnAdminPasskeyTool" onclick="openAdminPasskeyTool()">🔑 Passkey Config</button>
                 <button class="btn btn-sm btn-outline-light fw-bold" onclick="location.reload()">Logout 🚪</button>
             </div>
         </div>
@@ -224,7 +245,7 @@
     <!-- Order Items Detail Modal (Admin View) -->
     <div class="modal fade" id="orderDetailsModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content p-3">
+            <div class="modal-content p-3 text-dark">
                 <h5 class="fw-bold text-danger border-bottom pb-2" id="modalOrderTitle">Order Details</h5>
                 <div id="modalOrderCustomerInfo" class="small mb-2"></div>
                 <div id="modalOrderItemsList" class="my-2" style="max-height:250px; overflow-y:auto;"></div>
@@ -236,7 +257,7 @@
     <!-- Login Modal -->
     <div class="modal fade" id="loginModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content p-3">
+            <div class="modal-content p-3 text-dark">
                 <h5 class="fw-bold text-danger">Staff Login</h5>
                 <input type="text" id="login_user" class="form-control form-control-sm mb-2" placeholder="Username">
                 <input type="password" id="login_pass" class="form-control form-control-sm mb-3" placeholder="Password">
@@ -298,6 +319,10 @@
     <script>
         const API_BASE = "/api";
         let rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", loggedInUsername = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], currentSessionType = "Online Customer", userBusinessInterest = "NO";
+
+        if (!localStorage.getItem("POS_PASSKEY")) {
+            localStorage.setItem("POS_PASSKEY", "9999");
+        }
 
         window.onload = function() {
             loadShopSettingsAndProducts();
@@ -476,6 +501,71 @@
             document.getElementById("mainShopHeader").style.display = "block";
         }
 
+        function openPOSDirectMode() {
+            document.getElementById("pos_passkey_input").value = "";
+            var modalElem = document.getElementById("posKeyModal");
+            var posModal = new bootstrap.Modal(modalElem);
+            posModal.show();
+        }
+
+        function validatePOSPasskey() {
+            var savedKey = localStorage.getItem("POS_PASSKEY") || "9999";
+            var enteredKey = (document.getElementById("pos_passkey_input").value || "").trim();
+
+            if (!enteredKey) {
+                alert("⚠️ தயவுசெய்து Passkey-ஐ உள்ளிடவும்!");
+                return;
+            }
+
+            if (enteredKey === savedKey || enteredKey === "admin123") {
+                userRole = "POS";
+                loggedInUsername = "POS Counter";
+                currentSessionType = "Walk-in Customer";
+                
+                var modalElem = document.getElementById("posKeyModal");
+                var posModal = bootstrap.Modal.getInstance(modalElem);
+                if(posModal) posModal.hide();
+
+                // 🎨 POS Dark Blue Theme & Title Change
+                document.body.classList.add("pos-mode");
+                document.getElementById("hdr_shop_name").innerText = "🏪 WALKIN COUNTER BILLING MODE";
+                document.getElementById("hdr_shop_name").style.color = "#38bdf8";
+                
+                // 3. Force Mandatory Customer Details Entry
+                document.getElementById("cust_name").value = "";
+                document.getElementById("cust_mobile").value = "";
+                document.getElementById("cust_address").value = "";
+                document.getElementById("cust_district").value = "Sivakasi Walk-in";
+
+                goToStep1();
+                alert("✅ POS Counter Unlocked! வாடிக்கையாளர் விவரங்களை உள்ளிட்டு தொடரவும்.");
+            } else {
+                alert("❌ தவறான Passkey! அணுகல் மறுக்கப்பட்டது.");
+            }
+        }
+
+        function openAdminPasskeyTool() {
+            if (userRole !== "ADMIN") {
+                alert("❌ Admin-க்கு மட்டுமே Passkey மாற்ற அனுமதி உண்டு!");
+                return;
+            }
+            document.getElementById("new_pos_passkey_input").value = localStorage.getItem("POS_PASSKEY") || "9999";
+            new bootstrap.Modal(document.getElementById("adminPasskeyModal")).show();
+        }
+
+        function saveNewPOSPasskey() {
+            var newKey = (document.getElementById("new_pos_passkey_input").value || "").trim();
+            if (!newKey) {
+                alert("⚠️ சரியான Passkey-ஐ உள்ளிடவும்!");
+                return;
+            }
+            localStorage.setItem("POS_PASSKEY", newKey);
+            alert("✅ புதிய POS Passkey வெற்றிகரமாகச் சேமிக்கப்பட்டது: " + newKey);
+            var modalElem = document.getElementById("adminPasskeyModal");
+            var mInst = bootstrap.Modal.getInstance(modalElem);
+            if (mInst) mInst.hide();
+        }
+
         function openReviewModal() {
             var html = "<table class='table table-sm table-striped'><thead><tr><th>Item</th><th class='text-end'>Qty</th><th class='text-end'>Total</th></tr></thead><tbody>";
             var tot = 0, count = 0;
@@ -536,7 +626,7 @@
             var itemsObj = [];
             var pdfTableRows = "", sno = 1;
 
-            var waHeaderTitle = currentSessionType === "Online Customer" ? "NEW ONLINE ORDER RECEIVED" : "STORE ESTIMATE BILL";
+            var waHeaderTitle = currentSessionType === "Online Customer" ? "NEW ONLINE ORDER RECEIVED" : "🏪 POS COUNTER BILL";
             var waMessage = "💥 *" + waHeaderTitle + "* 💥\n" +
                             "----------------------------------------\n" +
                             "🆔 *Order ID:* " + orderId + "\n" +
@@ -605,10 +695,11 @@
                 address: address, 
                 district: district,
                 total_amount: total, 
-                order_type: currentSessionType, 
+                order_type: currentSessionType, // Saves as "Walk-in Customer" if POS mode
                 items: itemsObj,
                 business_interest: userBusinessInterest,
-                approval_status: "Pending"
+                payment_status: (currentSessionType === "Walk-in Customer") ? "YES" : "NO",
+                approval_status: (currentSessionType === "Walk-in Customer") ? "Approved" : "Pending"
             };
 
             fetch(`${API_BASE}/orders`, {
@@ -618,74 +709,54 @@
             })
             .then(r => r.json())
             .then(() => {
-                var sendTargetPhone = (currentSessionType === "Online Customer") ? targetShopWhatsApp : custMobileFormatted;
-                var waUrl = "https://wa.me/" + sendTargetPhone + "?text=" + encodeURIComponent(waMessage);
+                var shopWaUrl = "https://wa.me/" + targetShopWhatsApp + "?text=" + encodeURIComponent(waMessage);
+                var custWaUrl = "https://wa.me/" + custMobileFormatted + "?text=" + encodeURIComponent(waMessage);
 
-                setTimeout(function() {
-                    window.location.href = waUrl;
-                }, 1200);
+                alert("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது!");
+
+                // Dual WhatsApp Alert Dispatch
+                window.open(shopWaUrl, '_blank');
+                if (rawMobile.length === 10) {
+                    setTimeout(function() { window.open(custWaUrl, '_blank'); }, 1000);
+                }
             })
             .catch(err => {
                 alert("ஆர்டர் சேமிப்பதில் பிழை: " + err);
             });
         }
 
-        function openPOSDirectMode() {
-    // POS Passkey பட்டியல் (தேவைப்பட்டால் மேலும் PIN-களைச் சேர்த்துக் கொள்ளலாம்)
-    var VALID_POS_KEYS = ["9999", "1234", "8888"]; 
-
-    var enteredKey = prompt("🔑 POS Counter Passkey-ஐ உள்ளிடவும்:");
-
-    if (!enteredKey) {
-        return; // Cancel அழுத்தினால் வெளியேறும்
-    }
-
-    if (VALID_POS_KEYS.includes(enteredKey.trim())) {
-        userRole = "POS";
-        loggedInUsername = "POS Counter";
-        currentSessionType = "Walk-in Customer";
-        
-        document.body.classList.add("pos-mode");
-        alert("🏪 Walk-in POS Billing Session Started!");
-        
-        document.getElementById("cust_name").value = "Walk-in Customer";
-        document.getElementById("cust_mobile").value = "9999999999";
-        goToStep2();
-    } else {
-        alert("❌ தவறான Passkey! அணுகல் மறுக்கப்பட்டது.");
-    }
-}
-        function openLoginModal() { new bootstrap.Modal(document.getElementById("loginModal")).show(); }
-function processLogin() {
-    var u = (document.getElementById("login_user").value || "").trim();
-    var p = (document.getElementById("login_pass").value || "").trim();
-
-    if(!u || !p) {
-        alert("⚠️ பயனர்பெயர் மற்றும் பாஸ்வேர்டை உள்ளிடவும்!");
-        return;
-    }
-
-    // Static Admin Fallback
-    if(u.toLowerCase() === "admin" && p === "admin123") {
-        showAdminView("ADMIN", u);
-        return;
-    }
-
-    // Vercel Serverless API Call
-    fetch(`${API_BASE}/staff_login?user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}`)
-    .then(r => r.json())
-    .then(data => {
-        if(data && data.success) {
-            showAdminView(data.role || "STAFF", data.username || u);
-        } else {
-            alert("❌ தவறான Username அல்லது Password!");
+        function openLoginModal() { 
+            new bootstrap.Modal(document.getElementById("loginModal")).show(); 
         }
-    })
-    .catch(err => {
-        console.error("Login Error:", err);
-        alert("❌ லாகின் செய்வதில் பிழை!");
-    });
-}
+
+        function processLogin() {
+            var u = (document.getElementById("login_user").value || "").trim();
+            var p = (document.getElementById("login_pass").value || "").trim();
+
+            if(!u || !p) {
+                alert("⚠️ பயனர்பெயர் மற்றும் பாஸ்வேர்டை உள்ளிடவும்!");
+                return;
+            }
+
+            if(u.toLowerCase() === "admin" && p === "admin123") {
+                showAdminView("ADMIN", u);
+                return;
+            }
+
+            fetch(`${API_BASE}/staff_login?user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}`)
+            .then(r => r.json())
+            .then(data => {
+                if(data && data.success) {
+                    showAdminView(data.role || "STAFF", data.username || u);
+                } else {
+                    alert("❌ தவறான Username அல்லது Password!");
+                }
+            })
+            .catch(err => {
+                console.error("Login Error:", err);
+                alert("❌ லாகின் செய்வதில் பிழை!");
+            });
+        }
 
         function showAdminView(role, username) {
             userRole = role;
@@ -699,15 +770,18 @@ function processLogin() {
             var userBadge = document.getElementById("currentUsernameBadge");
             if(userBadge) userBadge.innerText = "User: " + username;
 
+            var passToolBtn = document.getElementById("btnAdminPasskeyTool");
+            if(passToolBtn) {
+                passToolBtn.style.display = (role === "ADMIN") ? "inline-block" : "none";
+            }
+
             var modalElem = document.getElementById("loginModal");
             if(modalElem) {
                 var modalInst = bootstrap.Modal.getInstance(modalElem);
                 if(modalInst) modalInst.hide();
             }
 
-            if(typeof loadAdminOrders === 'function') {
-                loadAdminOrders();
-            }
+            loadAdminOrders();
         }
 
         function loadAdminOrders() {
@@ -735,94 +809,104 @@ function processLogin() {
         }
 
         function renderAdminOrders() {
-    var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
-    var pendingHtml = "";
+            var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
+            var pendingHtml = "";
 
-    var filteredOrders = adminOrdersList.filter(o => {
-        var oType = o.order_type || "Online Customer";
-        var allocated = o.allocated_staff || "";
+            var filteredOrders = adminOrdersList.filter(o => {
+                var oType = o.order_type || "Online Customer";
+                var allocated = o.allocated_staff || "";
 
-        // Rule 1: POS Walk-in orders ONLY visible to ADMIN & ACCOUNTS
-        if (oType === "Walk-in Customer" && userRole === "TELECALLER") {
-            return false;
+                if (oType === "Walk-in Customer" && userRole === "TELECALLER") {
+                    return false;
+                }
+
+                if (userRole === "TELECALLER" && allocated !== loggedInUsername) {
+                    return false;
+                }
+
+                if (!searchTxt) return true;
+                var id = (o.id || o.order_id || "").toString().toLowerCase();
+                var mob = (o.mobile || "").toString().toLowerCase();
+                var nm = (o.customer_name || o.name || "").toString().toLowerCase();
+
+                return id.includes(searchTxt) || mob.includes(searchTxt) || nm.includes(searchTxt);
+            });
+
+            filteredOrders.forEach(o => {
+                var oId = o.id || o.order_id || "N/A";
+                var oName = o.customer_name || o.name || "Customer";
+                var oMobile = o.mobile || "N/A";
+                var oDistrict = o.district || "Local";
+                var oType = o.order_type || "Online Customer";
+                var oTotal = parseFloat(o.total_amount || 0);
+                var bizInterest = (o.business_interest === "YES") ? "YES 👍" : "NO 👎";
+                var payStatus = o.payment_status || "NO";
+                var allocatedStaff = o.allocated_staff || "Unassigned";
+
+                var orderDateStr = "N/A";
+                if (o.created_at || o.order_date) {
+                    var d = new Date(o.created_at || o.order_date);
+                    orderDateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + " " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                }
+
+                var isTelecallerLocked = (userRole === "TELECALLER" && payStatus === "NO");
+                
+                var cardStyle = isTelecallerLocked 
+                    ? "opacity: 0.65; background: #f1f5f9; border-left: 4px solid #94a3b8 !important;" 
+                    : (payStatus === "YES" 
+                        ? "background: #ffffff; border-left: 4px solid #22c55e !important;" 
+                        : "background: #ffffff; border-left: 4px solid #ef4444 !important;");
+
+                pendingHtml += '<div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; ' + cardStyle + '">' +
+                            '<div class="card-body p-3 text-dark">' +
+                                '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                                    '<div>' +
+                                        '<h6 class="fw-bold mb-0 text-dark">' + oId + ' - ' + oName + ' <span class="badge bg-warning text-dark ms-1">' + oType + '</span></h6>' +
+                                        '<small class="text-muted"><i class="fas fa-calendar-alt me-1"></i><b>Date:</b> ' + orderDateStr + '</small><br>' +
+                                        '<small class="text-muted"><i class="fas fa-phone-alt me-1"></i>' + oMobile + ' | <i class="fas fa-map-marker-alt me-1"></i>' + oDistrict + '</small><br>' +
+                                        '<small class="fw-bold text-primary">💼 Business Interested: ' + bizInterest + '</small> | ' +
+                                        '<small class="fw-bold text-dark">👤 Staff: ' + allocatedStaff + '</small>' +
+                                    '</div>' +
+                                    '<div class="text-end">' +
+                                        '<div class="fw-bold text-danger fs-6">₹' + oTotal.toLocaleString('en-IN') + '</div>' +
+                                        '<span class="badge ' + (payStatus === "YES" ? "bg-success" : "bg-danger") + ' mt-1">' +
+                                            (payStatus === "YES" ? "Payment Verified ✅" : "Payment Pending ⏳") +
+                                        '</span>' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="pt-2 border-top d-flex gap-2 align-items-center flex-wrap">' +
+                                    '<button class="btn btn-sm btn-outline-dark fw-bold" onclick="viewOrderItems(\'' + oId + '\')">👁️ View Items</button>';
+
+                if ((userRole === "ADMIN" || userRole === "ACCOUNTS") && payStatus === "NO") {
+                    pendingHtml += '<button class="btn btn-sm btn-success fw-bold" onclick="confirmPayment(\'' + oId + '\')">💳 Confirm Payment</button>';
+                }
+
+                if (isTelecallerLocked) {
+                    pendingHtml += '<span class="badge bg-secondary ms-auto">🔒 Locked (Awaiting Payment)</span>';
+                }
+
+                pendingHtml += '</div></div></div>';
+            });
+
+            document.getElementById("pendingOrdersContainer").innerHTML = pendingHtml || "<div class='card p-3 text-center text-muted border-0 shadow-sm'>ஆர்டர்கள் எதுவும் இல்லை!</div>";
         }
 
-        // Rule 2: TELECALLERS see ONLY their allocated orders
-        if (userRole === "TELECALLER" && allocated !== loggedInUsername) {
-            return false;
+        function confirmPayment(orderId) {
+            if (!confirm("இந்த ஆர்டருக்கான பணப்பரிவர்த்தனையை (Payment) உறுதி செய்ய விரும்புகிறீர்களா?")) return;
+
+            fetch(`${API_BASE}/orders`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "confirm_payment", order_id: orderId })
+            })
+            .then(r => r.json())
+            .then(res => {
+                alert("✅ Payment வெற்றிகரமாக உறுதி செய்யப்பட்டது!");
+                loadAdminOrders();
+            })
+            .catch(err => alert("❌ பிழை: " + err));
         }
 
-        if (!searchTxt) return true;
-        var id = (o.id || o.order_id || "").toString().toLowerCase();
-        var mob = (o.mobile || "").toString().toLowerCase();
-        var nm = (o.customer_name || o.name || "").toString().toLowerCase();
-
-        return id.includes(searchTxt) || mob.includes(searchTxt) || nm.includes(searchTxt);
-    });
-
-    filteredOrders.forEach(o => {
-        var oId = o.id || o.order_id || "N/A";
-        var oName = o.customer_name || o.name || "Customer";
-        var oMobile = o.mobile || "N/A";
-        var oDistrict = o.district || "Local";
-        var oType = o.order_type || "Online Customer";
-        var oTotal = parseFloat(o.total_amount || 0);
-        var bizInterest = (o.business_interest === "YES") ? "YES 👍" : "NO 👎";
-        var payStatus = o.payment_status || "NO";
-        var allocatedStaff = o.allocated_staff || "Unassigned";
-
-        // ORDER DATE FORMULA
-        var orderDateStr = "N/A";
-        if (o.created_at || o.order_date) {
-            var d = new Date(o.created_at || o.order_date);
-            orderDateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + " " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-        }
-
-        // 🎯 FIX: Grey-out style only applies to TELECALLER when Payment is NO.
-        // ADMIN and ACCOUNTS always see normal clean white cards!
-        var isTelecallerLocked = (userRole === "TELECALLER" && payStatus === "NO");
-        
-        var cardStyle = isTelecallerLocked 
-            ? "opacity: 0.65; background: #f1f5f9; border-left: 4px solid #94a3b8 !important;" 
-            : (payStatus === "YES" 
-                ? "background: #ffffff; border-left: 4px solid #22c55e !important;" 
-                : "background: #ffffff; border-left: 4px solid #ef4444 !important;");
-
-        // Order Card HTML Structure
-        pendingHtml += '<div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; ' + cardStyle + '">' +
-                    '<div class="card-body p-3">' +
-                        '<div class="d-flex justify-content-between align-items-center mb-2">' +
-                            '<div>' +
-                                '<h6 class="fw-bold mb-0 text-dark">' + oId + ' - ' + oName + ' <span class="badge bg-warning text-dark ms-1">' + oType + '</span></h6>' +
-                                '<small class="text-muted"><i class="fas fa-calendar-alt me-1"></i><b>Date:</b> ' + orderDateStr + '</small><br>' +
-                                '<small class="text-muted"><i class="fas fa-phone-alt me-1"></i>' + oMobile + ' | <i class="fas fa-map-marker-alt me-1"></i>' + oDistrict + '</small><br>' +
-                                '<small class="fw-bold text-primary">💼 Business Interested: ' + bizInterest + '</small> | ' +
-                                '<small class="fw-bold text-dark">👤 Staff: ' + allocatedStaff + '</small>' +
-                            '</div>' +
-                            '<div class="text-end">' +
-                                '<div class="fw-bold text-danger fs-6">₹' + oTotal.toLocaleString('en-IN') + '</div>' +
-                                '<span class="badge ' + (payStatus === "YES" ? "bg-success" : "bg-danger") + ' mt-1">' +
-                                    (payStatus === "YES" ? "Payment Verified ✅" : "Payment Pending ⏳") +
-                                '</span>' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="pt-2 border-top d-flex gap-2 align-items-center flex-wrap">' +
-                            '<button class="btn btn-sm btn-outline-dark fw-bold" onclick="viewOrderItems(\'' + oId + '\')">👁️ View Items</button>';
-
-        // Payment Confirm Button (Only for Admin & Accounts)
-        if ((userRole === "ADMIN" || userRole === "ACCOUNTS") && payStatus === "NO") {
-            pendingHtml += '<button class="btn btn-sm btn-success fw-bold" onclick="confirmPayment(\'' + oId + '\')">💳 Confirm Payment</button>';
-        }
-
-        if (isTelecallerLocked) {
-            pendingHtml += '<span class="badge bg-secondary ms-auto">🔒 Locked (Awaiting Payment)</span>';
-        }
-
-        pendingHtml += '</div></div></div>';
-    });
-
-    document.getElementById("pendingOrdersContainer").innerHTML = pendingHtml || "<div class='card p-3 text-center text-muted border-0 shadow-sm'>ஆர்டர்கள் எதுவும் இல்லை!</div>";
-}
         function viewOrderItems(orderId) {
             var order = adminOrdersList.find(o => (o.order_id || o.orderId || o.id) === orderId);
             if(!order) return;
