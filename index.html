@@ -1322,79 +1322,134 @@
         }
 
         function processFinalOrderSave() {
-            var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
-            var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
-            var name = document.getElementById("cust_name").value.trim() || "Customer";
-            var rawMobile = document.getElementById("cust_mobile").value.replace(/[^0-9]/g, '') || "9999999999";
-            var custMobileFormatted = rawMobile.length === 10 ? "91" + rawMobile : rawMobile;
-            var address = document.getElementById("cust_address").value.trim() || "N/A";
-            var district = document.getElementById("cust_district").value.trim() || "Sivakasi";
+    var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
+    var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
+    var name = document.getElementById("cust_name").value.trim() || "Customer";
+    var rawMobile = document.getElementById("cust_mobile").value.replace(/[^0-9]/g, '') || "9999999999";
+    var custMobileFormatted = rawMobile.length === 10 ? "91" + rawMobile : rawMobile;
+    var address = document.getElementById("cust_address").value.trim() || "N/A";
+    var district = document.getElementById("cust_district").value.trim() || "Sivakasi";
 
-            var itemsObj = [];
-            var pdfTableRows = "", sno = 1;
+    var itemsObj = [];
+    var pdfTableRows = "";
+    var sno = 1;
 
-            var waHeaderTitle = currentSessionType === "Online Customer" ? "NEW ONLINE ORDER RECEIVED" : "🏪 POS COUNTER BILL";
-            var waMessage = "💥 *" + waHeaderTitle + "* 💥\n" +
-                            "----------------------------------------\n" +
-                            "🆔 *Order ID:* " + orderId + "\n" +
-                            "👤 *Customer Name:* " + name + "\n" +
-                            "📞 *Mobile:* " + rawMobile + "\n" +
-                            "📍 *Location:* " + district + "\n" +
-                            "💼 *Business Interested:* " + (userBusinessInterest === "YES" ? "YES 👍" : "NO 👎") + "\n" +
-                            "----------------------------------------\n" +
-                            "📦 *ORDERED ITEMS LIST:*\n" +
-                            "----------------------------------------\n";
+    var waHeaderTitle = (currentSessionType === "Online Customer") ? "NEW ONLINE ORDER RECEIVED" : "🏪 POS COUNTER BILL";
+    
+    // 💥 WhatsApp Message Header Structure
+    var waMessage = "💥 *" + waHeaderTitle + "* 💥\n" +
+                    "----------------------------------------\n" +
+                    "🆔 *Order ID:* " + orderId + "\n" +
+                    "👤 *Customer Name:* " + name + "\n" +
+                    "📞 *Mobile:* " + rawMobile + "\n" +
+                    "📍 *Location:* " + district + "\n" +
+                    "💼 *Business Interested:* " + (userBusinessInterest === "YES" ? "YES 👍" : "NO 👎") + "\n" +
+                    "----------------------------------------\n" +
+                    "📦 *ORDERED ITEMS LIST:*\n" +
+                    "----------------------------------------\n";
 
-            rawProducts.forEach(p => {
-                var q = selectedQty[p.id] || 0;
-                if(q > 0) {
-                    var itemName = p.eng || p.name || "Cracker Item";
-                    var rateVal = parseFloat(p.rate) || 0;
-                    var tot = q * rateVal;
-                    
-                    itemsObj.push({ id: p.id, name: itemName, qty: q, rate: rateVal, total: tot, category: p.category || 'General' });
-                    
-                    waMessage += sno + ". *" + itemName + "*\n" +
-                                 "    ▶ Qty: " + q + " " + (p.per || 'pkt') + "  |  Rate: ₹" + rateVal + "  |  Total: ₹" + tot.toFixed(2) + "\n\n";
-                    
-                    pdfTableRows += '<tr style="border-bottom: 1px solid #e2e8f0;">' +
-                        '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + sno + '</td>' +
-                        '<td style="padding: 6px; border: 1px solid #cbd5e0;"><b>' + itemName + '</b></td>' +
-                        '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + q + '</td>' +
-                        '<td style="padding: 6px; text-align: right; border: 1px solid #cbd5e0;">Rs. ' + rateVal.toFixed(2) + '</td>' +
-                        '<td style="padding: 6px; text-align: right; border: 1px solid #cbd5e0;">Rs. ' + tot.toFixed(2) + '</td>' +
-                    '</tr>';
-                    sno++;
-                }
+    rawProducts.forEach(function(p) {
+        var q = selectedQty[p.id] || 0;
+        if(q > 0) {
+            var itemName = p.eng || p.name || "Cracker Item";
+            var rateVal = parseFloat(p.rate) || 0;
+            var tot = q * rateVal;
+            
+            itemsObj.push({ 
+                id: p.id, 
+                name: itemName, 
+                qty: q, 
+                rate: rateVal, 
+                total: tot, 
+                category: p.category || 'General' 
             });
+            
+            // 💥 Add Item to WhatsApp Body
+            waMessage += sno + ". *" + itemName + "*\n" +
+                         "    ▶ Qty: " + q + " " + (p.per || 'pkt') + "  |  Rate: ₹" + rateVal + "  |  Total: ₹" + tot.toFixed(2) + "\n\n";
+            
+            pdfTableRows += '<tr style="border-bottom: 1px solid #e2e8f0;">' +
+                '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + sno + '</td>' +
+                '<td style="padding: 6px; border: 1px solid #cbd5e0;"><b>' + itemName + '</b></td>' +
+                '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + q + '</td>' +
+                '<td style="padding: 6px; text-align: right; border: 1px solid #cbd5e0;">Rs. ' + rateVal.toFixed(2) + '</td>' +
+                '<td style="padding: 6px; text-align: right; border: 1px solid #cbd5e0;">Rs. ' + tot.toFixed(2) + '</td>' +
+            '</tr>';
+            sno++;
+        }
+    });
 
-            waMessage += "----------------------------------------\n" +
-                         "💰 *ESTIMATE TOTAL: ₹" + total.toLocaleString('en-IN') + ".00*\n" +
-                         "----------------------------------------\n\n" +
-                         "✨ *Thank you for ordering with us!*\n" +
-                         "🎆 *Wish you a Happy & Safe Diwali!* 💥";
+    waMessage += "----------------------------------------\n" +
+                 "💰 *ESTIMATE TOTAL: ₹" + total.toLocaleString('en-IN') + ".00*\n" +
+                 "----------------------------------------\n\n" +
+                 "✨ *Thank you for ordering with us!*\n" +
+                 "🎆 *Wish you a Happy & Safe Diwali!* 💥";
 
-            document.getElementById("billOrderId").innerText = orderId;
-            document.getElementById("billDate").innerText = new Date().toLocaleDateString();
-            document.getElementById("billCustName").innerText = name;
-            document.getElementById("billCustPhone").innerText = rawMobile;
-            document.getElementById("billCustAddress").innerText = address;
-            document.getElementById("billOrderType").innerText = currentSessionType;
-            document.getElementById("billItemsBody").innerHTML = pdfTableRows;
-            document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN') + ".00";
+    document.getElementById("billOrderId").innerText = orderId;
+    document.getElementById("billDate").innerText = new Date().toLocaleDateString();
+    document.getElementById("billCustName").innerText = name;
+    document.getElementById("billCustPhone").innerText = rawMobile;
+    document.getElementById("billCustAddress").innerText = address;
+    document.getElementById("billOrderType").innerText = currentSessionType;
+    document.getElementById("billItemsBody").innerHTML = pdfTableRows;
+    document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN') + ".00";
 
-            setTimeout(function() {
-                var element = document.getElementById('printableBill');
-                var opt = {
-                    margin:       0.3,
-                    filename:     'Sri_Dhanush_Crackers_Estimate_' + orderId + '.pdf',
-                    image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2, logging: false, useCORS: true },
-                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-                };
-                html2pdf().set(opt).from(element).save();
-            }, 800);
+    // Save PDF Download
+    setTimeout(function() {
+        var element = document.getElementById('printableBill');
+        var opt = {
+            margin:       0.3,
+            filename:     'Sri_Dhanush_Crackers_Estimate_' + orderId + '.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, logging: false, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }, 500);
 
+    var payload = {
+        order_id: orderId, 
+        customer_name: name, 
+        mobile: rawMobile,
+        address: address, 
+        district: district,
+        total_amount: total, 
+        order_type: currentSessionType, 
+        items: itemsObj,
+        business_interest: userBusinessInterest,
+        payment_status: (currentSessionType === "Walk-in Customer") ? "YES" : "NO",
+        approval_status: (currentSessionType === "Walk-in Customer") ? "Approved" : "Pending"
+    };
+
+    fetch(`${API_BASE}/orders`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+    .then(function(r) { return r.json(); })
+    .then(function() {
+        alert("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது!");
+
+        var shopWaUrl = "https://wa.me/" + targetShopWhatsApp + "?text=" + encodeURIComponent(waMessage);
+
+        if (currentSessionType === "Walk-in Customer") {
+            window.open(shopWaUrl, '_blank');
+            if (rawMobile.length === 10) {
+                var custWaUrl = "https://wa.me/" + custMobileFormatted + "?text=" + encodeURIComponent(waMessage);
+                setTimeout(function() { window.open(custWaUrl, '_blank'); }, 1000);
+            }
+        } else {
+            window.location.href = shopWaUrl;
+        }
+
+        setTimeout(function() {
+            location.reload();
+        }, 1500);
+    })
+    .catch(function(err) {
+        alert("ஆர்டர் சேமிப்பதில் பிழை: " + err);
+    });
+}
             var payload = {
                 order_id: orderId, 
                 customer_name: name, 
