@@ -642,85 +642,68 @@
         function openLoginModal() { new bootstrap.Modal(document.getElementById("loginModal")).show(); }
 
         function processLogin() {
-    var u = (document.getElementById("login_user").value || "").trim();
-    var p = (document.getElementById("login_pass").value || "").trim();
+            var u = (document.getElementById("login_user").value || "").trim();
+            var p = (document.getElementById("login_pass").value || "").trim();
 
-    if(!u || !p) {
-        alert("⚠️ பயனர்பெயர் மற்றும் பாஸ்வேர்டை உள்ளிடவும்!");
-        return;
-    }
+            if(!u || !p) {
+                alert("⚠️ பயனர்பெயர் மற்றும் பாஸ்வேர்டை உள்ளிடவும்!");
+                return;
+            }
 
-    // Static Admin Fallback
-    if(u.toLowerCase() === "admin" && p === "admin123") {
-        showAdminView("ADMIN", u);
-        return;
-    }
+            if(u.toLowerCase() === "admin" && p === "admin123") {
+                showAdminView("ADMIN", u);
+                return;
+            }
 
-    // Direct Supabase Rest API Call (No Vercel backend needed)
-    var supabaseUrl = "https://uviquxhyywthznpnqmnx.supabase.co";
-    var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aXF1eGh5eXd0aHpucG5xbW54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTU2OTY1NTQsImV4cCI6MjAzMTI3MjU1NH0.G7iF9P"; // Your public key
+            var supabaseUrl = "https://uviquxhyywthznpnqmnx.supabase.co";
+            var supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aXF1eGh5eXd0aHpucG5xbW54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTU2OTY1NTQsImV4cCI6MjAzMTI3MjU1NH0.G7iF9P";
 
-    var fetchUrl = `${supabaseUrl}/rest/v1/staff?select=*&username=eq.${encodeURIComponent(u)}&password_hash=eq.${encodeURIComponent(p)}`;
+            var fetchUrl = `${supabaseUrl}/rest/v1/staff?select=*&username=eq.${encodeURIComponent(u)}&password_hash=eq.${encodeURIComponent(p)}`;
 
-    fetch(fetchUrl, {
-        headers: {
-            'apikey': supabaseKey,
-            'Authorization': 'Bearer ' + supabaseKey
+            fetch(fetchUrl, {
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': 'Bearer ' + supabaseKey
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(Array.isArray(data) && data.length > 0) {
+                    var userObj = data[0];
+                    showAdminView(userObj.role || "STAFF", userObj.username);
+                } else {
+                    alert("❌ தவறான Username அல்லது Password!");
+                }
+            })
+            .catch(err => {
+                console.error("Login Error:", err);
+                alert("❌ லாகின் செய்வதில் பிழை!");
+            });
         }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if(Array.isArray(data) && data.length > 0) {
-            var userObj = data[0];
-            showAdminView(userObj.role || "STAFF", userObj.username);
-        } else {
-            alert("❌ தவறான Username அல்லது Password!");
+
+        function showAdminView(role, username) {
+            userRole = role;
+            loggedInUsername = username;
+
+            document.getElementById("customerStoreView").style.display = "none";
+            document.getElementById("adminPanelView").style.display = "block";
+            
+            var currentBadge = document.getElementById("currentUserBadge");
+            if(currentBadge) currentBadge.innerText = "Role: " + role;
+            var userBadge = document.getElementById("currentUsernameBadge");
+            if(userBadge) userBadge.innerText = "User: " + username;
+
+            var modalElem = document.getElementById("loginModal");
+            if(modalElem) {
+                var modalInst = bootstrap.Modal.getInstance(modalElem);
+                if(modalInst) modalInst.hide();
+            }
+
+            if(typeof loadAdminOrders === 'function') {
+                loadAdminOrders();
+            }
         }
-    })
-    .catch(err => {
-        console.error("Login Error:", err);
-        alert("❌ லாகின் செய்வதில் பிழை!");
-    });
-}
 
-function showAdminView(role, username) {
-    userRole = role;
-    loggedInUsername = username;
-
-    document.getElementById("customerStoreView").style.display = "none";
-    document.getElementById("adminPanelView").style.display = "block";
-    
-    var currentBadge = document.getElementById("currentUserBadge");
-    if(currentBadge) currentBadge.innerText = "Role: " + role;
-    var userBadge = document.getElementById("currentUsernameBadge");
-    if(userBadge) userBadge.innerText = "User: " + username;
-
-    var modalElem = document.getElementById("loginModal");
-    if(modalElem) {
-        var modalInst = bootstrap.Modal.getInstance(modalElem);
-        if(modalInst) modalInst.hide();
-    }
-
-    if(typeof loadAdminOrders === 'function') {
-        loadAdminOrders();
-    }
-}
-
-    // Supabase Staff Table Check
-    fetch(`${API_BASE}/staff_login?user=${u}&pass=${p}`)
-    .then(r => r.json())
-    .then(data => {
-        if(data && data.success) {
-            userRole = data.role; // ADMIN or STAFF
-            loggedInUsername = data.username;
-            showAdminPanel();
-        } else {
-            alert("❌ தவறான பயனர் பெயர் அல்லது பாஸ்வேர்ட்!");
-        }
-    })
-    .catch(() => alert("❌ லாகின் செய்வதில் பிழை!"));
-}
-        /* 👑 ADMIN PANEL FUNCTIONS (ADDED) */
         function loadAdminOrders() {
             fetch(`${API_BASE}/orders`)
             .then(r => r.json())
@@ -751,7 +734,7 @@ function showAdminView(role, username) {
 
             var filteredOrders = adminOrdersList.filter(o => {
                 if (!searchTxt) return true;
-                var id = (o.order_id || o.orderId || "").toString().toLowerCase();
+                var id = (o.order_id || o.orderId || o.id || "").toString().toLowerCase();
                 var mob = (o.mobile || "").toString().toLowerCase();
                 var nm = (o.customer_name || o.name || "").toString().toLowerCase();
 
@@ -759,7 +742,7 @@ function showAdminView(role, username) {
             });
 
             filteredOrders.forEach(o => {
-                var oId = o.order_id || o.orderId || "N/A";
+                var oId = o.order_id || o.orderId || o.id || "N/A";
                 var oName = o.customer_name || o.name || "Customer";
                 var oMobile = o.mobile || "N/A";
                 var oDistrict = o.district || "Local";
@@ -789,7 +772,7 @@ function showAdminView(role, username) {
         }
 
         function viewOrderItems(orderId) {
-            var order = adminOrdersList.find(o => (o.order_id || o.orderId) === orderId);
+            var order = adminOrdersList.find(o => (o.order_id || o.orderId || o.id) === orderId);
             if(!order) return;
             document.getElementById("modalOrderTitle").innerText = orderId + " - " + (order.customer_name || order.name);
             document.getElementById("modalOrderCustomerInfo").innerHTML = "<b>Mobile:</b> " + order.mobile + " | <b>Address:</b> " + (order.address || 'N/A');
