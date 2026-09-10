@@ -159,7 +159,7 @@
         </div>
     </div>
 
-    <!-- 💼 Business Interest Inquiry Modal -->
+    <!-- Business Interest Inquiry Modal -->
     <div class="modal fade" id="businessInterestModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-4 text-center border-danger shadow-lg text-dark">
@@ -177,7 +177,7 @@
         </div>
     </div>
 
-    <!-- 💳 Payment Confirmation Modal (GPay / PhonePe / Cash / Bank Transfer) -->
+    <!-- Payment Confirmation Modal -->
     <div class="modal fade" id="paymentVerifyModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3 text-dark">
@@ -204,7 +204,7 @@
         </div>
     </div>
 
-    <!-- 🏪 POS Passkey Entry Modal -->
+    <!-- POS Passkey Entry Modal -->
     <div class="modal fade" id="posKeyModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3 text-center shadow-lg text-dark">
@@ -216,7 +216,7 @@
         </div>
     </div>
 
-    <!-- 🔑 Admin Passkey Tool Modal -->
+    <!-- Admin Passkey Tool Modal -->
     <div class="modal fade" id="adminPasskeyModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3 text-center text-dark">
@@ -228,7 +228,7 @@
         </div>
     </div>
 
-    <!-- ⚙️ Admin Shop Settings Modal -->
+    <!-- Admin Shop Settings Modal -->
     <div class="modal fade" id="adminSettingsModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3 text-dark">
@@ -251,7 +251,7 @@
         </div>
     </div>
 
-    <!-- ➕ Single Product Add/Edit Modal -->
+    <!-- Single Product Add/Edit Modal -->
     <div class="modal fade" id="productFormModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3 text-dark">
@@ -1532,7 +1532,7 @@
             var items = [];
             try { items = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []); } catch(e){}
             var html = "<table class='table table-sm table-bordered'><thead><tr><th>Item</th><th>Qty</th><th>Total</th></tr></thead><tbody>";
-            items.forEach(it => { html += "<tr><td>" + (it.name || it.eng) + "</td><td>" + it.qty + "</td><td>₹" + (it.total || (it.qty * it.rate)) + "</td></tr>"; });
+            items.forEach(it => { html += "<tr><td>" + (it.name || it.eng) + "</td><td>" + it.qty + "</td><td>₹" + (it.total || (it.qty * it.rate)) + "</h6>"; });
             html += "</tbody></table><h6 class='text-end text-danger fw-bold'>Grand Total: ₹" + (order.total_amount || order.total) + "</h6>";
 
             document.getElementById("modalOrderItemsList").innerHTML = html;
