@@ -16,11 +16,10 @@ export default async function handler(req, res) {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // 1. Confirm Payment Action (Saves Payment Mode & Ref No to Supabase)
+  // 1. Confirm Payment Action (Fixed to search ONLY 'id' column)
   if (req.method === 'POST' && req.body && req.body.action === 'confirm_payment') {
     try {
       const targetId = String(req.body.order_id || '').trim();
-      const cleanNumericId = targetId.replace(/[^0-9]/g, '');
       const payMode = req.body.payment_mode || 'GPay';
       const transRef = req.body.transaction_ref || 'Verified';
 
@@ -32,7 +31,7 @@ export default async function handler(req, res) {
           payment_mode: payMode,
           transaction_ref: transRef
         })
-        .or(`id.eq.${targetId},id.eq.${cleanNumericId},order_id.eq.${targetId},order_id.eq.${cleanNumericId}`);
+        .eq('id', targetId);
 
       if (error) return res.status(500).json({ error: error.message });
       return res.status(200).json({ success: true, message: "Payment Verified Successfully!", data });
@@ -45,13 +44,12 @@ export default async function handler(req, res) {
   if (req.method === 'POST' && req.body && req.body.action === 'reassign_staff') {
     try {
       const targetId = String(req.body.order_id || '').trim();
-      const cleanNumericId = targetId.replace(/[^0-9]/g, '');
       const newStaff = req.body.allocated_staff;
 
       const { data, error } = await supabase
         .from('orders')
         .update({ allocated_staff: newStaff })
-        .or(`id.eq.${targetId},id.eq.${cleanNumericId},order_id.eq.${targetId},order_id.eq.${cleanNumericId}`);
+        .eq('id', targetId);
 
       if (error) return res.status(500).json({ error: error.message });
       return res.status(200).json({ success: true, data });
