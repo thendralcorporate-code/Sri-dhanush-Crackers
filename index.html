@@ -526,12 +526,12 @@
                 var posModal = bootstrap.Modal.getInstance(modalElem);
                 if(posModal) posModal.hide();
 
-                // 🎨 POS Dark Blue Theme & Title Change
+                // POS Dark Blue Theme & Title Change
                 document.body.classList.add("pos-mode");
                 document.getElementById("hdr_shop_name").innerText = "🏪 WALKIN COUNTER BILLING MODE";
                 document.getElementById("hdr_shop_name").style.color = "#38bdf8";
                 
-                // 3. Force Mandatory Customer Details Entry
+                // Force Mandatory Customer Details Entry
                 document.getElementById("cust_name").value = "";
                 document.getElementById("cust_mobile").value = "";
                 document.getElementById("cust_address").value = "";
@@ -695,7 +695,7 @@
                 address: address, 
                 district: district,
                 total_amount: total, 
-                order_type: currentSessionType, // Saves as "Walk-in Customer" if POS mode
+                order_type: currentSessionType, 
                 items: itemsObj,
                 business_interest: userBusinessInterest,
                 payment_status: (currentSessionType === "Walk-in Customer") ? "YES" : "NO",
@@ -709,16 +709,25 @@
             })
             .then(r => r.json())
             .then(() => {
-                var shopWaUrl = "https://wa.me/" + targetShopWhatsApp + "?text=" + encodeURIComponent(waMessage);
-                var custWaUrl = "https://wa.me/" + custMobileFormatted + "?text=" + encodeURIComponent(waMessage);
-
                 alert("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது!");
 
-                // Dual WhatsApp Alert Dispatch
-                window.open(shopWaUrl, '_blank');
-                if (rawMobile.length === 10) {
-                    setTimeout(function() { window.open(custWaUrl, '_blank'); }, 1000);
+                var shopWaUrl = "https://wa.me/" + targetShopWhatsApp + "?text=" + encodeURIComponent(waMessage);
+
+                // 🎯 Fix 1: Online Order -> Only Shop WhatsApp, POS -> Both Shop & Customer WhatsApp
+                if (currentSessionType === "Walk-in Customer") {
+                    window.open(shopWaUrl, '_blank');
+                    if (rawMobile.length === 10) {
+                        var custWaUrl = "https://wa.me/" + custMobileFormatted + "?text=" + encodeURIComponent(waMessage);
+                        setTimeout(function() { window.open(custWaUrl, '_blank'); }, 1000);
+                    }
+                } else {
+                    window.location.href = shopWaUrl;
                 }
+
+                // 🎯 Fix 2: Reset Form & Reload Application to prevent duplicate entries
+                setTimeout(function() {
+                    location.reload();
+                }, 1500);
             })
             .catch(err => {
                 alert("ஆர்டர் சேமிப்பதில் பிழை: " + err);
