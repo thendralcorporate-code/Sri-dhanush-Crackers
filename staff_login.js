@@ -30,7 +30,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ success: false, error: error.message });
     }
 
-    // Case-insensitive match for username
+    // Username மற்றும் Password சரிபார்ப்பு
     const matchedUser = (data || []).find(
       u => u.username && u.username.trim().toLowerCase() === user.trim().toLowerCase() &&
            u.password_hash && u.password_hash.trim() === pass.trim()
