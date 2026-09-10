@@ -679,88 +679,90 @@
             .catch(err => alert("❌ பிழை: " + err));
         }
 
-        // 🟢 Table Renderer - Correct Payment Status & Telecaller Unlock Check
-        function renderAdminOrders() {
-            var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
-            var tbody = document.getElementById("adminOrdersTableBody");
-            if (!tbody) return;
+        // 🟢 Table Renderer - Fixed Case-Sensitivity Issue for Telecaller Order Visibility
+function renderAdminOrders() {
+    var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
+    var tbody = document.getElementById("adminOrdersTableBody");
+    if (!tbody) return;
 
-            var html = "";
+    var html = "";
 
-            var filteredOrders = adminOrdersList.filter(o => {
-                var oType = o.order_type || "Online Customer";
-                var allocated = o.allocated_staff || "";
+    var filteredOrders = adminOrdersList.filter(o => {
+        var oType = String(o.order_type || "Online Customer").trim();
+        var allocated = String(o.allocated_staff || "").trim().toLowerCase();
+        var currentLoggedUser = String(loggedInUsername || "").trim().toLowerCase();
 
-                if (oType === "Walk-in Customer" && userRole === "TELECALLER") {
-                    return false;
-                }
-
-                if (userRole === "TELECALLER" && allocated !== loggedInUsername) {
-                    return false;
-                }
-
-                if (!searchTxt) return true;
-                var id = String(o.id || o.order_id || "").toLowerCase();
-                var mob = String(o.mobile || "").toLowerCase();
-                var nm = String(o.customer_name || o.name || "").toLowerCase();
-
-                return id.includes(searchTxt) || mob.includes(searchTxt) || nm.includes(searchTxt);
-            });
-
-            filteredOrders.forEach(o => {
-                var oId = String(o.id || o.order_id || "N/A");
-                var oName = String(o.customer_name || o.name || "Customer");
-                var oMobile = String(o.mobile || "N/A");
-                var oDistrict = String(o.district || "Local");
-                var oType = String(o.order_type || "Online Customer");
-                var oTotal = parseFloat(o.total_amount || o.total || 0);
-                
-                var payStatus = String(o.payment_status || "NO").trim().toUpperCase();
-                var appStatus = String(o.approval_status || "").trim().toUpperCase();
-                
-                // Payment Status Logic Check
-                var isPaid = (payStatus === "YES" || payStatus === "VERIFIED" || appStatus === "APPROVED" || appStatus === "PAYMENT APPROVED");
-                
-                var allocatedStaff = String(o.allocated_staff || "Unassigned");
-                var payMode = o.payment_mode || "GPay";
-                var transRef = o.transaction_ref || "Approved";
-
-                var orderDateStr = "N/A";
-                if (o.created_at || o.order_date) {
-                    try {
-                        var d = new Date(o.created_at || o.order_date);
-                        orderDateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + " " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-                    } catch(e){}
-                }
-
-                var isTelecallerLocked = (userRole === "TELECALLER" && !isPaid);
-
-                html += `<tr>
-                    <td><b>${oId}</b><br><small class="text-muted">${orderDateStr}</small></td>
-                    <td><b>${oName}</b></td>
-                    <td>${oMobile}<br><small class="text-muted">📍 ${oDistrict}</small></td>
-                    <td><span class="badge bg-warning text-dark">${oType}</span></td>
-                    <td><span class="badge bg-secondary">${allocatedStaff}</span></td>
-                    <td><b class="text-danger fs-6">₹${oTotal.toLocaleString('en-IN')}</b></td>
-                    <td>
-                        <span class="badge ${isPaid ? 'bg-success' : 'bg-danger'} p-2">
-                            ${isPaid ? 'Payment Verified ✅' : 'Payment Pending ⏳'}
-                        </span>
-                        ${isPaid ? `<br><small class="text-muted">${payMode} (${transRef})</small>` : ''}
-                    </td>
-                    <td class="text-center text-nowrap">
-                        <button class="btn btn-sm btn-outline-dark fw-bold me-1" onclick="viewOrderItems('${oId}')">👁️ View</button>
-                        ${((userRole === "ADMIN" || userRole === "ACCOUNTS") && !isPaid) 
-                            ? `<button class="btn btn-sm btn-danger fw-bold" onclick="openPaymentVerifyModal('${oId}')">💳 Confirm Payment</button>` 
-                            : ''}
-                        ${isTelecallerLocked ? '<span class="badge bg-secondary">🔒 Locked</span>' : ''}
-                    </td>
-                </tr>`;
-            });
-
-            tbody.innerHTML = html || "<tr><td colspan='8' class='text-center text-muted p-3'>ஆர்டர்கள் எதுவும் இல்லை!</td></tr>";
+        // Hide POS Walk-in orders for Telecallers
+        if (oType === "Walk-in Customer" && userRole === "TELECALLER") {
+            return false;
         }
 
+        // 💥 FIX: Case-insensitive staff allocation matching
+        if (userRole === "TELECALLER" && allocated !== currentLoggedUser) {
+            return false;
+        }
+
+        if (!searchTxt) return true;
+        var id = String(o.id || o.order_id || "").toLowerCase();
+        var mob = String(o.mobile || "").toLowerCase();
+        var nm = String(o.customer_name || o.name || "").toLowerCase();
+
+        return id.includes(searchTxt) || mob.includes(searchTxt) || nm.includes(searchTxt);
+    });
+
+    filteredOrders.forEach(o => {
+        var oId = String(o.id || o.order_id || "N/A");
+        var oName = String(o.customer_name || o.name || "Customer");
+        var oMobile = String(o.mobile || "N/A");
+        var oDistrict = String(o.district || "Local");
+        var oType = String(o.order_type || "Online Customer");
+        var oTotal = parseFloat(o.total_amount || o.total || 0);
+        
+        var payStatus = String(o.payment_status || "NO").trim().toUpperCase();
+        var appStatus = String(o.approval_status || "").trim().toUpperCase();
+        
+        // Payment Status Check
+        var isPaid = (payStatus === "YES" || payStatus === "VERIFIED" || appStatus === "APPROVED" || appStatus === "PAYMENT APPROVED");
+        
+        var allocatedStaff = String(o.allocated_staff || "Unassigned");
+        var payMode = o.payment_mode || "GPay";
+        var transRef = o.transaction_ref || "Approved";
+
+        var orderDateStr = "N/A";
+        if (o.created_at || o.order_date) {
+            try {
+                var d = new Date(o.created_at || o.order_date);
+                orderDateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + " " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            } catch(e){}
+        }
+
+        var isTelecallerLocked = (userRole === "TELECALLER" && !isPaid);
+
+        html += `<tr>
+            <td><b>${oId}</b><br><small class="text-muted">${orderDateStr}</small></td>
+            <td><b>${oName}</b></td>
+            <td>${oMobile}<br><small class="text-muted">📍 ${oDistrict}</small></td>
+            <td><span class="badge bg-warning text-dark">${oType}</span></td>
+            <td><span class="badge bg-secondary">${allocatedStaff}</span></td>
+            <td><b class="text-danger fs-6">₹${oTotal.toLocaleString('en-IN')}</b></td>
+            <td>
+                <span class="badge ${isPaid ? 'bg-success' : 'bg-danger'} p-2">
+                    ${isPaid ? 'Payment Verified ✅' : 'Payment Pending ⏳'}
+                </span>
+                ${isPaid ? `<br><small class="text-muted">${payMode} (${transRef})</small>` : ''}
+            </td>
+            <td class="text-center text-nowrap">
+                <button class="btn btn-sm btn-outline-dark fw-bold me-1" onclick="viewOrderItems('${oId}')">👁️ View</button>
+                ${((userRole === "ADMIN" || userRole === "ACCOUNTS") && !isPaid) 
+                    ? `<button class="btn btn-sm btn-danger fw-bold" onclick="openPaymentVerifyModal('${oId}')">💳 Confirm Payment</button>` 
+                    : ''}
+                ${isTelecallerLocked ? '<span class="badge bg-secondary">🔒 Locked</span>' : ''}
+            </td>
+        </tr>`;
+    });
+
+    tbody.innerHTML = html || "<tr><td colspan='8' class='text-center text-muted p-3'>ஆர்டர்கள் எதுவும் இல்லை!</td></tr>";
+}
         // Open Payment Verification Modal
         function openPaymentVerifyModal(orderId) {
             document.getElementById("pay_order_id").value = orderId;
