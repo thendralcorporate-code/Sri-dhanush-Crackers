@@ -54,6 +54,7 @@
 
         #hiddenBillWrap { position: fixed; top: 0; left: -9999px; width: 750px; background: white; z-index: -1; }
         .admin-tab-btn { font-weight: bold; font-size: 13px; border-radius: 6px; }
+        .cursor-pointer { cursor: pointer; }
     </style>
 </head>
 <body>
@@ -159,7 +160,7 @@
         </div>
     </div>
 
-    <!-- 💼 Business Interest Inquiry Modal -->
+    <!-- Business Interest Inquiry Modal -->
     <div class="modal fade" id="businessInterestModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-4 text-center border-danger shadow-lg text-dark">
@@ -177,7 +178,7 @@
         </div>
     </div>
 
-    <!-- 💳 Payment Confirmation Modal (GPay / PhonePe / Cash / Bank Transfer) -->
+    <!-- Payment Confirmation Modal -->
     <div class="modal fade" id="paymentVerifyModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3 text-dark">
@@ -204,7 +205,7 @@
         </div>
     </div>
 
-    <!-- 🏪 POS Passkey Entry Modal -->
+    <!-- POS Passkey Entry Modal -->
     <div class="modal fade" id="posKeyModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3 text-center shadow-lg text-dark">
@@ -216,7 +217,7 @@
         </div>
     </div>
 
-    <!-- 🔑 Admin Passkey Tool Modal -->
+    <!-- Admin Passkey Tool Modal -->
     <div class="modal fade" id="adminPasskeyModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3 text-center text-dark">
@@ -228,7 +229,7 @@
         </div>
     </div>
 
-    <!-- ⚙️ Admin Shop Settings Modal -->
+    <!-- Admin Shop Settings Modal -->
     <div class="modal fade" id="adminSettingsModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3 text-dark">
@@ -251,7 +252,7 @@
         </div>
     </div>
 
-    <!-- ➕ Single Product Add/Edit Modal -->
+    <!-- Single Product Add/Edit Modal -->
     <div class="modal fade" id="productFormModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3 text-dark">
@@ -452,52 +453,117 @@
         </div>
     </div>
 
-    <!-- Printable PDF Layout (Hidden) -->
+    <!-- Printable PDF Layout (3 Pages Single File) -->
     <div id="hiddenBillWrap">
-        <div id="printableBill" style="padding: 20px; font-family: 'Helvetica', 'Arial', sans-serif; color: #2d3748; background: #ffffff; width: 700px; margin: auto;">
-            <div style="text-align: center; border-bottom: 2px solid #8c1d1d; padding-bottom: 10px; margin-bottom: 15px;">
-                <h2 id="pdfShopTitle" style="color: #8c1d1d; margin: 0; font-weight: bold; font-size: 24px;">SRI DHANUSH CRACKERS</h2>
-                <p id="pdfShopSubtitle" style="margin: 2px 0; font-size: 12px; color: #4a5568; font-weight: bold;">Sri Dhanush Crackers - Sivakasi | Customer Order Estimate</p>
-                <p id="pdfShopAddress" style="margin: 2px 0; font-size: 11px; color: #718096;">6/360, RCC BUILDING, Anuppankulam, Sattur Road, Sivakasi | Mob: 9080329266, 9976708194</p>
-            </div>
+        <div id="printableBill" style="font-family: 'Helvetica', 'Arial', sans-serif; color: #2d3748; background: #ffffff; width: 750px; margin: auto;">
+            
+            <!-- PAGE 1: CUSTOMER COPY -->
+            <div style="padding: 20px; page-break-after: always; min-height: 1000px;">
+                <div style="text-align: center; border-bottom: 2px solid #8c1d1d; padding-bottom: 10px; margin-bottom: 15px;">
+                    <span style="background: #8c1d1d; color: white; padding: 2px 10px; border-radius: 4px; font-weight: bold; font-size: 11px; float: right;">CUSTOMER COPY</span>
+                    <h2 id="pdfShopTitle" style="color: #8c1d1d; margin: 0; font-weight: bold; font-size: 24px;">SRI DHANUSH CRACKERS</h2>
+                    <p style="margin: 2px 0; font-size: 12px; color: #4a5568; font-weight: bold;">Sri Dhanush Crackers - Sivakasi | Customer Order Estimate</p>
+                    <p id="pdfShopAddress" style="margin: 2px 0; font-size: 11px; color: #718096;">Sivakasi | Mob: 9080329266</p>
+                </div>
 
-            <div style="background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 15px; margin-bottom: 15px; font-size: 12px;">
-                <table style="width: 100%;">
-                    <tr>
-                        <td><b>Order ID:</b> <span id="billOrderId">-</span></td>
-                        <td style="text-align: right;"><b>Date:</b> <span id="billDate">-</span></td>
-                    </tr>
-                    <tr>
-                        <td><b>Customer Name:</b> <span id="billCustName">-</span></td>
-                        <td style="text-align: right;"><b>Order Mode:</b> <span id="billOrderType">Online Order</span></td>
-                    </tr>
-                    <tr>
-                        <td><b>Mobile Number:</b> <span id="billCustPhone">-</span></td>
-                        <td style="text-align: right;"><b>Address:</b> <span id="billCustAddress">-</span></td>
-                    </tr>
+                <div style="background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 15px; font-size: 12px;">
+                    <table style="width: 100%;">
+                        <tr><td><b>Order ID:</b> <span class="pdfOrderId">-</span></td><td style="text-align: right;"><b>Date:</b> <span class="pdfDate">-</span></td></tr>
+                        <tr><td><b>Customer Name:</b> <span class="pdfCustName">-</span></td><td style="text-align: right;"><b>Order Mode:</b> <span class="pdfOrderType">-</span></td></tr>
+                        <tr><td><b>Mobile Number:</b> <span class="pdfCustPhone">-</span></td><td style="text-align: right;"><b>Address:</b> <span class="pdfCustAddress">-</span></td></tr>
+                    </table>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
+                    <thead>
+                        <tr style="background: #8c1d1d; color: #ffffff; text-align: left;">
+                            <th style="padding: 8px; border: 1px solid #8c1d1d; width: 40px; text-align: center;">S.No</th>
+                            <th style="padding: 8px; border: 1px solid #8c1d1d;">Item Name Description</th>
+                            <th style="padding: 8px; border: 1px solid #8c1d1d; width: 50px; text-align: center;">Qty</th>
+                            <th style="padding: 8px; border: 1px solid #8c1d1d; width: 80px; text-align: right;">Rate (Rs)</th>
+                            <th style="padding: 8px; border: 1px solid #8c1d1d; width: 90px; text-align: right;">Total (Rs)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="pdfItemsBody"></tbody>
                 </table>
+
+                <div style="text-align: right; margin-top: 15px; padding-top: 10px; border-top: 2px dashed #cbd5e0;">
+                    <h3 style="margin: 0; color: #8c1d1d; font-size: 18px;">ESTIMATE TOTAL: Rs. <span class="pdfGrandTotal">0.00</span></h3>
+                </div>
+                <div style="text-align: center; margin-top: 20px; font-size: 11px; color: #718096; font-style: italic;">
+                    *** Thank you for your order! Wish you a happy Diwali! ***
+                </div>
             </div>
 
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
-                <thead>
-                    <tr style="background: #8c1d1d; color: #ffffff; text-align: left;">
-                        <th style="padding: 8px; border: 1px solid #8c1d1d; width: 40px; text-align: center;">S.No</th>
-                        <th style="padding: 8px; border: 1px solid #8c1d1d;">Item Name Description</th>
-                        <th style="padding: 8px; border: 1px solid #8c1d1d; width: 50px; text-align: center;">Qty</th>
-                        <th style="padding: 8px; border: 1px solid #8c1d1d; width: 80px; text-align: right;">Rate (Rs)</th>
-                        <th style="padding: 8px; border: 1px solid #8c1d1d; width: 90px; text-align: right;">Total (Rs)</th>
-                    </tr>
-                </thead>
-                <tbody id="billItemsBody"></tbody>
-            </table>
+            <!-- PAGE 2: OFFICE COPY -->
+            <div style="padding: 20px; page-break-after: always; min-height: 1000px;">
+                <div style="text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 10px; margin-bottom: 15px;">
+                    <span style="background: #1e293b; color: white; padding: 2px 10px; border-radius: 4px; font-weight: bold; font-size: 11px; float: right;">OFFICE COPY</span>
+                    <h2 style="color: #1e293b; margin: 0; font-weight: bold; font-size: 22px;">SRI DHANUSH CRACKERS - OFFICE ORDER RECORD</h2>
+                </div>
 
-            <div style="text-align: right; margin-top: 15px; padding-top: 10px; border-top: 2px dashed #cbd5e0;">
-                <h3 style="margin: 0; color: #8c1d1d; font-size: 18px;">ESTIMATE TOTAL: Rs. <span id="billGrandTotal">0.00</span></h3>
+                <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 15px; font-size: 12px;">
+                    <table style="width: 100%;">
+                        <tr><td><b>Order ID:</b> <span class="pdfOrderId">-</span></td><td style="text-align: right;"><b>Booking Type:</b> <span class="pdfOrderType" style="color:#d97706; font-weight:bold;">-</span></td></tr>
+                        <tr><td><b>Customer Name:</b> <span class="pdfCustName">-</span></td><td style="text-align: right;"><b>Assigned Staff Name:</b> <span id="pdfStaffName" style="color:#2563eb; font-weight:bold;">Admin</span></td></tr>
+                        <tr><td><b>Mobile Number:</b> <span class="pdfCustPhone">-</span></td><td style="text-align: right;"><b>Payment Method / Status:</b> <span id="pdfPaymentDetails">GPay (Verified)</span></td></tr>
+                    </table>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
+                    <thead>
+                        <tr style="background: #1e293b; color: #ffffff; text-align: left;">
+                            <th style="padding: 8px; border: 1px solid #1e293b; width: 40px; text-align: center;">S.No</th>
+                            <th style="padding: 8px; border: 1px solid #1e293b;">Item Name Description</th>
+                            <th style="padding: 8px; border: 1px solid #1e293b; width: 50px; text-align: center;">Qty</th>
+                            <th style="padding: 8px; border: 1px solid #1e293b; width: 80px; text-align: right;">Rate (Rs)</th>
+                            <th style="padding: 8px; border: 1px solid #1e293b; width: 90px; text-align: right;">Total (Rs)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="pdfItemsBody"></tbody>
+                </table>
+
+                <div style="text-align: right; margin-top: 15px; padding-top: 10px; border-top: 2px dashed #cbd5e0;">
+                    <h3 style="margin: 0; color: #1e293b; font-size: 18px;">TOTAL RECEIVABLE: Rs. <span class="pdfGrandTotal">0.00</span></h3>
+                </div>
             </div>
 
-            <div style="text-align: center; margin-top: 25px; padding-top: 10px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #718096; font-style: italic;">
-                *** Thank you for your order! Wish you a happy Diwali! ***
+            <!-- PAGE 3: TRANSPORT COPY -->
+            <div style="padding: 20px; min-height: 1000px;">
+                <div style="text-align: center; border-bottom: 2px solid #0284c7; padding-bottom: 10px; margin-bottom: 15px;">
+                    <span style="background: #0284c7; color: white; padding: 2px 10px; border-radius: 4px; font-weight: bold; font-size: 11px; float: right;">TRANSPORT COPY</span>
+                    <h2 style="color: #0284c7; margin: 0; font-weight: bold; font-size: 22px;">SRI DHANUSH CRACKERS - PARCEL DESPATCH SLIP</h2>
+                </div>
+
+                <div style="border: 2px solid #0284c7; border-radius: 6px; padding: 15px; margin-bottom: 15px; font-size: 13px; background: #f0f9ff;">
+                    <h5 style="margin-top:0; color:#0369a1; font-weight:bold;">📦 DELIVERY ADDRESS SLIP</h5>
+                    <p style="margin: 3px 0;"><b>To:</b> <span class="pdfCustName" style="font-size:15px; font-weight:bold;">-</span></p>
+                    <p style="margin: 3px 0;"><b>Phone:</b> <span class="pdfCustPhone" style="font-size:15px; font-weight:bold;">-</span></p>
+                    <p style="margin: 3px 0;"><b>Destination / Lorry Station:</b> <span class="pdfCustAddress">-</span></p>
+                    <p style="margin: 3px 0;"><b>Order ID:</b> <span class="pdfOrderId">-</span> | <b>Booking Type:</b> <span class="pdfOrderType">-</span></p>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
+                    <thead>
+                        <tr style="background: #0284c7; color: #ffffff; text-align: left;">
+                            <th style="padding: 8px; border: 1px solid #0284c7; width: 40px; text-align: center;">S.No</th>
+                            <th style="padding: 8px; border: 1px solid #0284c7;">Item Name Description</th>
+                            <th style="padding: 8px; border: 1px solid #0284c7; width: 100px; text-align: center;">Box / Qty</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pdfTransportItemsBody"></tbody>
+                </table>
+
+                <div style="border: 1px solid #cbd5e1; padding: 10px; margin-top: 30px; font-size: 12px; background: #f8fafc;">
+                    <b>Transport / Lorry Booking Details:</b>
+                    <div style="margin-top: 15px; display: flex; justify-content: space-between;">
+                        <span>No. of Boxes: __________</span>
+                        <span>Weight (Kg): __________</span>
+                        <span>LR No: __________</span>
+                    </div>
+                </div>
             </div>
+
         </div>
     </div>
 
@@ -649,141 +715,224 @@
         }
 
         // 🟢 Submit Payment Confirmation & Force UI Refresh
-function submitPaymentConfirmation() {
-    var orderId = document.getElementById("pay_order_id").value;
-    var mode = document.getElementById("pay_mode_select").value;
-    var ref = document.getElementById("pay_ref_input").value.trim() || "Verified";
+        function submitPaymentConfirmation() {
+            var orderId = document.getElementById("pay_order_id").value;
+            var mode = document.getElementById("pay_mode_select").value;
+            var ref = document.getElementById("pay_ref_input").value.trim() || "Verified";
 
-    if(!orderId) {
-        alert("⚠️ Order ID கிடைத்ததில் பிழை!");
-        return;
-    }
-
-    fetch(`${API_BASE}/orders`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-            action: "confirm_payment", 
-            order_id: orderId,
-            payment_mode: mode,
-            transaction_ref: ref
-        })
-    })
-    .then(r => r.json())
-    .then(res => {
-        if(res && res.error) {
-            alert("❌ பிழை: " + res.error);
-        } else {
-            alert("✅ Payment Verified & Approved Successfully!");
-            
-            // Local State Immediate Update
-            var orderObj = adminOrdersList.find(o => String(o.id || o.order_id) === String(orderId));
-            if(orderObj) {
-                orderObj.payment_status = "YES";
-                orderObj.approval_status = "Approved";
-                orderObj.payment_mode = mode;
-                orderObj.transaction_ref = ref;
+            if(!orderId) {
+                alert("⚠️ Order ID கிடைத்ததில் பிழை!");
+                return;
             }
 
-            var modalElem = document.getElementById("paymentVerifyModal");
-            if(modalElem) {
-                var mInst = bootstrap.Modal.getInstance(modalElem);
-                if(mInst) mInst.hide();
+            fetch(`${API_BASE}/orders`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    action: "confirm_payment", 
+                    order_id: orderId,
+                    payment_mode: mode,
+                    transaction_ref: ref
+                })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if(res && res.error) {
+                    alert("❌ பிழை: " + res.error);
+                } else {
+                    alert("✅ Payment Verified & Approved Successfully!");
+                    
+                    var orderObj = adminOrdersList.find(o => String(o.id || o.order_id) === String(orderId));
+                    if(orderObj) {
+                        orderObj.payment_status = "YES";
+                        orderObj.approval_status = "Approved";
+                        orderObj.payment_mode = mode;
+                        orderObj.transaction_ref = ref;
+                    }
+
+                    var modalElem = document.getElementById("paymentVerifyModal");
+                    if(modalElem) {
+                        var mInst = bootstrap.Modal.getInstance(modalElem);
+                        if(mInst) mInst.hide();
+                    }
+
+                    loadAdminOrders();
+                }
+            })
+            .catch(err => alert("❌ பிழை: " + err));
+        }
+
+        // 🟢 Table Renderer - Admin Order Rows with 3-Copy Print Button
+        function renderAdminOrders() {
+            var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
+            var tbody = document.getElementById("adminOrdersTableBody");
+            if (!tbody) return;
+
+            var html = "";
+
+            var filteredOrders = adminOrdersList.filter(o => {
+                var oType = String(o.order_type || "Online Customer").trim();
+                var allocated = String(o.allocated_staff || "").trim().toLowerCase();
+                var currentLoggedUser = String(loggedInUsername || "").trim().toLowerCase();
+
+                if (oType === "Walk-in Customer" && userRole === "TELECALLER") {
+                    return false;
+                }
+
+                if (userRole === "TELECALLER" && allocated !== currentLoggedUser) {
+                    return false;
+                }
+
+                if (!searchTxt) return true;
+                var id = String(o.id || o.order_id || "").toLowerCase();
+                var mob = String(o.mobile || "").toLowerCase();
+                var nm = String(o.customer_name || o.name || "").toLowerCase();
+
+                return id.includes(searchTxt) || mob.includes(searchTxt) || nm.includes(searchTxt);
+            });
+
+            filteredOrders.forEach(o => {
+                var oId = String(o.id || o.order_id || "N/A");
+                var oName = String(o.customer_name || o.name || "Customer");
+                var oMobile = String(o.mobile || "N/A");
+                var oDistrict = String(o.district || "Local");
+                var oType = String(o.order_type || "Online Customer");
+                var oTotal = parseFloat(o.total_amount || o.total || 0);
+                
+                var payStatus = String(o.payment_status || "NO").trim().toUpperCase();
+                var appStatus = String(o.approval_status || "").trim().toUpperCase();
+                
+                var isPaid = (payStatus === "YES" || payStatus === "VERIFIED" || appStatus === "APPROVED" || appStatus === "PAYMENT APPROVED");
+                
+                var allocatedStaff = String(o.allocated_staff || "Unassigned");
+                var payMode = o.payment_mode || "GPay";
+                var transRef = o.transaction_ref || "Verified";
+
+                var orderDateStr = "N/A";
+                if (o.created_at || o.order_date) {
+                    try {
+                        var d = new Date(o.created_at || o.order_date);
+                        orderDateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + " " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                    } catch(e){}
+                }
+
+                var isTelecallerLocked = (userRole === "TELECALLER" && !isPaid);
+
+                html += `<tr>
+                    <td><b>${oId}</b><br><small class="text-muted">${orderDateStr}</small></td>
+                    <td><b>${oName}</b></td>
+                    <td>${oMobile}<br><small class="text-muted">📍 ${oDistrict}</small></td>
+                    <td><span class="badge bg-warning text-dark">${oType}</span></td>
+                    <td>
+                        <span class="badge bg-secondary cursor-pointer" title="Click to Change Staff" onclick="reassignStaffModal('${oId}', '${allocatedStaff}')">
+                            👤 ${allocatedStaff} ✏️
+                        </span>
+                    </td>
+                    <td><b class="text-danger fs-6">₹${oTotal.toLocaleString('en-IN')}</b></td>
+                    <td>
+                        <span class="badge ${isPaid ? 'bg-success' : 'bg-danger'} p-2">
+                            ${isPaid ? 'Payment Verified ✅' : 'Payment Pending ⏳'}
+                        </span>
+                        ${isPaid ? `<br><small class="text-muted">${payMode} (${transRef})</small>` : ''}
+                    </td>
+                    <td class="text-center text-nowrap">
+                        <button class="btn btn-sm btn-outline-dark fw-bold me-1" onclick="viewOrderItems('${oId}')">👁️ View</button>
+                        <button class="btn btn-sm btn-outline-primary fw-bold me-1" onclick="printSingleAdminOrderPDF('${oId}')">🖨️ Print Set</button>
+                        ${((userRole === "ADMIN" || userRole === "ACCOUNTS") && !isPaid) 
+                            ? `<button class="btn btn-sm btn-danger fw-bold" onclick="openPaymentVerifyModal('${oId}')">💳 Confirm Payment</button>` 
+                            : ''}
+                        ${isTelecallerLocked ? '<span class="badge bg-secondary">🔒 Locked</span>' : ''}
+                    </td>
+                </tr>`;
+            });
+
+            tbody.innerHTML = html || "<tr><td colspan='8' class='text-center text-muted p-3'>ஆர்டர்கள் எதுவும் இல்லை!</td></tr>";
+        }
+
+        // 🟢 Re-assign Staff Function for Admin
+        function reassignStaffModal(orderId, currentStaff) {
+            if(userRole !== "ADMIN") return;
+            var newStaff = prompt(`Order ID ${orderId}-க்கான Staff-ஐ மாற்றவும்:\n(Current Staff: ${currentStaff})`, currentStaff);
+            if(newStaff && newStaff.trim() !== "" && newStaff !== currentStaff) {
+                fetch(`${API_BASE}/orders`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "reassign_staff",
+                        order_id: orderId,
+                        allocated_staff: newStaff.trim()
+                    })
+                })
+                .then(r => r.json())
+                .then(() => {
+                    alert(`✅ Order ${orderId} successfully assigned to ${newStaff.trim()}!`);
+                    loadAdminOrders();
+                })
+                .catch(err => alert("❌ பிழை: " + err));
             }
-
-            // Force Reload Fresh Orders from Supabase Server
-            loadAdminOrders();
-        }
-    })
-    .catch(err => alert("❌ பிழை: " + err));
-}
-
-// 🟢 Table Renderer - Strict Payment Status Display Logic
-function renderAdminOrders() {
-    var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
-    var tbody = document.getElementById("adminOrdersTableBody");
-    if (!tbody) return;
-
-    var html = "";
-
-    var filteredOrders = adminOrdersList.filter(o => {
-        var oType = String(o.order_type || "Online Customer").trim();
-        var allocated = String(o.allocated_staff || "").trim().toLowerCase();
-        var currentLoggedUser = String(loggedInUsername || "").trim().toLowerCase();
-
-        if (oType === "Walk-in Customer" && userRole === "TELECALLER") {
-            return false;
         }
 
-        if (userRole === "TELECALLER" && allocated !== currentLoggedUser) {
-            return false;
+        // 🟢 Function to Print 3-Copy Set PDF for Admin Orders
+        function printSingleAdminOrderPDF(orderId) {
+            var order = adminOrdersList.find(o => String(o.id || o.order_id) === String(orderId));
+            if(!order) return;
+
+            var name = order.customer_name || order.name || "Customer";
+            var mobile = order.mobile || "N/A";
+            var address = (order.address || 'N/A') + ", " + (order.district || '');
+            var total = parseFloat(order.total_amount || order.total || 0);
+            var staff = order.allocated_staff || "Admin";
+            var orderType = order.order_type || "Online Customer";
+            var payMode = order.payment_mode || "GPay";
+
+            var items = [];
+            try { items = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []); } catch(e){}
+
+            var pdfTableRows = "", transportRows = "", sno = 1;
+            items.forEach(it => {
+                var rVal = parseFloat(it.rate) || 0;
+                var tVal = parseFloat(it.total) || (it.qty * rVal);
+
+                pdfTableRows += '<tr style="border-bottom: 1px solid #cbd5e0;">' +
+                    '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + sno + '</td>' +
+                    '<td style="padding: 6px; border: 1px solid #cbd5e0;"><b>' + (it.name || it.eng) + '</b></td>' +
+                    '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + it.qty + '</td>' +
+                    '<td style="padding: 6px; text-align: right; border: 1px solid #cbd5e0;">Rs. ' + rVal.toFixed(2) + '</td>' +
+                    '<td style="padding: 6px; text-align: right; border: 1px solid #cbd5e0;">Rs. ' + tVal.toFixed(2) + '</td>' +
+                '</tr>';
+
+                transportRows += '<tr style="border-bottom: 1px solid #cbd5e0;">' +
+                    '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + sno + '</td>' +
+                    '<td style="padding: 6px; border: 1px solid #cbd5e0;"><b>' + (it.name || it.eng) + '</b></td>' +
+                    '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;"><b>' + it.qty + '</b></td>' +
+                '</tr>';
+                sno++;
+            });
+
+            document.querySelectorAll(".pdfOrderId").forEach(e => e.innerText = orderId);
+            document.querySelectorAll(".pdfDate").forEach(e => e.innerText = new Date(order.created_at || Date.now()).toLocaleDateString());
+            document.querySelectorAll(".pdfCustName").forEach(e => e.innerText = name);
+            document.querySelectorAll(".pdfCustPhone").forEach(e => e.innerText = mobile);
+            document.querySelectorAll(".pdfCustAddress").forEach(e => e.innerText = address);
+            document.querySelectorAll(".pdfOrderType").forEach(e => e.innerText = orderType);
+            document.querySelectorAll(".pdfGrandTotal").forEach(e => e.innerText = total.toLocaleString('en-IN') + ".00");
+
+            document.querySelectorAll(".pdfItemsBody").forEach(e => e.innerHTML = pdfTableRows);
+            document.getElementById("pdfTransportItemsBody").innerHTML = transportRows;
+            document.getElementById("pdfStaffName").innerText = staff;
+            document.getElementById("pdfPaymentDetails").innerText = payMode + " (" + (order.payment_status === 'YES' ? 'Verified' : 'Pending') + ")";
+
+            var element = document.getElementById('printableBill');
+            var opt = {
+                margin:       0.2,
+                filename:     'Sri_Dhanush_Crackers_' + orderId + '_3_Copy_Set.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, logging: false, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
         }
 
-        if (!searchTxt) return true;
-        var id = String(o.id || o.order_id || "").toLowerCase();
-        var mob = String(o.mobile || "").toLowerCase();
-        var nm = String(o.customer_name || o.name || "").toLowerCase();
-
-        return id.includes(searchTxt) || mob.includes(searchTxt) || nm.includes(searchTxt);
-    });
-
-    filteredOrders.forEach(o => {
-        var oId = String(o.id || o.order_id || "N/A");
-        var oName = String(o.customer_name || o.name || "Customer");
-        var oMobile = String(o.mobile || "N/A");
-        var oDistrict = String(o.district || "Local");
-        var oType = String(o.order_type || "Online Customer");
-        var oTotal = parseFloat(o.total_amount || o.total || 0);
-        
-        var payStatus = String(o.payment_status || "NO").trim().toUpperCase();
-        var appStatus = String(o.approval_status || "").trim().toUpperCase();
-        
-        // 💥 Strict Paid Check
-        var isPaid = (payStatus === "YES" || payStatus === "VERIFIED" || appStatus === "APPROVED" || appStatus === "PAYMENT APPROVED");
-        
-        var allocatedStaff = String(o.allocated_staff || "Unassigned");
-        var payMode = o.payment_mode || "GPay";
-        var transRef = o.transaction_ref || "Verified";
-
-        var orderDateStr = "N/A";
-        if (o.created_at || o.order_date) {
-            try {
-                var d = new Date(o.created_at || o.order_date);
-                orderDateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + " " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-            } catch(e){}
-        }
-
-        var isTelecallerLocked = (userRole === "TELECALLER" && !isPaid);
-
-        html += `<tr>
-            <td><b>${oId}</b><br><small class="text-muted">${orderDateStr}</small></td>
-            <td><b>${oName}</b></td>
-            <td>${oMobile}<br><small class="text-muted">📍 ${oDistrict}</small></td>
-            <td><span class="badge bg-warning text-dark">${oType}</span></td>
-            <td>
-                <span class="badge bg-secondary cursor-pointer" title="Click to Change Staff" onclick="reassignStaffModal('${oId}', '${allocatedStaff}')">
-                    👤 ${allocatedStaff} ✏️
-                </span>
-            </td>
-            <td><b class="text-danger fs-6">₹${oTotal.toLocaleString('en-IN')}</b></td>
-            <td>
-                <span class="badge ${isPaid ? 'bg-success' : 'bg-danger'} p-2">
-                    ${isPaid ? 'Payment Verified ✅' : 'Payment Pending ⏳'}
-                </span>
-                ${isPaid ? `<br><small class="text-muted">${payMode} (${transRef})</small>` : ''}
-            </td>
-            <td class="text-center text-nowrap">
-                <button class="btn btn-sm btn-outline-dark fw-bold me-1" onclick="viewOrderItems('${oId}')">👁️ View</button>
-                ${((userRole === "ADMIN" || userRole === "ACCOUNTS") && !isPaid) 
-                    ? `<button class="btn btn-sm btn-danger fw-bold" onclick="openPaymentVerifyModal('${oId}')">💳 Confirm Payment</button>` 
-                    : ''}
-                ${isTelecallerLocked ? '<span class="badge bg-secondary">🔒 Locked</span>' : ''}
-            </td>
-        </tr>`;
-    });
-
-    tbody.innerHTML = html || "<tr><td colspan='8' class='text-center text-muted p-3'>ஆர்டர்கள் எதுவும் இல்லை!</td></tr>";
-}
         // Open Payment Verification Modal
         function openPaymentVerifyModal(orderId) {
             document.getElementById("pay_order_id").value = orderId;
@@ -791,7 +940,7 @@ function renderAdminOrders() {
             new bootstrap.Modal(document.getElementById("paymentVerifyModal")).show();
         }
 
-        // Customer View: Shows IN STOCK / OUT OF STOCK Badge only (Stock Qty Numbers Hidden!)
+        // Customer View: Shows IN STOCK / OUT OF STOCK Badge only!
         function renderProducts() {
             var container = document.getElementById("items-container");
             var searchTxt = (document.getElementById("searchInput").value || "").toLowerCase();
@@ -1374,11 +1523,10 @@ function renderAdminOrders() {
             var district = document.getElementById("cust_district").value.trim() || "Sivakasi";
 
             var itemsObj = [];
-            var pdfTableRows = "";
+            var pdfTableRows = "", transportRows = "";
             var sno = 1;
 
             var waHeaderTitle = (currentSessionType === "Online Customer") ? "NEW ONLINE ORDER RECEIVED" : "🏪 POS COUNTER BILL";
-            
             var waMessage = "💥 *" + waHeaderTitle + "* 💥\n" +
                             "----------------------------------------\n" +
                             "🆔 *Order ID:* " + orderId + "\n" +
@@ -1397,25 +1545,24 @@ function renderAdminOrders() {
                     var rateVal = parseFloat(p.rate) || 0;
                     var tot = q * rateVal;
                     
-                    itemsObj.push({ 
-                        id: p.id, 
-                        name: itemName, 
-                        qty: q, 
-                        rate: rateVal, 
-                        total: tot, 
-                        category: p.category || 'General' 
-                    });
+                    itemsObj.push({ id: p.id, name: itemName, qty: q, rate: rateVal, total: tot, category: p.category || 'General' });
                     
-                    waMessage += sno + ". *" + itemName + "*\n" +
-                                 "    ▶ Qty: " + q + " " + (p.per || 'pkt') + "  |  Rate: ₹" + rateVal + "  |  Total: ₹" + tot.toFixed(2) + "\n\n";
+                    waMessage += sno + ". *" + itemName + "*\n    ▶ Qty: " + q + " " + (p.per || 'pkt') + "  |  Rate: ₹" + rateVal + "  |  Total: ₹" + tot.toFixed(2) + "\n\n";
                     
-                    pdfTableRows += '<tr style="border-bottom: 1px solid #e2e8f0;">' +
+                    pdfTableRows += '<tr style="border-bottom: 1px solid #cbd5e0;">' +
                         '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + sno + '</td>' +
                         '<td style="padding: 6px; border: 1px solid #cbd5e0;"><b>' + itemName + '</b></td>' +
                         '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + q + '</td>' +
                         '<td style="padding: 6px; text-align: right; border: 1px solid #cbd5e0;">Rs. ' + rateVal.toFixed(2) + '</td>' +
                         '<td style="padding: 6px; text-align: right; border: 1px solid #cbd5e0;">Rs. ' + tot.toFixed(2) + '</td>' +
                     '</tr>';
+
+                    transportRows += '<tr style="border-bottom: 1px solid #cbd5e0;">' +
+                        '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;">' + sno + '</td>' +
+                        '<td style="padding: 6px; border: 1px solid #cbd5e0;"><b>' + itemName + '</b></td>' +
+                        '<td style="padding: 6px; text-align: center; border: 1px solid #cbd5e0;"><b>' + q + ' ' + (p.per || 'pkt') + '</b></td>' +
+                    '</tr>';
+
                     sno++;
                 }
             });
@@ -1426,37 +1573,36 @@ function renderAdminOrders() {
                          "✨ *Thank you for ordering with us!*\n" +
                          "🎆 *Wish you a Happy & Safe Diwali!* 💥";
 
-            document.getElementById("billOrderId").innerText = orderId;
-            document.getElementById("billDate").innerText = new Date().toLocaleDateString();
-            document.getElementById("billCustName").innerText = name;
-            document.getElementById("billCustPhone").innerText = rawMobile;
-            document.getElementById("billCustAddress").innerText = address;
-            document.getElementById("billOrderType").innerText = currentSessionType;
-            document.getElementById("billItemsBody").innerHTML = pdfTableRows;
-            document.getElementById("billGrandTotal").innerText = total.toLocaleString('en-IN') + ".00";
+            // Update Text Elements in 3 PDF Pages
+            document.querySelectorAll(".pdfOrderId").forEach(e => e.innerText = orderId);
+            document.querySelectorAll(".pdfDate").forEach(e => e.innerText = new Date().toLocaleDateString());
+            document.querySelectorAll(".pdfCustName").forEach(e => e.innerText = name);
+            document.querySelectorAll(".pdfCustPhone").forEach(e => e.innerText = rawMobile);
+            document.querySelectorAll(".pdfCustAddress").forEach(e => e.innerText = address + ", " + district);
+            document.querySelectorAll(".pdfOrderType").forEach(e => e.innerText = currentSessionType);
+            document.querySelectorAll(".pdfGrandTotal").forEach(e => e.innerText = total.toLocaleString('en-IN') + ".00");
 
+            document.querySelectorAll(".pdfItemsBody").forEach(e => e.innerHTML = pdfTableRows);
+            document.getElementById("pdfTransportItemsBody").innerHTML = transportRows;
+            document.getElementById("pdfStaffName").innerText = loggedInUsername || "Online System";
+            document.getElementById("pdfPaymentDetails").innerText = (currentSessionType === "Walk-in Customer") ? "Cash / Counter Paid" : "Pending Verification";
+
+            // 💥 Single Click - Download 3 Pages PDF
             setTimeout(function() {
                 var element = document.getElementById('printableBill');
                 var opt = {
-                    margin:       0.3,
-                    filename:     'Sri_Dhanush_Crackers_Estimate_' + orderId + '.pdf',
+                    margin:       0.2,
+                    filename:     'Sri_Dhanush_Crackers_' + orderId + '_Complete_Order.pdf',
                     image:        { type: 'jpeg', quality: 0.98 },
                     html2canvas:  { scale: 2, logging: false, useCORS: true },
                     jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
                 };
                 html2pdf().set(opt).from(element).save();
-            }, 500);
+            }, 600);
 
             var payload = {
-                order_id: orderId, 
-                customer_name: name, 
-                mobile: rawMobile,
-                address: address, 
-                district: district,
-                total_amount: total, 
-                order_type: currentSessionType, 
-                items: itemsObj,
-                business_interest: userBusinessInterest,
+                order_id: orderId, customer_name: name, mobile: rawMobile, address: address, district: district,
+                total_amount: total, order_type: currentSessionType, items: itemsObj, business_interest: userBusinessInterest,
                 payment_status: (currentSessionType === "Walk-in Customer") ? "YES" : "NO",
                 approval_status: (currentSessionType === "Walk-in Customer") ? "Approved" : "Pending"
             };
@@ -1466,12 +1612,10 @@ function renderAdminOrders() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             })
-            .then(function(r) { return r.json(); })
-            .then(function() {
+            .then(r => r.json())
+            .then(() => {
                 alert("✅ ஆர்டர் வெற்றிகரமாகச் சேமிக்கப்பட்டது!");
-
                 var shopWaUrl = "https://wa.me/" + targetShopWhatsApp + "?text=" + encodeURIComponent(waMessage);
-
                 if (currentSessionType === "Walk-in Customer") {
                     window.open(shopWaUrl, '_blank');
                     if (rawMobile.length === 10) {
@@ -1481,14 +1625,9 @@ function renderAdminOrders() {
                 } else {
                     window.location.href = shopWaUrl;
                 }
-
-                setTimeout(function() {
-                    location.reload();
-                }, 1500);
+                setTimeout(function() { location.reload(); }, 1500);
             })
-            .catch(function(err) {
-                alert("ஆர்டர் சேமிப்பதில் பிழை: " + err);
-            });
+            .catch(err => alert("ஆர்டர் சேமிப்பதில் பிழை: " + err));
         }
 
         function openLoginModal() { 
