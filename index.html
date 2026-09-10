@@ -361,65 +361,50 @@
             loadShopSettingsAndProducts();
         };
 
-        // 1. Load Dynamic Settings from Supabase
+        // 1. Vercel Backend API வழியாக Settings லோட் செய்யும் ஃபங்ஷன்
 function loadShopSettingsAndProducts() {
-    // ⚙️ Load Dynamic Shop Settings from Supabase
-    fetch(`${SUPABASE_URL}/rest/v1/settings?id=eq.1&select=*`, {
-        headers: { 
-            'apikey': SUPABASE_ANON_KEY, 
-            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY 
-        }
-    })
+    fetch(`${API_BASE}/settings`)
     .then(r => r.json())
-    .then(data => {
-        if(Array.isArray(data) && data.length > 0) {
-            var cfg = data[0];
+    .then(cfg => {
+        if(cfg && cfg.shop_name) {
+            var elName = document.getElementById("hdr_shop_name");
+            if(elName) elName.innerText = cfg.shop_name;
             
-            // 1. Shop Name Update
-            if(cfg.shop_name) {
-                var elName = document.getElementById("hdr_shop_name");
-                if(elName) elName.innerText = cfg.shop_name;
-                
-                var elNav = document.getElementById("navShopTitle");
-                if(elNav) elNav.innerText = "💥 " + cfg.shop_name;
-                
-                var elPdf = document.getElementById("pdfShopTitle");
-                if(elPdf) elPdf.innerText = cfg.shop_name;
-            }
+            var elNav = document.getElementById("navShopTitle");
+            if(elNav) elNav.innerText = "💥 " + cfg.shop_name;
+            
+            var elPdf = document.getElementById("pdfShopTitle");
+            if(elPdf) elPdf.innerText = cfg.shop_name;
+        }
 
-            // 2. Address Update (📍 Icon Included)
-            if(cfg.address) {
-                var elAddr = document.getElementById("hdr_address");
-                if(elAddr) elAddr.innerHTML = '📍 ' + cfg.address;
-                
-                var elPdfAddr = document.getElementById("pdfShopAddress");
-                if(elPdfAddr) elPdfAddr.innerText = cfg.address;
-            }
+        if(cfg && cfg.address) {
+            var elAddr = document.getElementById("hdr_address");
+            if(elAddr) elAddr.innerHTML = '📍 ' + cfg.address;
+            
+            var elPdfAddr = document.getElementById("pdfShopAddress");
+            if(elPdfAddr) elPdfAddr.innerText = cfg.address;
+        }
 
-            // 3. Contact Numbers Update (📞 Icon Included)
-            if(cfg.contacts) {
-                var elContact = document.getElementById("hdr_contacts");
-                if(elContact) elContact.innerHTML = '📞 ' + cfg.contacts;
-            }
+        if(cfg && cfg.contacts) {
+            var elContact = document.getElementById("hdr_contacts");
+            if(elContact) elContact.innerHTML = '📞 ' + cfg.contacts;
+        }
 
-            // 4. WhatsApp Number Update
-            if(cfg.whatsapp) {
-                targetShopWhatsApp = cfg.whatsapp.replace(/[^0-9]/g, '');
-            }
+        if(cfg && cfg.whatsapp) {
+            targetShopWhatsApp = cfg.whatsapp.replace(/[^0-9]/g, '');
+        }
 
-            // 5. Logo Image Update
-            if(cfg.logo_url && cfg.logo_url.trim() !== "") {
-                var logoImg = document.getElementById("hdr_shop_logo");
-                if(logoImg) {
-                    logoImg.src = cfg.logo_url;
-                    logoImg.style.display = "block";
-                }
+        if(cfg && cfg.logo_url && cfg.logo_url.trim() !== "") {
+            var logoImg = document.getElementById("hdr_shop_logo");
+            if(logoImg) {
+                logoImg.src = cfg.logo_url;
+                logoImg.style.display = "block";
             }
         }
     })
     .catch(err => console.error("Error loading settings:", err));
 
-    // Products Fetch Logic
+    // Products Fetch
     fetch(`${API_BASE}/products`)
     .then(r => r.json())
     .then(data => {
@@ -438,9 +423,7 @@ function loadShopSettingsAndProducts() {
                     isOutOfStock: (p.status === 'Out of Stock' || sQty <= 0)
                 };
             });
-        } else {
-            rawProducts = [];
-        }
+        } else { rawProducts = []; }
 
         document.getElementById("loaderScreen").style.display = "none";
         setupPriceSliderRange();
@@ -451,7 +434,51 @@ function loadShopSettingsAndProducts() {
         console.error("Error loading products:", err);
         document.getElementById("loaderScreen").style.display = "none";
     });
-}        function openAdminSettingsTool() {
+}
+
+// 2. Open Admin Settings Tool
+function openAdminSettingsTool() {
+    if (userRole !== "ADMIN") {
+        alert("❌ Admin-க்கு மட்டுமே Settings மாற்ற அனுமதி உண்டு!");
+        return;
+    }
+
+    fetch(`${API_BASE}/settings`)
+    .then(r => r.json())
+    .then(cfg => {
+        document.getElementById("cfg_shop_name").value = cfg.shop_name || "";
+        document.getElementById("cfg_shop_address").value = cfg.address || "";
+        document.getElementById("cfg_shop_contacts").value = cfg.contacts || "";
+        document.getElementById("cfg_shop_whatsapp").value = cfg.whatsapp || "";
+        document.getElementById("cfg_shop_logo").value = cfg.logo_url || "";
+        
+        new bootstrap.Modal(document.getElementById("adminSettingsModal")).show();
+    });
+}
+
+// 3. Save Settings via Vercel Backend API
+function saveShopSettings() {
+    var payload = {
+        shop_name: document.getElementById("cfg_shop_name").value.trim(),
+        address: document.getElementById("cfg_shop_address").value.trim(),
+        contacts: document.getElementById("cfg_shop_contacts").value.trim(),
+        whatsapp: document.getElementById("cfg_shop_whatsapp").value.trim(),
+        logo_url: document.getElementById("cfg_shop_logo").value.trim()
+    };
+
+    fetch(`${API_BASE}/settings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(res => {
+        alert("✅ கடை விவரங்கள் வெற்றிகரமாகப் புதுப்பிக்கப்பட்டன!");
+        location.reload();
+    })
+    .catch(err => alert("❌ பிழை: " + err));
+}
+        function openAdminSettingsTool() {
             if (userRole !== "ADMIN") {
                 alert("❌ Admin-க்கு மட்டுமே Settings மாற்ற அனுமதி உண்டு!");
                 return;
