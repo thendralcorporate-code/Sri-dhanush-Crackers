@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // 1. Confirm Payment Action
+  // 1. Confirm Payment
   if (req.method === 'POST' && req.body && req.body.action === 'confirm_payment') {
     const { order_id } = req.body;
     const { data, error } = await supabase
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, data });
   }
 
-  // 2. Save Order with Auto-Allocation Logic
+  // 2. Save Order & Auto Deduct Stock
   if (req.method === 'POST') {
     try {
       const body = req.body;
@@ -37,19 +37,12 @@ export default async function handler(req, res) {
 
       let allocatedStaff = null;
 
-      // Online Customer Order -> Round Robin Auto-Allocation for Telecallers
+      // Telecaller Auto Allocation for Online Customer
       if (orderType === 'Online Customer') {
-        // Fetch all Telecallers
-        const { data: staffList } = await supabase
-          .from('staff')
-          .select('username, role');
-
-        const telecallers = (staffList || []).filter(
-          s => s.role && s.role.trim().toUpperCase() === 'TELECALLER'
-        );
+        const { data: staffList } = await supabase.from('staff').select('username, role');
+        const telecallers = (staffList || []).filter(s => s.role && s.role.trim().toUpperCase() === 'TELECALLER');
 
         if (telecallers.length > 0) {
-          // Get last allocated telecaller
           const { data: lastOrder } = await supabase
             .from('orders')
             .select('allocated_staff')
@@ -62,11 +55,28 @@ export default async function handler(req, res) {
           if (lastOrder && lastOrder.length > 0 && lastOrder[0].allocated_staff) {
             const lastStaff = lastOrder[0].allocated_staff;
             const currentIdx = telecallers.findIndex(s => s.username === lastStaff);
-            if (currentIdx !== -1) {
-              nextIdx = (currentIdx + 1) % telecallers.length;
-            }
+            if (currentIdx !== -1) nextIdx = (currentIdx + 1) % telecallers.length;
           }
           allocatedStaff = telecallers[nextIdx].username;
+        }
+      }
+
+      const itemsArr = Array.isArray(body.items) ? body.items : JSON.parse(body.items || "[]");
+
+      // 💥 AUTO DEDUCT STOCK LOGIC IN SUPABASE
+      for (let item of itemsArr) {
+        if (item.id && item.qty > 0) {
+          const { data: prod } = await supabase.from('products').select('stock_qty').eq('id', item.id).single();
+          if (prod) {
+            let curStock = parseInt(prod.stock_qty) || 0;
+            let newStock = Math.max(0, curStock - parseInt(item.qty));
+            let newStatus = newStock > 0 ? 'In Stock' : 'Out of Stock';
+
+            await supabase
+              .from('products')
+              .update({ stock_qty: newStock, status: newStatus })
+              .eq('id', item.id);
+          }
         }
       }
 
@@ -78,7 +88,7 @@ export default async function handler(req, res) {
         district: body.district || 'Sivakasi',
         order_type: orderType,
         total_amount: parseFloat(body.total_amount || 0),
-        items: Array.isArray(body.items) ? body.items : JSON.parse(body.items || "[]"),
+        items: itemsArr,
         business_interest: body.business_interest || 'NO',
         allocated_staff: allocatedStaff,
         payment_status: body.payment_status || 'NO',
@@ -95,14 +105,14 @@ export default async function handler(req, res) {
     }
   }
 
-  // 3. Get All Orders
+  // 3. GET Orders
   else if (req.method === 'GET') {
     try {
       const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
       if (error) return res.status(500).json({ error: error.message });
       return res.status(200).json(data || []);
     } catch (err) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: err.message });
     }
   } else {
     return res.status(405).json({ error: "Method Not Allowed" });
