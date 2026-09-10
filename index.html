@@ -719,48 +719,90 @@ function processLogin() {
         }
 
         function renderAdminOrders() {
-            var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
-            var pendingHtml = "";
+    var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
+    var pendingHtml = "";
 
-            var filteredOrders = adminOrdersList.filter(o => {
-                if (!searchTxt) return true;
-                var id = (o.order_id || o.orderId || o.id || "").toString().toLowerCase();
-                var mob = (o.mobile || "").toString().toLowerCase();
-                var nm = (o.customer_name || o.name || "").toString().toLowerCase();
+    var filteredOrders = adminOrdersList.filter(o => {
+        var oType = o.order_type || "Online Customer";
+        var allocated = o.allocated_staff || "";
 
-                return id.includes(searchTxt) || mob.includes(searchTxt) || nm.includes(searchTxt);
-            });
-
-            filteredOrders.forEach(o => {
-                var oId = o.order_id || o.orderId || o.id || "N/A";
-                var oName = o.customer_name || o.name || "Customer";
-                var oMobile = o.mobile || "N/A";
-                var oDistrict = o.district || "Local";
-                var oType = o.order_type || o.orderType || "Online Customer";
-                var oTotal = parseFloat(o.total_amount || o.total || 0);
-                var bizInterest = (o.business_interest === "YES") ? "YES 👍" : "NO 👎";
-
-                pendingHtml += '<div class="card border-0 shadow-sm mb-3" style="border-radius: 10px;">' +
-                            '<div class="card-body p-3">' +
-                                '<div class="d-flex justify-content-between align-items-center mb-2">' +
-                                    '<div>' +
-                                        '<h6 class="fw-bold mb-0 text-dark">' + oId + ' - ' + oName + ' <span class="badge bg-warning text-dark ms-1">' + oType + '</span></h6>' +
-                                        '<small class="text-muted"><i class="fas fa-phone-alt me-1"></i>' + oMobile + ' | <i class="fas fa-map-marker-alt me-1"></i>' + oDistrict + '</small><br>' +
-                                        '<small class="fw-bold text-primary">💼 Business Interested: ' + bizInterest + '</small>' +
-                                    '</div>' +
-                                    '<div class="text-end">' +
-                                        '<div class="fw-bold text-danger fs-6">₹' + oTotal.toLocaleString('en-IN') + '</div>' +
-                                    '</div>' +
-                                '</div>' +
-                                '<div class="pt-2 border-top d-flex gap-2 align-items-center flex-wrap">' +
-                                    '<button class="btn btn-sm btn-outline-dark fw-bold" onclick="viewOrderItems(\'' + oId + '\')">👁️ View Items</button>' +
-                                '</div>' +
-                            '</div></div>';
-            });
-
-            document.getElementById("pendingOrdersContainer").innerHTML = pendingHtml || "<div class='card p-3 text-center text-muted border-0 shadow-sm'>ஆர்டர்கள் எதுவும் இல்லை!</div>";
+        // Rule 1: POS Walk-in orders ONLY visible to ADMIN & ACCOUNTS
+        if (oType === "Walk-in Customer" && userRole === "TELECALLER") {
+            return false;
         }
 
+        // Rule 2: TELECALLERS see ONLY their allocated orders
+        if (userRole === "TELECALLER" && allocated !== loggedInUsername) {
+            return false;
+        }
+
+        if (!searchTxt) return true;
+        var id = (o.id || o.order_id || "").toString().toLowerCase();
+        var mob = (o.mobile || "").toString().toLowerCase();
+        var nm = (o.customer_name || o.name || "").toString().toLowerCase();
+
+        return id.includes(searchTxt) || mob.includes(searchTxt) || nm.includes(searchTxt);
+    });
+
+    filteredOrders.forEach(o => {
+        var oId = o.id || o.order_id || "N/A";
+        var oName = o.customer_name || o.name || "Customer";
+        var oMobile = o.mobile || "N/A";
+        var oDistrict = o.district || "Local";
+        var oType = o.order_type || "Online Customer";
+        var oTotal = parseFloat(o.total_amount || 0);
+        var bizInterest = (o.business_interest === "YES") ? "YES 👍" : "NO 👎";
+        var payStatus = o.payment_status || "NO";
+        var allocatedStaff = o.allocated_staff || "Unassigned";
+
+        // 📅 ORDER DATE FORMULA (இங்கே தான் அந்த கோட் வைக்கப்பட்டுள்ளது)
+        var orderDateStr = "N/A";
+        if (o.created_at || o.order_date) {
+            var d = new Date(o.created_at || o.order_date);
+            orderDateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + " " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Grey-out Style if Payment Pending
+        var isGreyedOut = (payStatus === "NO");
+        var cardStyle = isGreyedOut 
+            ? "opacity: 0.65; background: #f1f5f9; border-left: 4px solid #94a3b8 !important;" 
+            : "background: #ffffff; border-left: 4px solid #22c55e !important;";
+
+        // Order Card HTML Structure
+        pendingHtml += '<div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; ' + cardStyle + '">' +
+                    '<div class="card-body p-3">' +
+                        '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                            '<div>' +
+                                '<h6 class="fw-bold mb-0 text-dark">' + oId + ' - ' + oName + ' <span class="badge bg-warning text-dark ms-1">' + oType + '</span></h6>' +
+                                '<small class="text-muted"><i class="fas fa-calendar-alt me-1"></i><b>Date:</b> ' + orderDateStr + '</small><br>' +
+                                '<small class="text-muted"><i class="fas fa-phone-alt me-1"></i>' + oMobile + ' | <i class="fas fa-map-marker-alt me-1"></i>' + oDistrict + '</small><br>' +
+                                '<small class="fw-bold text-primary">💼 Business Interested: ' + bizInterest + '</small> | ' +
+                                '<small class="fw-bold text-dark">👤 Staff: ' + allocatedStaff + '</small>' +
+                            '</div>' +
+                            '<div class="text-end">' +
+                                '<div class="fw-bold text-danger fs-6">₹' + oTotal.toLocaleString('en-IN') + '</div>' +
+                                '<span class="badge ' + (payStatus === "YES" ? "bg-success" : "bg-danger") + ' mt-1">' +
+                                    (payStatus === "YES" ? "Payment Verified ✅" : "Payment Pending ⏳") +
+                                '</span>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="pt-2 border-top d-flex gap-2 align-items-center flex-wrap">' +
+                            '<button class="btn btn-sm btn-outline-dark fw-bold" onclick="viewOrderItems(\'' + oId + '\')">👁️ View Items</button>';
+
+        // Payment Confirm Button (Only for Admin & Accounts)
+        if ((userRole === "ADMIN" || userRole === "ACCOUNTS") && payStatus === "NO") {
+            pendingHtml += '<button class="btn btn-sm btn-success fw-bold" onclick="confirmPayment(\'' + oId + '\')">💳 Confirm Payment</button>';
+        }
+
+        if (isGreyedOut && userRole === "TELECALLER") {
+            pendingHtml += '<span class="badge bg-secondary ms-auto">🔒 Locked (Awaiting Payment)</span>';
+        }
+
+        pendingHtml += '</div></div></div>';
+    });
+
+    document.getElementById("pendingOrdersContainer").innerHTML = pendingHtml || "<div class='card p-3 text-center text-muted border-0 shadow-sm'>ஆர்டர்கள் எதுவும் இல்லை!</div>";
+}
         function viewOrderItems(orderId) {
             var order = adminOrdersList.find(o => (o.order_id || o.orderId || o.id) === orderId);
             if(!order) return;
