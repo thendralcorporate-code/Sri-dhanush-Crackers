@@ -1148,7 +1148,7 @@
                 })
                 .catch(err => alert("❌ பிழை: " + err));
             } else {
-                loadAdminOrders(); // Reset dropdown if cancelled
+                loadAdminOrders();
             }
         }
 
@@ -2006,6 +2006,7 @@
             processFinalOrderSave();
         }
 
+        // 💥 Save Order & Provide Live Tracking Link in WhatsApp Message
         function processFinalOrderSave() {
             var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
             var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
