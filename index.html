@@ -251,54 +251,13 @@
         </div>
     </div>
 
-    <!-- ➕ Single Product Add/Edit Modal -->
-    <div class="modal fade" id="productFormModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content p-3 text-dark">
-                <h5 class="fw-bold text-danger border-bottom pb-2 mb-3" id="prodModalTitle">➕ Add / Edit Product</h5>
-                <input type="hidden" id="edit_prod_id">
-                <div class="mb-2">
-                    <label class="form-label small fw-bold">Category:</label>
-                    <input type="text" id="edit_prod_cat" class="form-control form-control-sm" placeholder="e.g. Ground Chakkars">
-                </div>
-                <div class="mb-2">
-                    <label class="form-label small fw-bold">English Name *:</label>
-                    <input type="text" id="edit_prod_eng" class="form-control form-control-sm" placeholder="e.g. Deluxe Chakkar">
-                </div>
-                <div class="mb-2">
-                    <label class="form-label small fw-bold">Tamil Name:</label>
-                    <input type="text" id="edit_prod_tam" class="form-control form-control-sm" placeholder="e.g. டிலக்ஸ் சக்கரம்">
-                </div>
-                <div class="row g-2 mb-2">
-                    <div class="col-4">
-                        <label class="form-label small fw-bold">Unit:</label>
-                        <input type="text" id="edit_prod_per" class="form-control form-control-sm" placeholder="pkt/box">
-                    </div>
-                    <div class="col-4">
-                        <label class="form-label small fw-bold">Rate (₹) *:</label>
-                        <input type="number" id="edit_prod_rate" class="form-control form-control-sm" placeholder="100">
-                    </div>
-                    <div class="col-4">
-                        <label class="form-label small fw-bold">Stock Qty *:</label>
-                        <input type="number" id="edit_prod_stock" class="form-control form-control-sm" placeholder="50">
-                    </div>
-                </div>
-                <div class="d-flex gap-2 mt-3">
-                    <button class="btn btn-secondary btn-sm w-50" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-success btn-sm w-50 fw-bold" onclick="saveSingleProductManual()">Save Product 💾</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MAIN ADMIN PANEL VIEW -->
+    <!-- Admin Panel View -->
     <div id="adminPanelView" class="p-3" style="display:none; background: #f8fafc; min-height: 100vh;">
         <!-- Top Navigation Bar -->
         <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded-3 shadow-sm text-white" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
             <div class="d-flex align-items-center gap-2">
                 <span id="currentUserBadge" class="badge bg-warning text-dark fw-bold px-3 py-2 fs-6">Role: ADMIN</span>
                 <span id="currentUsernameBadge" class="text-white fw-bold">User: Admin</span>
-                <!-- Low Stock Badge -->
                 <span id="lowStockAlertBadge" class="badge bg-danger text-white fw-bold px-2 py-1 fs-6" style="display:none; cursor:pointer;" onclick="switchAdminTab('stock'); filterLowStockOnly();">
                     ⚠️ Low Stock (<span id="lowStockCount">0</span> Items &lt; 100)
                 </span>
@@ -344,7 +303,7 @@
                 </div>
             </div>
 
-            <!-- Orders Table Format -->
+            <!-- Table View Orders -->
             <div class="card border-0 shadow-sm p-3">
                 <h6 class="fw-bold text-danger border-bottom pb-2 mb-2"><i class="fas fa-list me-1"></i>Received Orders Master Table</h6>
                 <div class="table-responsive">
@@ -649,10 +608,12 @@
             }
         }
 
-        // Table Format Orders Master Renderer
+        // Robust Table Format Orders Master Renderer (Prevents JavaScript crash on null values!)
         function renderAdminOrders() {
             var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
             var tbody = document.getElementById("adminOrdersTableBody");
+            if (!tbody) return;
+
             var html = "";
 
             var filteredOrders = adminOrdersList.filter(o => {
@@ -668,30 +629,33 @@
                 }
 
                 if (!searchTxt) return true;
-                var id = (o.id || o.order_id || "").toString().toLowerCase();
-                var mob = (o.mobile || "").toString().toLowerCase();
-                var nm = (o.customer_name || o.name || "").toString().toLowerCase();
+                var id = String(o.id || o.order_id || "").toLowerCase();
+                var mob = String(o.mobile || "").toLowerCase();
+                var nm = String(o.customer_name || o.name || "").toLowerCase();
 
                 return id.includes(searchTxt) || mob.includes(searchTxt) || nm.includes(searchTxt);
             });
 
             filteredOrders.forEach(o => {
-                var oId = o.id || o.order_id || "N/A";
-                var oName = o.customer_name || o.name || "Customer";
-                var oMobile = o.mobile || "N/A";
-                var oDistrict = o.district || "Local";
-                var oType = o.order_type || "Online Customer";
-                var oTotal = parseFloat(o.total_amount || 0);
-                var payStatus = o.payment_status || "NO";
-                var allocatedStaff = o.allocated_staff || "Unassigned";
+                var oId = String(o.id || o.order_id || "N/A");
+                var oName = String(o.customer_name || o.name || "Customer");
+                var oMobile = String(o.mobile || "N/A");
+                var oDistrict = String(o.district || "Local");
+                var oType = String(o.order_type || "Online Customer");
+                var oTotal = parseFloat(o.total_amount || o.total || 0);
+                var payStatus = String(o.payment_status || "NO").toUpperCase();
+                var isPaid = (payStatus === "YES" || payStatus === "VERIFIED" || payStatus === "CONFIRMED");
+                var allocatedStaff = String(o.allocated_staff || "Unassigned");
 
                 var orderDateStr = "N/A";
                 if (o.created_at || o.order_date) {
-                    var d = new Date(o.created_at || o.order_date);
-                    orderDateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + " " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                    try {
+                        var d = new Date(o.created_at || o.order_date);
+                        orderDateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + " " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                    } catch(e){}
                 }
 
-                var isTelecallerLocked = (userRole === "TELECALLER" && payStatus === "NO");
+                var isTelecallerLocked = (userRole === "TELECALLER" && !isPaid);
 
                 html += `<tr>
                     <td><b>${oId}</b><br><small class="text-muted">${orderDateStr}</small></td>
@@ -701,14 +665,14 @@
                     <td><span class="badge bg-secondary">${allocatedStaff}</span></td>
                     <td><b class="text-danger fs-6">₹${oTotal.toLocaleString('en-IN')}</b></td>
                     <td>
-                        <span class="badge ${payStatus === 'YES' ? 'bg-success' : 'bg-danger'} p-2">
-                            ${payStatus === 'YES' ? 'Payment Verified ✅' : 'Payment Pending ⏳'}
+                        <span class="badge ${isPaid ? 'bg-success' : 'bg-danger'} p-2">
+                            ${isPaid ? 'Payment Verified ✅' : 'Payment Pending ⏳'}
                         </span>
                         ${o.payment_mode ? `<br><small class="text-muted">${o.payment_mode} (${o.transaction_ref || 'N/A'})</small>` : ''}
                     </td>
                     <td class="text-center text-nowrap">
                         <button class="btn btn-sm btn-outline-dark fw-bold me-1" onclick="viewOrderItems('${oId}')">👁️ View</button>
-                        ${((userRole === "ADMIN" || userRole === "ACCOUNTS") && payStatus === "NO") 
+                        ${((userRole === "ADMIN" || userRole === "ACCOUNTS") && !isPaid) 
                             ? `<button class="btn btn-sm btn-danger fw-bold" onclick="openPaymentVerifyModal('${oId}')">💳 Confirm Payment</button>` 
                             : ''}
                         ${isTelecallerLocked ? '<span class="badge bg-secondary">🔒 Locked</span>' : ''}
@@ -1056,7 +1020,7 @@
                     labels: ['Total Orders Received', 'Verified Payments'],
                     datasets: [{
                         label: 'Orders Summary',
-                        data: [adminOrdersList.length, adminOrdersList.filter(o => o.payment_status === 'YES').length],
+                        data: [adminOrdersList.length, adminOrdersList.filter(o => String(o.payment_status || '').toUpperCase() === 'YES').length],
                         backgroundColor: ['#f59e0b', '#22c55e']
                     }]
                 }
@@ -1509,107 +1473,8 @@
             document.getElementById("statTotalRevenue").innerText = "₹" + totalRevenue.toLocaleString('en-IN');
         }
 
-        function renderAdminOrders() {
-            var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
-            var pendingHtml = "";
-
-            var filteredOrders = adminOrdersList.filter(o => {
-                var oType = o.order_type || "Online Customer";
-                var allocated = o.allocated_staff || "";
-
-                if (oType === "Walk-in Customer" && userRole === "TELECALLER") {
-                    return false;
-                }
-
-                if (userRole === "TELECALLER" && allocated !== loggedInUsername) {
-                    return false;
-                }
-
-                if (!searchTxt) return true;
-                var id = (o.id || o.order_id || "").toString().toLowerCase();
-                var mob = (o.mobile || "").toString().toLowerCase();
-                var nm = (o.customer_name || o.name || "").toString().toLowerCase();
-
-                return id.includes(searchTxt) || mob.includes(searchTxt) || nm.includes(searchTxt);
-            });
-
-            filteredOrders.forEach(o => {
-                var oId = o.id || o.order_id || "N/A";
-                var oName = o.customer_name || o.name || "Customer";
-                var oMobile = o.mobile || "N/A";
-                var oDistrict = o.district || "Local";
-                var oType = o.order_type || "Online Customer";
-                var oTotal = parseFloat(o.total_amount || 0);
-                var bizInterest = (o.business_interest === "YES") ? "YES 👍" : "NO 👎";
-                var payStatus = o.payment_status || "NO";
-                var allocatedStaff = o.allocated_staff || "Unassigned";
-
-                var orderDateStr = "N/A";
-                if (o.created_at || o.order_date) {
-                    var d = new Date(o.created_at || o.order_date);
-                    orderDateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + " " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-                }
-
-                var isTelecallerLocked = (userRole === "TELECALLER" && payStatus === "NO");
-                
-                var cardStyle = isTelecallerLocked 
-                    ? "opacity: 0.65; background: #f1f5f9; border-left: 4px solid #94a3b8 !important;" 
-                    : (payStatus === "YES" 
-                        ? "background: #ffffff; border-left: 4px solid #22c55e !important;" 
-                        : "background: #ffffff; border-left: 4px solid #ef4444 !important;");
-
-                pendingHtml += '<div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; ' + cardStyle + '">' +
-                            '<div class="card-body p-3 text-dark">' +
-                                '<div class="d-flex justify-content-between align-items-center mb-2">' +
-                                    '<div>' +
-                                        '<h6 class="fw-bold mb-0 text-dark">' + oId + ' - ' + oName + ' <span class="badge bg-warning text-dark ms-1">' + oType + '</span></h6>' +
-                                        '<small class="text-muted"><i class="fas fa-calendar-alt me-1"></i><b>Date:</b> ' + orderDateStr + '</small><br>' +
-                                        '<small class="text-muted"><i class="fas fa-phone-alt me-1"></i>' + oMobile + ' | <i class="fas fa-map-marker-alt me-1"></i>' + oDistrict + '</small><br>' +
-                                        '<small class="fw-bold text-primary">💼 Business Interested: ' + bizInterest + '</small> | ' +
-                                        '<small class="fw-bold text-dark">👤 Staff: ' + allocatedStaff + '</small>' +
-                                    '</div>' +
-                                    '<div class="text-end">' +
-                                        '<div class="fw-bold text-danger fs-6">₹' + oTotal.toLocaleString('en-IN') + '</div>' +
-                                        '<span class="badge ' + (payStatus === "YES" ? "bg-success" : "bg-danger") + ' mt-1">' +
-                                            (payStatus === "YES" ? "Payment Verified ✅" : "Payment Pending ⏳") +
-                                        '</span>' +
-                                    '</div>' +
-                                '</div>' +
-                                '<div class="pt-2 border-top d-flex gap-2 align-items-center flex-wrap">' +
-                                    '<button class="btn btn-sm btn-outline-dark fw-bold" onclick="viewOrderItems(\'' + oId + '\')">👁️ View Items</button>';
-
-                if ((userRole === "ADMIN" || userRole === "ACCOUNTS") && payStatus === "NO") {
-                    pendingHtml += '<button class="btn btn-sm btn-success fw-bold" onclick="confirmPayment(\'' + oId + '\')">💳 Confirm Payment</button>';
-                }
-
-                if (isTelecallerLocked) {
-                    pendingHtml += '<span class="badge bg-secondary ms-auto">🔒 Locked (Awaiting Payment)</span>';
-                }
-
-                pendingHtml += '</div></div></div>';
-            });
-
-            document.getElementById("pendingOrdersContainer").innerHTML = pendingHtml || "<div class='card p-3 text-center text-muted border-0 shadow-sm'>ஆர்டர்கள் எதுவும் இல்லை!</div>";
-        }
-
-        function confirmPayment(orderId) {
-            if (!confirm("இந்த ஆர்டருக்கான பணப்பரிவர்த்தனையை (Payment) உறுதி செய்ய விரும்புகிறீர்களா?")) return;
-
-            fetch(`${API_BASE}/orders`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "confirm_payment", order_id: orderId })
-            })
-            .then(r => r.json())
-            .then(res => {
-                alert("✅ Payment வெற்றிகரமாக உறுதி செய்யப்பட்டது!");
-                loadAdminOrders();
-            })
-            .catch(err => alert("❌ பிழை: " + err));
-        }
-
         function viewOrderItems(orderId) {
-            var order = adminOrdersList.find(o => (o.order_id || o.orderId || o.id) === orderId);
+            var order = adminOrdersList.find(o => String(o.id || o.order_id) === String(orderId));
             if(!order) return;
             document.getElementById("modalOrderTitle").innerText = orderId + " - " + (order.customer_name || order.name);
             document.getElementById("modalOrderCustomerInfo").innerHTML = "<b>Mobile:</b> " + order.mobile + " | <b>Address:</b> " + (order.address || 'N/A');
