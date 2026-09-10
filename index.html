@@ -15,7 +15,7 @@
         .admin-nav { background: #1a202c; color: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; }
         .header { background: var(--primary-color); color: white; padding: 15px; text-align: center; border-radius: 8px; margin: 10px; transition: background 0.3s ease; }
         .header h1 { margin: 0; font-size: 22px; }
-        .shop-logo-img { max-height: 70px; display: none; margin-bottom: 5px; }
+        .shop-logo-img { max-height: 70px; display: none; margin: 0 auto 8px auto; border-radius: 6px; }
 
         /* POS Dynamic Dark Blue Theme */
         body.pos-mode { background: #0f172a !important; color: #f8fafc; }
@@ -186,7 +186,7 @@
         </div>
     </div>
 
-    <!-- 🔑 Admin Passkey Management Tool Modal -->
+    <!-- 🔑 Admin Passkey Tool Modal -->
     <div class="modal fade" id="adminPasskeyModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3 text-center text-dark">
@@ -194,6 +194,35 @@
                 <p class="small text-muted mb-2">புதிய POS Passkey-ஐ அமைக்கவும்</p>
                 <input type="text" id="new_pos_passkey_input" class="form-control text-center fs-5 mb-3" placeholder="Enter New Passkey">
                 <button class="btn btn-success w-100 fw-bold" onclick="saveNewPOSPasskey()">Save Passkey 💾</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ⚙️ Admin Shop Settings Modal -->
+    <div class="modal fade" id="adminSettingsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-3 text-dark">
+                <h5 class="fw-bold text-primary border-bottom pb-2 mb-3"><i class="fas fa-store me-1"></i>Shop Settings Config</h5>
+                
+                <label class="form-label small fw-bold">கடை பெயர் (Shop Name):</label>
+                <input type="text" id="cfg_shop_name" class="form-control form-control-sm mb-2">
+
+                <label class="form-label small fw-bold">முகவரி (Address):</label>
+                <textarea id="cfg_shop_address" class="form-control form-control-sm mb-2" rows="2"></textarea>
+
+                <label class="form-label small fw-bold">தொடர்பு எண்கள் (Contact Numbers):</label>
+                <input type="text" id="cfg_shop_contacts" class="form-control form-control-sm mb-2">
+
+                <label class="form-label small fw-bold">வாட்ஸ்அப் எண் (WhatsApp No with Country Code):</label>
+                <input type="text" id="cfg_shop_whatsapp" class="form-control form-control-sm mb-2" placeholder="e.g. 919080329266">
+
+                <label class="form-label small fw-bold">லோகோ படம் URL (Logo Image URL):</label>
+                <input type="text" id="cfg_shop_logo" class="form-control form-control-sm mb-3" placeholder="https://example.com/logo.png">
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-secondary btn-sm w-50" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-success btn-sm w-50 fw-bold" onclick="saveShopSettings()">Save Changes 💾</button>
+                </div>
             </div>
         </div>
     </div>
@@ -206,6 +235,7 @@
                 <span id="currentUsernameBadge" class="text-white fw-bold">User: Admin</span>
             </div>
             <div>
+                <button class="btn btn-sm btn-info text-white fw-bold me-2" id="btnAdminSettingsTool" onclick="openAdminSettingsTool()">⚙️ Shop Settings</button>
                 <button class="btn btn-sm btn-warning fw-bold me-2" id="btnAdminPasskeyTool" onclick="openAdminPasskeyTool()">🔑 Passkey Config</button>
                 <button class="btn btn-sm btn-outline-light fw-bold" onclick="location.reload()">Logout 🚪</button>
             </div>
@@ -318,6 +348,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const API_BASE = "/api";
+        var SUPABASE_URL = "https://uviquxhyywthznpnqmnx.supabase.co";
+        var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aXF1eGh5eXd0aHpucG5xbW54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTU2OTY1NTQsImV4cCI6MjAzMTI3MjU1NH0.G7iF9P";
+
         let rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", loggedInUsername = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], currentSessionType = "Online Customer", userBusinessInterest = "NO";
 
         if (!localStorage.getItem("POS_PASSKEY")) {
@@ -329,6 +362,39 @@
         };
 
         function loadShopSettingsAndProducts() {
+            // ⚙️ Load Dynamic Shop Settings from Supabase
+            fetch(`${SUPABASE_URL}/rest/v1/settings?id=eq.1&select=*`, {
+                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(Array.isArray(data) && data.length > 0) {
+                    var cfg = data[0];
+                    if(cfg.shop_name) {
+                        document.getElementById("hdr_shop_name").innerText = cfg.shop_name;
+                        document.getElementById("navShopTitle").innerText = "💥 " + cfg.shop_name;
+                        document.getElementById("pdfShopTitle").innerText = cfg.shop_name;
+                    }
+                    if(cfg.address) {
+                        document.getElementById("hdr_address").innerText = "📍 " + cfg.address;
+                        document.getElementById("pdfShopAddress").innerText = cfg.address;
+                    }
+                    if(cfg.contacts) {
+                        document.getElementById("hdr_contacts").innerText = "📞 Contact: " + cfg.contacts;
+                    }
+                    if(cfg.whatsapp) {
+                        targetShopWhatsApp = cfg.whatsapp.replace(/[^0-9]/g, '');
+                    }
+                    if(cfg.logo_url) {
+                        var logoImg = document.getElementById("hdr_shop_logo");
+                        logoImg.src = cfg.logo_url;
+                        logoImg.style.display = "block";
+                    }
+                }
+            })
+            .catch(err => console.error("Error loading settings:", err));
+
+            // Load Products
             fetch(`${API_BASE}/products`)
             .then(r => r.json())
             .then(data => {
@@ -360,6 +426,55 @@
                 console.error("Error loading products:", err);
                 document.getElementById("loaderScreen").style.display = "none";
             });
+        }
+
+        function openAdminSettingsTool() {
+            if (userRole !== "ADMIN") {
+                alert("❌ Admin-க்கு மட்டுமே Settings மாற்ற அனுமதி உண்டு!");
+                return;
+            }
+
+            fetch(`${SUPABASE_URL}/rest/v1/settings?id=eq.1&select=*`, {
+                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(Array.isArray(data) && data.length > 0) {
+                    var cfg = data[0];
+                    document.getElementById("cfg_shop_name").value = cfg.shop_name || "";
+                    document.getElementById("cfg_shop_address").value = cfg.address || "";
+                    document.getElementById("cfg_shop_contacts").value = cfg.contacts || "";
+                    document.getElementById("cfg_shop_whatsapp").value = cfg.whatsapp || "";
+                    document.getElementById("cfg_shop_logo").value = cfg.logo_url || "";
+                }
+                new bootstrap.Modal(document.getElementById("adminSettingsModal")).show();
+            });
+        }
+
+        function saveShopSettings() {
+            var payload = {
+                shop_name: document.getElementById("cfg_shop_name").value.trim(),
+                address: document.getElementById("cfg_shop_address").value.trim(),
+                contacts: document.getElementById("cfg_shop_contacts").value.trim(),
+                whatsapp: document.getElementById("cfg_shop_whatsapp").value.trim(),
+                logo_url: document.getElementById("cfg_shop_logo").value.trim()
+            };
+
+            fetch(`${SUPABASE_URL}/rest/v1/settings?id=eq.1`, {
+                method: "PATCH",
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                alert("✅ கடை விவரங்கள் வெற்றிகரமாகப் புதுப்பிக்கப்பட்டன!");
+                location.reload();
+            })
+            .catch(err => alert("❌ பிழை: " + err));
         }
 
         function setupPriceSliderRange() {
@@ -713,7 +828,6 @@
 
                 var shopWaUrl = "https://wa.me/" + targetShopWhatsApp + "?text=" + encodeURIComponent(waMessage);
 
-                // 🎯 Fix 1: Online Order -> Only Shop WhatsApp, POS -> Both Shop & Customer WhatsApp
                 if (currentSessionType === "Walk-in Customer") {
                     window.open(shopWaUrl, '_blank');
                     if (rawMobile.length === 10) {
@@ -724,7 +838,6 @@
                     window.location.href = shopWaUrl;
                 }
 
-                // 🎯 Fix 2: Reset Form & Reload Application to prevent duplicate entries
                 setTimeout(function() {
                     location.reload();
                 }, 1500);
@@ -780,9 +893,10 @@
             if(userBadge) userBadge.innerText = "User: " + username;
 
             var passToolBtn = document.getElementById("btnAdminPasskeyTool");
-            if(passToolBtn) {
-                passToolBtn.style.display = (role === "ADMIN") ? "inline-block" : "none";
-            }
+            if(passToolBtn) passToolBtn.style.display = (role === "ADMIN") ? "inline-block" : "none";
+
+            var settingsToolBtn = document.getElementById("btnAdminSettingsTool");
+            if(settingsToolBtn) settingsToolBtn.style.display = (role === "ADMIN") ? "inline-block" : "none";
 
             var modalElem = document.getElementById("loginModal");
             if(modalElem) {
