@@ -755,18 +755,22 @@ function processLogin() {
         var payStatus = o.payment_status || "NO";
         var allocatedStaff = o.allocated_staff || "Unassigned";
 
-        // 📅 ORDER DATE FORMULA (இங்கே தான் அந்த கோட் வைக்கப்பட்டுள்ளது)
+        // ORDER DATE FORMULA
         var orderDateStr = "N/A";
         if (o.created_at || o.order_date) {
             var d = new Date(o.created_at || o.order_date);
             orderDateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + " " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
         }
 
-        // Grey-out Style if Payment Pending
-        var isGreyedOut = (payStatus === "NO");
-        var cardStyle = isGreyedOut 
+        // 🎯 FIX: Grey-out style only applies to TELECALLER when Payment is NO.
+        // ADMIN and ACCOUNTS always see normal clean white cards!
+        var isTelecallerLocked = (userRole === "TELECALLER" && payStatus === "NO");
+        
+        var cardStyle = isTelecallerLocked 
             ? "opacity: 0.65; background: #f1f5f9; border-left: 4px solid #94a3b8 !important;" 
-            : "background: #ffffff; border-left: 4px solid #22c55e !important;";
+            : (payStatus === "YES" 
+                ? "background: #ffffff; border-left: 4px solid #22c55e !important;" 
+                : "background: #ffffff; border-left: 4px solid #ef4444 !important;");
 
         // Order Card HTML Structure
         pendingHtml += '<div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; ' + cardStyle + '">' +
@@ -794,7 +798,7 @@ function processLogin() {
             pendingHtml += '<button class="btn btn-sm btn-success fw-bold" onclick="confirmPayment(\'' + oId + '\')">💳 Confirm Payment</button>';
         }
 
-        if (isGreyedOut && userRole === "TELECALLER") {
+        if (isTelecallerLocked) {
             pendingHtml += '<span class="badge bg-secondary ms-auto">🔒 Locked (Awaiting Payment)</span>';
         }
 
