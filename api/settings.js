@@ -11,25 +11,34 @@ export default async function handler(req, res) {
   const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
 
   if (!supabaseUrl || !supabaseKey) {
-    return res.status(500).json({ error: "Supabase Keys missing in Vercel" });
+    return res.status(500).json({ error: "Supabase Environment Variables Missing in Vercel" });
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // GET Settings
+  // 1. GET SHOP SETTINGS
   if (req.method === 'GET') {
     try {
-      const { data, error } = await supabase.from('settings').select('*').eq('id', 1).single();
-      if (error && error.code !== 'PGRST116') {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('*')
+        .eq('id', 1);
+
+      if (error) {
         return res.status(500).json({ error: error.message });
       }
-      return res.status(200).json(data || {});
+
+      if (data && data.length > 0) {
+        return res.status(200).json(data[0]);
+      } else {
+        return res.status(200).json({});
+      }
     } catch (err) {
       return res.status(500).json({ error: err.message });
     }
   }
 
-  // SAVE / UPDATE Settings
+  // 2. SAVE / UPDATE SHOP SETTINGS
   if (req.method === 'POST') {
     try {
       const body = req.body || {};
@@ -42,8 +51,13 @@ export default async function handler(req, res) {
         logo_url: body.logo_url || ''
       };
 
-      const { data, error } = await supabase.from('settings').upsert([payload]);
-      if (error) return res.status(500).json({ error: error.message });
+      const { data, error } = await supabase
+        .from('settings')
+        .upsert([payload]);
+
+      if (error) {
+        return res.status(500).json({ error: error.message });
+      }
 
       return res.status(200).json({ success: true, data });
     } catch (err) {
