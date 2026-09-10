@@ -177,6 +177,33 @@
         </div>
     </div>
 
+    <!-- 💳 Payment Confirmation Modal (GPay / PhonePe / Cash / Bank Transfer) -->
+    <div class="modal fade" id="paymentVerifyModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content p-3 text-dark">
+                <h5 class="fw-bold text-success border-bottom pb-2 mb-3"><i class="fas fa-credit-card me-1"></i>Confirm Payment</h5>
+                <input type="hidden" id="pay_order_id">
+                
+                <label class="form-label small fw-bold">Payment Method:</label>
+                <select id="pay_mode_select" class="form-select form-select-sm mb-2">
+                    <option value="GPay">GPay 📲</option>
+                    <option value="PhonePe">PhonePe 📱</option>
+                    <option value="Paytm">Paytm 💳</option>
+                    <option value="Bank Transfer">Bank Transfer 🏦</option>
+                    <option value="Cash">Cash 💵</option>
+                </select>
+
+                <label class="form-label small fw-bold">Reference / UTR Number:</label>
+                <input type="text" id="pay_ref_input" class="form-control form-control-sm mb-3" placeholder="e.g. UTR123456789">
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-secondary btn-sm w-50" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-success btn-sm w-50 fw-bold" onclick="submitPaymentConfirmation()">Approve ✅</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 🏪 POS Passkey Entry Modal -->
     <div class="modal fade" id="posKeyModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -271,7 +298,7 @@
             <div class="d-flex align-items-center gap-2">
                 <span id="currentUserBadge" class="badge bg-warning text-dark fw-bold px-3 py-2 fs-6">Role: ADMIN</span>
                 <span id="currentUsernameBadge" class="text-white fw-bold">User: Admin</span>
-                <!-- Low Stock Alert Badge -->
+                <!-- Low Stock Badge -->
                 <span id="lowStockAlertBadge" class="badge bg-danger text-white fw-bold px-2 py-1 fs-6" style="display:none; cursor:pointer;" onclick="switchAdminTab('stock'); filterLowStockOnly();">
                     ⚠️ Low Stock (<span id="lowStockCount">0</span> Items &lt; 100)
                 </span>
@@ -317,11 +344,30 @@
                 </div>
             </div>
 
-            <h6 class="fw-bold text-danger border-bottom pb-2 mb-2"><i class="fas fa-clock me-1"></i>🔴 Received Orders List</h6>
-            <div id="pendingOrdersContainer" class="mb-4"></div>
+            <!-- Orders Table Format -->
+            <div class="card border-0 shadow-sm p-3">
+                <h6 class="fw-bold text-danger border-bottom pb-2 mb-2"><i class="fas fa-list me-1"></i>Received Orders Master Table</h6>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle small mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Order ID / Date</th>
+                                <th>Customer Name</th>
+                                <th>Mobile / District</th>
+                                <th>Type</th>
+                                <th>Staff</th>
+                                <th>Total Amount</th>
+                                <th>Payment Status</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminOrdersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
-        <!-- TAB 2: STOCK & PRICE MANAGEMENT SECTION -->
+        <!-- TAB 2: STOCK & PRICE MANAGEMENT -->
         <div id="adminTabStock" style="display:none;">
             <div class="card border-0 shadow-sm p-3 mb-3">
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
@@ -364,7 +410,7 @@
             </div>
         </div>
 
-        <!-- TAB 3: ANALYTICS & REPORTS SECTION -->
+        <!-- TAB 3: ANALYTICS -->
         <div id="adminTabAnalytics" style="display:none;">
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
@@ -506,7 +552,7 @@
             })
             .catch(err => console.error("Error loading settings:", err));
 
-            // Products Fetch Logic
+            // Products Fetch
             fetch(`${API_BASE}/products`)
             .then(r => r.json())
             .then(data => {
@@ -539,7 +585,7 @@
             });
         }
 
-        // Check Low Stock Items (< 100 Qty)
+        // Low Stock Checker (< 100 Qty)
         function checkLowStockAlerts() {
             var lowStockItems = rawProducts.filter(p => p.stock <= 100);
             var badge = document.getElementById("lowStockAlertBadge");
@@ -601,6 +647,167 @@
                 document.getElementById('adminTabAnalytics').style.display = 'block';
                 renderAnalyticsCharts();
             }
+        }
+
+        // Table Format Orders Master Renderer
+        function renderAdminOrders() {
+            var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
+            var tbody = document.getElementById("adminOrdersTableBody");
+            var html = "";
+
+            var filteredOrders = adminOrdersList.filter(o => {
+                var oType = o.order_type || "Online Customer";
+                var allocated = o.allocated_staff || "";
+
+                if (oType === "Walk-in Customer" && userRole === "TELECALLER") {
+                    return false;
+                }
+
+                if (userRole === "TELECALLER" && allocated !== loggedInUsername) {
+                    return false;
+                }
+
+                if (!searchTxt) return true;
+                var id = (o.id || o.order_id || "").toString().toLowerCase();
+                var mob = (o.mobile || "").toString().toLowerCase();
+                var nm = (o.customer_name || o.name || "").toString().toLowerCase();
+
+                return id.includes(searchTxt) || mob.includes(searchTxt) || nm.includes(searchTxt);
+            });
+
+            filteredOrders.forEach(o => {
+                var oId = o.id || o.order_id || "N/A";
+                var oName = o.customer_name || o.name || "Customer";
+                var oMobile = o.mobile || "N/A";
+                var oDistrict = o.district || "Local";
+                var oType = o.order_type || "Online Customer";
+                var oTotal = parseFloat(o.total_amount || 0);
+                var payStatus = o.payment_status || "NO";
+                var allocatedStaff = o.allocated_staff || "Unassigned";
+
+                var orderDateStr = "N/A";
+                if (o.created_at || o.order_date) {
+                    var d = new Date(o.created_at || o.order_date);
+                    orderDateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + " " + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                }
+
+                var isTelecallerLocked = (userRole === "TELECALLER" && payStatus === "NO");
+
+                html += `<tr>
+                    <td><b>${oId}</b><br><small class="text-muted">${orderDateStr}</small></td>
+                    <td><b>${oName}</b></td>
+                    <td>${oMobile}<br><small class="text-muted">📍 ${oDistrict}</small></td>
+                    <td><span class="badge bg-warning text-dark">${oType}</span></td>
+                    <td><span class="badge bg-secondary">${allocatedStaff}</span></td>
+                    <td><b class="text-danger fs-6">₹${oTotal.toLocaleString('en-IN')}</b></td>
+                    <td>
+                        <span class="badge ${payStatus === 'YES' ? 'bg-success' : 'bg-danger'} p-2">
+                            ${payStatus === 'YES' ? 'Payment Verified ✅' : 'Payment Pending ⏳'}
+                        </span>
+                        ${o.payment_mode ? `<br><small class="text-muted">${o.payment_mode} (${o.transaction_ref || 'N/A'})</small>` : ''}
+                    </td>
+                    <td class="text-center text-nowrap">
+                        <button class="btn btn-sm btn-outline-dark fw-bold me-1" onclick="viewOrderItems('${oId}')">👁️ View</button>
+                        ${((userRole === "ADMIN" || userRole === "ACCOUNTS") && payStatus === "NO") 
+                            ? `<button class="btn btn-sm btn-danger fw-bold" onclick="openPaymentVerifyModal('${oId}')">💳 Confirm Payment</button>` 
+                            : ''}
+                        ${isTelecallerLocked ? '<span class="badge bg-secondary">🔒 Locked</span>' : ''}
+                    </td>
+                </tr>`;
+            });
+
+            tbody.innerHTML = html || "<tr><td colspan='8' class='text-center text-muted p-3'>ஆர்டர்கள் எதுவும் இல்லை!</td></tr>";
+        }
+
+        // Open Payment Verification Modal
+        function openPaymentVerifyModal(orderId) {
+            document.getElementById("pay_order_id").value = orderId;
+            document.getElementById("pay_ref_input").value = "";
+            new bootstrap.Modal(document.getElementById("paymentVerifyModal")).show();
+        }
+
+        // Submit Payment Confirmation
+        function submitPaymentConfirmation() {
+            var orderId = document.getElementById("pay_order_id").value;
+            var mode = document.getElementById("pay_mode_select").value;
+            var ref = document.getElementById("pay_ref_input").value.trim() || "N/A";
+
+            fetch(`${API_BASE}/orders`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    action: "confirm_payment", 
+                    order_id: orderId,
+                    payment_mode: mode,
+                    transaction_ref: ref
+                })
+            })
+            .then(r => r.json())
+            .then(res => {
+                alert("✅ Payment Verified & Approved!");
+                var mInst = bootstrap.Modal.getInstance(document.getElementById("paymentVerifyModal"));
+                if(mInst) mInst.hide();
+                loadAdminOrders();
+            })
+            .catch(err => alert("❌ பிழை: " + err));
+        }
+
+        // Customer View: Shows IN STOCK / OUT OF STOCK Badge only (Stock Qty Numbers Hidden!)
+        function renderProducts() {
+            var container = document.getElementById("items-container");
+            var searchTxt = (document.getElementById("searchInput").value || "").toLowerCase();
+            var selectedCat = document.getElementById("catSelect").value;
+            var sortVal = document.getElementById("sortSelect").value;
+            var maxPriceLimit = parseFloat(document.getElementById("priceRange").value) || 999999;
+
+            var filtered = rawProducts.filter(item => {
+                if(selectedCat !== "ALL" && item.category !== selectedCat) return false;
+                if(maxPriceLimit > 0 && item.rate > maxPriceLimit) return false;
+                var engName = (item.eng || "").toString().toLowerCase();
+                var tamName = (item.tam || "").toString();
+                return engName.includes(searchTxt) || tamName.includes(searchTxt);
+            });
+
+            if(sortVal === "LOW_HIGH") filtered.sort((a, b) => a.rate - b.rate);
+            else if(sortVal === "HIGH_LOW") filtered.sort((a, b) => b.rate - a.rate);
+
+            var html = "", currCat = "";
+            filtered.forEach(item => {
+                if(sortVal === "DEFAULT" && item.category !== currCat) {
+                    currCat = item.category;
+                    html += '<div class="cat-title">' + currCat + '</div>';
+                }
+                
+                var pNameEng = item.eng || "Item";
+                var pNameTam = item.tam || "";
+
+                var titleDisplay = pNameEng;
+                if(currentLang === "ta") {
+                    titleDisplay = pNameTam || pNameEng;
+                } else if(currentLang === "en") {
+                    titleDisplay = pNameEng;
+                } else if(currentLang === "both") {
+                    titleDisplay = pNameEng + (pNameTam ? ' <small class="text-muted">(' + pNameTam + ')</small>' : '');
+                }
+
+                var q = selectedQty[item.id] || 0;
+                var rowTot = q * item.rate;
+                var isOutOfStock = (item.isOutOfStock === true);
+
+                html += '<div class="item-card ' + (isOutOfStock ? 'out-of-stock-card' : '') + '">' +
+                            '<div>' +
+                                '<b>' + titleDisplay + '</b> ' + 
+                                (isOutOfStock ? '<span class="out-of-stock-badge ms-1">OUT OF STOCK</span>' : '<span class="in-stock-badge ms-1">IN STOCK</span>') + '<br>' +
+                                '<small class="text-muted">₹ ' + item.rate + ' / ' + (item.per || 'pkt') + '</small>' +
+                            '</div>' +
+                            '<div class="d-flex align-items-center gap-2">' +
+                                '<input type="number" min="0" id="input_qty_' + item.id + '" class="qty-input" value="' + (q || '') + '" ' + (isOutOfStock ? 'disabled placeholder="0"' : 'oninput="updateQtyOnly(' + item.id + ', this.value)"') + '>' +
+                                '<span class="row-total" id="tot_' + item.id + '">₹ ' + rowTot + '</span>' +
+                            '</div>' +
+                        '</div>';
+            });
+
+            container.innerHTML = html || "<div class='p-4 text-center text-muted'>பொருட்கள் எதுவும் கிடைக்கவில்லை!</div>";
         }
 
         // --- STOCK & PRICE MANAGEMENT FUNCTIONS ---
@@ -854,64 +1061,6 @@
                     }]
                 }
             });
-        }
-
-        // Customer View: Shows IN STOCK / OUT OF STOCK Badge only!
-        function renderProducts() {
-            var container = document.getElementById("items-container");
-            var searchTxt = (document.getElementById("searchInput").value || "").toLowerCase();
-            var selectedCat = document.getElementById("catSelect").value;
-            var sortVal = document.getElementById("sortSelect").value;
-            var maxPriceLimit = parseFloat(document.getElementById("priceRange").value) || 999999;
-
-            var filtered = rawProducts.filter(item => {
-                if(selectedCat !== "ALL" && item.category !== selectedCat) return false;
-                if(maxPriceLimit > 0 && item.rate > maxPriceLimit) return false;
-                var engName = (item.eng || "").toString().toLowerCase();
-                var tamName = (item.tam || "").toString();
-                return engName.includes(searchTxt) || tamName.includes(searchTxt);
-            });
-
-            if(sortVal === "LOW_HIGH") filtered.sort((a, b) => a.rate - b.rate);
-            else if(sortVal === "HIGH_LOW") filtered.sort((a, b) => b.rate - a.rate);
-
-            var html = "", currCat = "";
-            filtered.forEach(item => {
-                if(sortVal === "DEFAULT" && item.category !== currCat) {
-                    currCat = item.category;
-                    html += '<div class="cat-title">' + currCat + '</div>';
-                }
-                
-                var pNameEng = item.eng || "Item";
-                var pNameTam = item.tam || "";
-
-                var titleDisplay = pNameEng;
-                if(currentLang === "ta") {
-                    titleDisplay = pNameTam || pNameEng;
-                } else if(currentLang === "en") {
-                    titleDisplay = pNameEng;
-                } else if(currentLang === "both") {
-                    titleDisplay = pNameEng + (pNameTam ? ' <small class="text-muted">(' + pNameTam + ')</small>' : '');
-                }
-
-                var q = selectedQty[item.id] || 0;
-                var rowTot = q * item.rate;
-                var isOutOfStock = (item.isOutOfStock === true);
-
-                html += '<div class="item-card ' + (isOutOfStock ? 'out-of-stock-card' : '') + '">' +
-                            '<div>' +
-                                '<b>' + titleDisplay + '</b> ' + 
-                                (isOutOfStock ? '<span class="out-of-stock-badge ms-1">OUT OF STOCK</span>' : '<span class="in-stock-badge ms-1">IN STOCK</span>') + '<br>' +
-                                '<small class="text-muted">₹ ' + item.rate + ' / ' + (item.per || 'pkt') + '</small>' +
-                            '</div>' +
-                            '<div class="d-flex align-items-center gap-2">' +
-                                '<input type="number" min="0" id="input_qty_' + item.id + '" class="qty-input" value="' + (q || '') + '" ' + (isOutOfStock ? 'disabled placeholder="0"' : 'oninput="updateQtyOnly(' + item.id + ', this.value)"') + '>' +
-                                '<span class="row-total" id="tot_' + item.id + '">₹ ' + rowTot + '</span>' +
-                            '</div>' +
-                        '</div>';
-            });
-
-            container.innerHTML = html || "<div class='p-4 text-center text-muted'>பொருட்கள் எதுவும் கிடைக்கவில்லை!</div>";
         }
 
         function openAdminSettingsTool() {
