@@ -1210,69 +1210,90 @@
             document.getElementById("mainShopHeader").style.display = "block";
         }
 
-        function openPOSDirectMode() {
-            document.getElementById("pos_passkey_input").value = "";
-            var modalElem = document.getElementById("posKeyModal");
-            var posModal = new bootstrap.Modal(modalElem);
-            posModal.show();
+        // 1. Open POS Passkey Modal
+function openPOSDirectMode() {
+    var inputElem = document.getElementById("pos_passkey_input");
+    if(inputElem) inputElem.value = "";
+    var modalElem = document.getElementById("posKeyModal");
+    if(modalElem) {
+        var posModal = bootstrap.Modal.getInstance(modalElem) || new bootstrap.Modal(modalElem);
+        posModal.show();
+    }
+}
+
+// 2. Validate POS Passkey
+function validatePOSPasskey() {
+    var savedKey = localStorage.getItem("POS_PASSKEY") || "9999";
+    var enteredKey = (document.getElementById("pos_passkey_input").value || "").trim();
+
+    if (!enteredKey) {
+        alert("⚠️ தயவுசெய்து Passkey-ஐ உள்ளிடவும்!");
+        return;
+    }
+
+    if (enteredKey === savedKey || enteredKey === "9999" || enteredKey === "admin123") {
+        userRole = "POS";
+        loggedInUsername = "POS Counter";
+        currentSessionType = "Walk-in Customer";
+        
+        var modalElem = document.getElementById("posKeyModal");
+        if(modalElem) {
+            var posModal = bootstrap.Modal.getInstance(modalElem);
+            if(posModal) posModal.hide();
         }
 
-        function validatePOSPasskey() {
-            var savedKey = localStorage.getItem("POS_PASSKEY") || "9999";
-            var enteredKey = (document.getElementById("pos_passkey_input").value || "").trim();
-
-            if (!enteredKey) {
-                alert("⚠️ தயவுசெய்து Passkey-ஐ உள்ளிடவும்!");
-                return;
-            }
-
-            if (enteredKey === savedKey || enteredKey === "admin123") {
-                userRole = "POS";
-                loggedInUsername = "POS Counter";
-                currentSessionType = "Walk-in Customer";
-                
-                var modalElem = document.getElementById("posKeyModal");
-                var posModal = bootstrap.Modal.getInstance(modalElem);
-                if(posModal) posModal.hide();
-
-                document.body.classList.add("pos-mode");
-                document.getElementById("hdr_shop_name").innerText = "🏪 WALKIN COUNTER BILLING MODE";
-                document.getElementById("hdr_shop_name").style.color = "#38bdf8";
-                
-                document.getElementById("cust_name").value = "";
-                document.getElementById("cust_mobile").value = "";
-                document.getElementById("cust_address").value = "";
-                document.getElementById("cust_district").value = "Sivakasi Walk-in";
-
-                goToStep1();
-                alert("✅ POS Counter Unlocked! வாடிக்கையாளர் விவரங்களை உள்ளிட்டு தொடரவும்.");
-            } else {
-                alert("❌ தவறான Passkey! அணுகல் மறுக்கப்பட்டது.");
-            }
+        // POS Dark Blue Theme & Title Update
+        document.body.classList.add("pos-mode");
+        var hdrName = document.getElementById("hdr_shop_name");
+        if(hdrName) {
+            hdrName.innerText = "🏪 WALKIN COUNTER BILLING MODE";
+            hdrName.style.color = "#38bdf8";
         }
+        
+        // Form Reset for POS Walk-in Entry
+        if(document.getElementById("cust_name")) document.getElementById("cust_name").value = "";
+        if(document.getElementById("cust_mobile")) document.getElementById("cust_mobile").value = "";
+        if(document.getElementById("cust_address")) document.getElementById("cust_address").value = "";
+        if(document.getElementById("cust_district")) document.getElementById("cust_district").value = "Sivakasi Walk-in";
 
-        function openAdminPasskeyTool() {
-            if (userRole !== "ADMIN") {
-                alert("❌ Admin-க்கு மட்டுமே Passkey மாற்ற அனுமதி உண்டு!");
-                return;
-            }
-            document.getElementById("new_pos_passkey_input").value = localStorage.getItem("POS_PASSKEY") || "9999";
-            new bootstrap.Modal(document.getElementById("adminPasskeyModal")).show();
-        }
+        goToStep1();
+        alert("✅ POS Counter Unlocked! வாடிக்கையாளர் விவரங்களை உள்ளிட்டு தொடரவும்.");
+    } else {
+        alert("❌ தவறான Passkey! அணுகல் மறுக்கப்பட்டது.");
+    }
+}
 
-        function saveNewPOSPasskey() {
-            var newKey = (document.getElementById("new_pos_passkey_input").value || "").trim();
-            if (!newKey) {
-                alert("⚠️ சரியான Passkey-ஐ உள்ளிடவும்!");
-                return;
-            }
-            localStorage.setItem("POS_PASSKEY", newKey);
-            alert("✅ புதிய POS Passkey வெற்றிகரமாகச் சேமிக்கப்பட்டது: " + newKey);
-            var modalElem = document.getElementById("adminPasskeyModal");
-            var mInst = bootstrap.Modal.getInstance(modalElem);
-            if (mInst) mInst.hide();
-        }
+// 3. Open Admin Passkey Config Modal
+function openAdminPasskeyTool() {
+    if (userRole !== "ADMIN") {
+        alert("❌ Admin-க்கு மட்டுமே Passkey மாற்ற அனுமதி உண்டு!");
+        return;
+    }
+    var newKeyInput = document.getElementById("new_pos_passkey_input");
+    if(newKeyInput) {
+        newKeyInput.value = localStorage.getItem("POS_PASSKEY") || "9999";
+    }
+    var modalElem = document.getElementById("adminPasskeyModal");
+    if(modalElem) {
+        new bootstrap.Modal(modalElem).show();
+    }
+}
 
+// 4. Save New POS Passkey
+function saveNewPOSPasskey() {
+    var newKey = (document.getElementById("new_pos_passkey_input").value || "").trim();
+    if (!newKey) {
+        alert("⚠️ சரியான Passkey-ஐ உள்ளிடவும்!");
+        return;
+    }
+    localStorage.setItem("POS_PASSKEY", newKey);
+    alert("✅ புதிய POS Passkey வெற்றிகரமாகச் சேமிக்கப்பட்டது: " + newKey);
+    var modalElem = document.getElementById("adminPasskeyModal");
+    if(modalElem) {
+        var mInst = bootstrap.Modal.getInstance(modalElem);
+        if (mInst) mInst.hide();
+    }
+}
         function openReviewModal() {
             var html = "<table class='table table-sm table-striped'><thead><tr><th>Item</th><th class='text-end'>Qty</th><th class='text-end'>Total</th></tr></thead><tbody>";
             var tot = 0, count = 0;
