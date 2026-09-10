@@ -55,7 +55,7 @@
         #hiddenBillWrap { position: fixed; top: 0; left: -9999px; width: 750px; background: white; z-index: -1; }
         .admin-tab-btn { font-weight: bold; font-size: 13px; border-radius: 6px; }
         .cursor-pointer { cursor: pointer; }
-        .chart-container { position: relative; height: 230px; width: 100%; }
+        .chart-container { position: relative; height: 240px; width: 100%; }
     </style>
 </head>
 <body>
@@ -496,9 +496,8 @@
                 </div>
             </div>
 
-            <!-- Detailed Data Tables Reports (NEW ADDITION) -->
+            <!-- Detailed Data Tables Reports -->
             <div class="row g-3 mb-4">
-                <!-- Staff Performance Detailed Table Report -->
                 <div class="col-md-6">
                     <div class="card border-0 shadow-sm p-3">
                         <h6 class="fw-bold text-dark border-bottom pb-2"><i class="fas fa-users me-2 text-primary"></i>Staff Performance Breakdown Table</h6>
@@ -516,7 +515,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Top Products Detailed Sales Table Report -->
                 <div class="col-md-6">
                     <div class="card border-0 shadow-sm p-3">
                         <h6 class="fw-bold text-dark border-bottom pb-2"><i class="fas fa-list-ol me-2 text-danger"></i>Top Products Sales Quantity Table</h6>
@@ -1441,7 +1439,7 @@
             let sortedProducts = Object.keys(itemQuantities)
                 .map(k => ({ name: k, qty: itemQuantities[k], revenue: itemRevenues[k] || 0 }))
                 .sort((a, b) => b.qty - a.qty)
-                .slice(0, 10); // Top 10 Items for Table
+                .slice(0, 10);
 
             let ctxProd = document.getElementById('topProductsChart').getContext('2d');
             if (topProductsChartInst) topProductsChartInst.destroy();
