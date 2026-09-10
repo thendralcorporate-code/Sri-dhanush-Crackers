@@ -16,7 +16,37 @@ export default async function handler(req, res) {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // 1. Confirm Payment Action (Fixed to search ONLY 'id' column)
+  // 1. Delete Order Action (Admin Only)
+  if (req.method === 'POST' && req.body && req.body.action === 'delete_order') {
+    try {
+      const targetId = String(req.body.order_id || '').trim();
+      const { data, error } = await supabase.from('orders').delete().eq('id', targetId);
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ success: true, message: "Order Deleted Successfully!", data });
+    } catch(err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // 2. Order Status & LR Copy Update Action
+  if (req.method === 'POST' && req.body && req.body.action === 'update_order_status') {
+    try {
+      const targetId = String(req.body.order_id || '').trim();
+      const newStatus = req.body.order_status;
+      const lrUrl = req.body.lr_copy_url || null;
+
+      let updatePayload = { order_status: newStatus };
+      if (lrUrl !== undefined && lrUrl !== null) updatePayload.lr_copy_url = lrUrl;
+
+      const { data, error } = await supabase.from('orders').update(updatePayload).eq('id', targetId);
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ success: true, message: "Order Status Updated!", data });
+    } catch(err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // 3. Confirm Payment Action
   if (req.method === 'POST' && req.body && req.body.action === 'confirm_payment') {
     try {
       const targetId = String(req.body.order_id || '').trim();
@@ -25,12 +55,7 @@ export default async function handler(req, res) {
 
       const { data, error } = await supabase
         .from('orders')
-        .update({ 
-          payment_status: 'YES', 
-          approval_status: 'Approved',
-          payment_mode: payMode,
-          transaction_ref: transRef
-        })
+        .update({ payment_status: 'YES', approval_status: 'Approved', payment_mode: payMode, transaction_ref: transRef })
         .eq('id', targetId);
 
       if (error) return res.status(500).json({ error: error.message });
@@ -40,17 +65,13 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2. Re-assign Staff Action
+  // 4. Re-assign Staff Action
   if (req.method === 'POST' && req.body && req.body.action === 'reassign_staff') {
     try {
       const targetId = String(req.body.order_id || '').trim();
       const newStaff = req.body.allocated_staff;
 
-      const { data, error } = await supabase
-        .from('orders')
-        .update({ allocated_staff: newStaff })
-        .eq('id', targetId);
-
+      const { data, error } = await supabase.from('orders').update({ allocated_staff: newStaff }).eq('id', targetId);
       if (error) return res.status(500).json({ error: error.message });
       return res.status(200).json({ success: true, data });
     } catch(err) {
@@ -58,7 +79,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 3. Save New Order
+  // 5. Save New Order
   if (req.method === 'POST') {
     try {
       const body = req.body;
@@ -66,7 +87,6 @@ export default async function handler(req, res) {
       const orderType = body.order_type || 'Online Customer';
 
       let allocatedStaff = null;
-
       if (orderType === 'Online Customer') {
         const { data: staffList } = await supabase.from('staff').select('username, role');
         const telecallers = (staffList || []).filter(s => s.role && s.role.trim().toUpperCase() === 'TELECALLER');
@@ -92,23 +112,6 @@ export default async function handler(req, res) {
 
       const itemsArr = Array.isArray(body.items) ? body.items : JSON.parse(body.items || "[]");
 
-      // Auto Deduct Stock
-      for (let item of itemsArr) {
-        if (item.id && item.qty > 0) {
-          const { data: prod } = await supabase.from('products').select('stock_qty').eq('id', item.id).single();
-          if (prod) {
-            let curStock = parseInt(prod.stock_qty) || 0;
-            let newStock = Math.max(0, curStock - parseInt(item.qty));
-            let newStatus = newStock > 0 ? 'In Stock' : 'Out of Stock';
-
-            await supabase
-              .from('products')
-              .update({ stock_qty: newStock, status: newStatus })
-              .eq('id', item.id);
-          }
-        }
-      }
-
       const dbPayload = {
         id: String(genId),
         customer_name: String(body.customer_name || body.name || 'Customer'),
@@ -122,7 +125,7 @@ export default async function handler(req, res) {
         allocated_staff: allocatedStaff,
         payment_status: body.payment_status || 'NO',
         approval_status: body.approval_status || 'Pending Verification',
-        order_status: 'Order Received'
+        order_status: body.order_status || 'Booked'
       };
 
       const { data, error } = await supabase.from('orders').insert([dbPayload]);
@@ -134,7 +137,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 4. GET Orders List
+  // 6. GET Orders
   else if (req.method === 'GET') {
     try {
       const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
