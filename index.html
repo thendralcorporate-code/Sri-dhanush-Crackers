@@ -362,7 +362,7 @@
         </div>
     </div>
 
-    <!-- Single Product Add/Edit Modal -->
+    <!-- Single Product Add/Edit Modal (With YouTube Link Input) -->
     <div class="modal fade" id="productFormModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3 text-dark">
@@ -393,6 +393,10 @@
                         <label class="form-label small fw-bold">Stock Qty *:</label>
                         <input type="number" id="edit_prod_stock" class="form-control form-control-sm" placeholder="50">
                     </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small fw-bold text-danger"><i class="fab fa-youtube me-1"></i>YouTube Demo Link (Optional):</label>
+                    <input type="text" id="edit_prod_youtube" class="form-control form-control-sm" placeholder="https://youtu.be/video_id">
                 </div>
                 <div class="d-flex gap-2 mt-3">
                     <button class="btn btn-secondary btn-sm w-50" data-bs-dismiss="modal">Cancel</button>
@@ -930,6 +934,7 @@
                             per: p.per_unit || p.per || p.unit || 'pkt',
                             rate: rVal,
                             stock: sQty,
+                            youtube_url: p.youtube_url || p.youtube || '',
                             isOutOfStock: (p.status === 'Out of Stock' || sQty <= 0)
                         };
                     });
@@ -1443,6 +1448,7 @@
             new bootstrap.Modal(document.getElementById("paymentVerifyModal")).show();
         }
 
+        // 🟢 Render Store Products (Auto-Hide Demo Button if youtube_url is empty)
         function renderProducts() {
             var container = document.getElementById("items-container");
             var searchTxt = (document.getElementById("searchInput").value || "").toLowerCase();
@@ -1483,11 +1489,13 @@
                 var q = selectedQty[item.id] || 0;
                 var rowTot = q * item.rate;
                 var isOutOfStock = (item.isOutOfStock === true);
+                var ytUrl = item.youtube_url ? item.youtube_url.trim() : "";
 
                 html += '<div class="item-card ' + (isOutOfStock ? 'out-of-stock-card' : '') + '">' +
                             '<div>' +
                                 '<b>' + titleDisplay + '</b> ' + 
-                                (isOutOfStock ? '<span class="out-of-stock-badge ms-1">OUT OF STOCK</span>' : '<span class="in-stock-badge ms-1">IN STOCK</span>') + '<br>' +
+                                (isOutOfStock ? '<span class="out-of-stock-badge ms-1">OUT OF STOCK</span>' : '<span class="in-stock-badge ms-1">IN STOCK</span>') + 
+                                (ytUrl ? `<a href="${ytUrl}" target="_blank" class="btn btn-xs btn-outline-danger py-0 fw-bold ms-2" style="font-size:10px;"><i class="fab fa-youtube me-1"></i>Watch Demo</a>` : '') + '<br>' +
                                 '<small class="text-muted">₹ ' + item.rate + ' / ' + (item.per || 'pkt') + '</small>' +
                             '</div>' +
                             '<div class="d-flex align-items-center gap-2">' +
@@ -1553,6 +1561,7 @@
                     per_unit: item.per,
                     rate: newRate,
                     stock_qty: newQty,
+                    youtube_url: item.youtube_url || '',
                     status: newQty > 0 ? 'In Stock' : 'Out of Stock'
                 }
             };
@@ -1587,6 +1596,7 @@
                     per_unit: item.per,
                     rate: item.rate,
                     stock_qty: item.stock,
+                    youtube_url: item.youtube_url || '',
                     status: newStatus
                 }
             };
@@ -1610,6 +1620,7 @@
             document.getElementById("edit_prod_per").value = "pkt";
             document.getElementById("edit_prod_rate").value = "";
             document.getElementById("edit_prod_stock").value = "100";
+            document.getElementById("edit_prod_youtube").value = "";
             
             new bootstrap.Modal(document.getElementById("productFormModal")).show();
         }
@@ -1627,7 +1638,8 @@
                     tam_name: document.getElementById("edit_prod_tam").value.trim(),
                     per_unit: document.getElementById("edit_prod_per").value.trim() || 'pkt',
                     rate: rate,
-                    stock_qty: parseInt(document.getElementById("edit_prod_stock").value) || 0
+                    stock_qty: parseInt(document.getElementById("edit_prod_stock").value) || 0,
+                    youtube_url: document.getElementById("edit_prod_youtube").value.trim()
                 }
             };
 
@@ -1645,9 +1657,9 @@
         }
 
         function downloadCSVTemplate() {
-            var csvContent = "data:text/csv;charset=utf-8,category,eng_name,tam_name,per_unit,rate,stock_qty\n" +
-                             "Ground Chakkars,Deluxe Chakkar,டிலக்ஸ் சக்கரம்,pkt,120,50\n" +
-                             "Flower Pots,Big Flower Pot,பூச்சட்டி,box,250,100";
+            var csvContent = "data:text/csv;charset=utf-8,category,eng_name,tam_name,per_unit,rate,stock_qty,youtube_url\n" +
+                             "Ground Chakkars,Deluxe Chakkar,டிலக்ஸ் சக்கரம்,pkt,120,50,https://youtu.be/sample\n" +
+                             "Flower Pots,Big Flower Pot,பூச்சட்டி,box,250,100,";
             var encodedUri = encodeURI(csvContent);
             var link = document.createElement("a");
             link.setAttribute("href", encodedUri);
@@ -1659,9 +1671,9 @@
 
         function exportExistingProductsCSV() {
             if(!rawProducts || rawProducts.length === 0) { alert("⚠️ No products to export!"); return; }
-            var csv = "category,eng_name,tam_name,per_unit,rate,stock_qty\n";
+            var csv = "category,eng_name,tam_name,per_unit,rate,stock_qty,youtube_url\n";
             rawProducts.forEach(p => {
-                csv += `"${p.category}","${p.eng}","${p.tam}","${p.per}",${p.rate},${p.stock}\n`;
+                csv += `"${p.category}","${p.eng}","${p.tam}","${p.per}",${p.rate},${p.stock},"${p.youtube_url || ''}"\n`;
             });
             var encodedUri = encodeURI("data:text/csv;charset=utf-8," + csv);
             var link = document.createElement("a");
@@ -1693,7 +1705,8 @@
                             tam_name: cols[2] || '',
                             per_unit: cols[3] || 'pkt',
                             rate: parseFloat(cols[4]) || 0,
-                            stock_qty: parseInt(cols[5]) || 0
+                            stock_qty: parseInt(cols[5]) || 0,
+                            youtube_url: cols[6] || ''
                         });
                     }
                 }
@@ -2201,6 +2214,7 @@
             document.getElementById("pdfStaffName").innerText = loggedInUsername || "Online System";
             document.getElementById("pdfPaymentDetails").innerText = (currentSessionType === "Walk-in Customer") ? "Cash / Counter Paid" : "Pending Verification";
 
+            // 💥 Online Customer-க்கு 1-Page Customer Copy மட்டும், POS Counter-க்கு 3-Pages Set
             setTimeout(function() {
                 var element;
                 var pdfFileName;
