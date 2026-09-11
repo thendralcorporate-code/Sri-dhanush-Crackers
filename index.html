@@ -222,7 +222,7 @@
         </div>
     </div>
 
-    <!-- Upload LR Copy Modal (Camera & File PDF/Image Support) -->
+    <!-- Upload LR Copy Modal -->
     <div class="modal fade" id="lrUploadModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3 text-dark">
@@ -239,7 +239,6 @@
                     <input type="text" id="lr_copy_url_input" class="form-control form-control-sm" placeholder="e.g. https://... image or LR-12345">
                 </div>
 
-                <!-- Preview Area -->
                 <div id="lr_preview_area" class="text-center my-2 p-2 border rounded bg-light" style="display:none; max-height:220px; overflow:hidden;"></div>
 
                 <div class="d-flex gap-2 mt-3">
@@ -294,7 +293,7 @@
         </div>
     </div>
 
-    <!-- Reassign Staff Modal (Dropdown Select) -->
+    <!-- Reassign Staff Modal -->
     <div class="modal fade" id="reassignStaffModalElem" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3 text-dark text-center">
@@ -362,7 +361,7 @@
         </div>
     </div>
 
-    <!-- Single Product Add/Edit Modal (With YouTube Link Input) -->
+    <!-- Single Product Add/Edit Modal (YouTube Link strictly visible for Admin only via script) -->
     <div class="modal fade" id="productFormModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3 text-dark">
@@ -394,8 +393,8 @@
                         <input type="number" id="edit_prod_stock" class="form-control form-control-sm" placeholder="50">
                     </div>
                 </div>
-                <div class="mb-2">
-                    <label class="form-label small fw-bold text-danger"><i class="fab fa-youtube me-1"></i>YouTube Demo Link (Optional):</label>
+                <div class="mb-2" id="adminYoutubeFieldContainer" style="display:none;">
+                    <label class="form-label small fw-bold text-danger"><i class="fab fa-youtube me-1"></i>YouTube Demo Link (Admin Only):</label>
                     <input type="text" id="edit_prod_youtube" class="form-control form-control-sm" placeholder="https://youtu.be/video_id">
                 </div>
                 <div class="d-flex gap-2 mt-3">
@@ -1062,7 +1061,7 @@
             .catch(err => alert("❌ பிழை: " + err));
         }
 
-        // 🟢 Table Renderer - With Status Wise Filter Dropdown & LR Review Options
+        // 🟢 Table Renderer - LR Upload Allowed for ALL Staff, YouTube strictly for Admin
         function renderAdminOrders() {
             var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
             var statusFilter = document.getElementById("adminStatusFilterSelect") ? document.getElementById("adminStatusFilterSelect").value : "ALL";
@@ -1123,6 +1122,14 @@
                 var isTelecallerLocked = (userRole === "TELECALLER" && (!isPaid || isCompletedParcel));
                 var rowClass = (isTelecallerLocked || isCompletedParcel) ? 'class="row-greyout"' : '';
 
+                // LR Upload button available for ANY staff/admin
+                var lrButtonHtml = "";
+                if (oLrUrl) {
+                    lrButtonHtml = `<button class="btn btn-sm btn-success fw-bold me-1 py-0" onclick="openLRViewReviewModal('${oId}', '${oLrUrl}')">📸 LR Slip</button>`;
+                } else {
+                    lrButtonHtml = `<button class="btn btn-sm btn-outline-success fw-bold me-1 py-0" onclick="openLRUploadModal('${oId}', '${oLrUrl}')">📸 + LR</button>`;
+                }
+
                 html += `<tr ${rowClass}>
                     <td><b>${oId}</b><br><small class="text-muted">${orderDateStr}</small></td>
                     <td><b>${oName}</b></td>
@@ -1154,10 +1161,7 @@
                             ? `<span class="badge bg-secondary p-2"><i class="fas fa-lock me-1"></i>${isCompletedParcel ? 'Completed' : 'Locked'}</span>` 
                             : `<button class="btn btn-sm btn-outline-dark fw-bold me-1 py-0" onclick="viewOrderItems('${oId}')">👁️ View</button>
                                <button class="btn btn-sm btn-outline-primary fw-bold me-1 py-0" onclick="printSingleAdminOrderPDF('${oId}')">🖨️ Print Set</button>
-                               ${oLrUrl 
-                                  ? `<button class="btn btn-sm btn-success fw-bold me-1 py-0" onclick="openLRViewReviewModal('${oId}', '${oLrUrl}')">📸 LR Slip</button>` 
-                                  : `<button class="btn btn-sm btn-outline-success fw-bold me-1 py-0" onclick="openLRUploadModal('${oId}', '${oLrUrl}')">📸 + LR</button>`
-                               }`
+                               ${lrButtonHtml}`
                         }
                         ${((userRole === "ADMIN" || userRole === "ACCOUNTS") && !isPaid) 
                             ? `<button class="btn btn-sm btn-danger fw-bold me-1 py-0" onclick="openPaymentVerifyModal('${oId}')">💳 Confirm</button>` 
@@ -1199,7 +1203,7 @@
             }
         }
 
-        // 🟢 Open LR Upload Modal (Camera / Image / PDF)
+        // 🟢 Open LR Upload Modal (Any staff can upload)
         function openLRUploadModal(orderId, currentUrl) {
             tempBase64LR = "";
             document.getElementById("lr_target_order_id").value = orderId;
@@ -1223,7 +1227,6 @@
             new bootstrap.Modal(document.getElementById("lrUploadModal")).show();
         }
 
-        // 📸 Handle File Select / Camera Capture Event
         function previewSelectedLRFile(event) {
             let file = event.target.files[0];
             if (!file) return;
@@ -1243,7 +1246,6 @@
             reader.readAsDataURL(file);
         }
 
-        // 🟢 Submit LR Upload & Force Mark 'Despatched'
         function submitLRUpload() {
             var orderId = document.getElementById("lr_target_order_id").value;
             var textUrl = document.getElementById("lr_copy_url_input").value.trim();
@@ -1277,7 +1279,6 @@
             .catch(err => alert("❌ பிழை: " + err));
         }
 
-        // 🟢 Open LR View / Review Modal
         function openLRViewReviewModal(orderId, lrUrl) {
             document.getElementById("view_lr_target_order_id").value = orderId;
             let previewContent = document.getElementById("lr_full_preview_content");
@@ -1293,7 +1294,6 @@
             new bootstrap.Modal(document.getElementById("lrViewModal")).show();
         }
 
-        // Trigger Change LR from View Modal
         function triggerEditLRFromView() {
             var orderId = document.getElementById("view_lr_target_order_id").value;
             var vElem = document.getElementById("lrViewModal");
@@ -1307,7 +1307,6 @@
             openLRUploadModal(orderId, curLr);
         }
 
-        // 🟢 Delete Order Function for Admin Only
         function deleteSingleOrder(orderId) {
             if (userRole !== "ADMIN") {
                 alert("❌ Admin-க்கு மட்டுமே ஆர்டர்களை நீக்க அனுமதி உண்டு!");
@@ -1336,7 +1335,6 @@
             }
         }
 
-        // 🟢 Open Dropdown Staff Re-assign Modal
         function openReassignStaffModal(orderId, currentStaff) {
             if(userRole !== "ADMIN") return;
             document.getElementById("reassign_order_id").value = orderId;
@@ -1346,7 +1344,6 @@
             new bootstrap.Modal(document.getElementById("reassignStaffModalElem")).show();
         }
 
-        // 🟢 Submit Dropdown Staff Re-assignment
         function submitStaffReassignment() {
             var orderId = document.getElementById("reassign_order_id").value;
             var newStaff = document.getElementById("reassign_staff_select").value;
@@ -1519,10 +1516,13 @@
             });
 
             filtered.forEach((p, idx) => {
+                var ytUrl = p.youtube_url || "";
+                var editBtnHtml = (userRole === "ADMIN") ? `<button class="btn btn-sm btn-outline-warning py-0 me-1" onclick="openProductEditModalWithData(${p.id})">✏️ Edit</button>` : '';
+
                 html += `<tr>
                     <td>${idx + 1}</td>
                     <td><span class="badge bg-light text-dark border">${p.category}</span></td>
-                    <td><b>${p.eng}</b></td>
+                    <td><b>${p.eng}</b> ${ytUrl ? '<i class="fab fa-youtube text-danger ms-1" title="Demo Video Available"></i>' : ''}</td>
                     <td>${p.tam || '-'}</td>
                     <td>${p.per}</td>
                     <td><input type="number" id="stk_rate_${p.id}" class="form-control form-control-sm text-end" value="${p.rate}"></td>
@@ -1532,8 +1532,9 @@
                             ${p.isOutOfStock ? 'OUT OF STOCK' : 'IN STOCK'}
                         </span>
                     </td>
-                    <td class="text-center">
+                    <td class="text-center text-nowrap">
                         <button class="btn btn-sm btn-primary py-0 me-1" onclick="saveSingleStockItem(${p.id})">💾 Save</button>
+                        ${editBtnHtml}
                         <button class="btn btn-sm ${p.isOutOfStock ? 'btn-outline-success' : 'btn-outline-danger'} py-0" onclick="toggleStockStatus(${p.id})">
                             ${p.isOutOfStock ? 'Mark In Stock' : 'Mark Out'}
                         </button>
@@ -1542,6 +1543,27 @@
             });
 
             tbody.innerHTML = html || "<tr><td colspan='9' class='text-center text-muted'>பொருட்கள் எதுவும் இல்லை!</td></tr>";
+        }
+
+        function openProductEditModalWithData(prodId) {
+            if (userRole !== "ADMIN") {
+                alert("❌ Admin-க்கு மட்டுமே YouTube Demo Link மாற்ற அனுமதி உண்டு!");
+                return;
+            }
+
+            let p = rawProducts.find(item => item.id === prodId);
+            if (!p) return;
+
+            document.getElementById("edit_prod_id").value = p.id;
+            document.getElementById("edit_prod_cat").value = p.category || "General";
+            document.getElementById("edit_prod_eng").value = p.eng || "";
+            document.getElementById("edit_prod_tam").value = p.tam || "";
+            document.getElementById("edit_prod_per").value = p.per || "pkt";
+            document.getElementById("edit_prod_rate").value = p.rate || "";
+            document.getElementById("edit_prod_stock").value = p.stock !== undefined ? p.stock : 100;
+            document.getElementById("edit_prod_youtube").value = p.youtube_url || "";
+
+            new bootstrap.Modal(document.getElementById("productFormModal")).show();
         }
 
         function saveSingleStockItem(id) {
@@ -1613,6 +1635,11 @@
         }
 
         function openSingleProdModal() {
+            if (userRole !== "ADMIN") {
+                alert("❌ Admin-க்கு மட்டுமே புதிய பொருள் சேர்க்க அனுமதி உண்டு!");
+                return;
+            }
+
             document.getElementById("edit_prod_id").value = "";
             document.getElementById("edit_prod_cat").value = "General";
             document.getElementById("edit_prod_eng").value = "";
@@ -1630,16 +1657,19 @@
             var rate = parseFloat(document.getElementById("edit_prod_rate").value) || 0;
             if(!eng || rate <= 0) { alert("⚠️ Product Name and valid Rate are required!"); return; }
 
+            var prodId = document.getElementById("edit_prod_id").value;
+
             var payload = {
                 action: 'save_single',
                 product: {
+                    id: prodId ? parseInt(prodId) : undefined,
                     category: document.getElementById("edit_prod_cat").value.trim() || 'General',
                     eng_name: eng,
                     tam_name: document.getElementById("edit_prod_tam").value.trim(),
                     per_unit: document.getElementById("edit_prod_per").value.trim() || 'pkt',
                     rate: rate,
                     stock_qty: parseInt(document.getElementById("edit_prod_stock").value) || 0,
-                    youtube_url: document.getElementById("edit_prod_youtube").value.trim()
+                    youtube_url: (userRole === "ADMIN") ? document.getElementById("edit_prod_youtube").value.trim() : ""
                 }
             };
 
@@ -1650,8 +1680,12 @@
             })
             .then(r => r.json())
             .then(() => {
-                alert("✅ New Product Added!");
-                bootstrap.Modal.getInstance(document.getElementById("productFormModal")).hide();
+                alert("✅ Product Saved Successfully!");
+                var mElem = document.getElementById("productFormModal");
+                if (mElem) {
+                    var mInst = bootstrap.Modal.getInstance(mElem);
+                    if (mInst) mInst.hide();
+                }
                 loadShopSettingsAndProducts();
             });
         }
@@ -1685,6 +1719,11 @@
         }
 
         function handleBulkCSVUpload(evt) {
+            if (userRole !== "ADMIN") {
+                alert("❌ Admin-க்கு மட்டுமே Bulk CSV அப்லோட் செய்ய அனுமதி உண்டு!");
+                return;
+            }
+
             var file = evt.target.files[0];
             if(!file) return;
 
@@ -1734,7 +1773,6 @@
         // Global Chart Instance Variables
         let staffPerfChartInst = null, paymentModeChartInst = null, topProductsChartInst = null, bizInterestChartInst = null;
 
-        // 📊 Complete Executive Analytics & Charts Engine
         function renderAnalyticsCharts() {
             if (!adminOrdersList || adminOrdersList.length === 0) return;
 
@@ -2005,7 +2043,6 @@
             document.getElementById("mainShopHeader").style.display = "block";
         }
 
-        // 1. Open POS Passkey Modal
         function openPOSDirectMode() {
             var inputElem = document.getElementById("pos_passkey_input");
             if(inputElem) inputElem.value = "";
@@ -2016,7 +2053,6 @@
             }
         }
 
-        // 2. Validate POS Passkey
         function validatePOSPasskey() {
             var savedKey = localStorage.getItem("POS_PASSKEY") || "9999";
             var enteredKey = (document.getElementById("pos_passkey_input").value || "").trim();
@@ -2056,7 +2092,6 @@
             }
         }
 
-        // 3. Open Admin Passkey Config Modal
         function openAdminPasskeyTool() {
             if (userRole !== "ADMIN") {
                 alert("❌ Admin-க்கு மட்டுமே Passkey மாற்ற அனுமதி உண்டு!");
@@ -2072,7 +2107,6 @@
             }
         }
 
-        // 4. Save New POS Passkey
         function saveNewPOSPasskey() {
             var newKey = (document.getElementById("new_pos_passkey_input").value || "").trim();
             if (!newKey) {
@@ -2136,7 +2170,6 @@
             processFinalOrderSave();
         }
 
-        // 💥 Save Order & Provide Live Tracking Link in WhatsApp Message
         function processFinalOrderSave() {
             var total = parseFloat(document.getElementById("grand-total").innerText.replace(/[^0-9.]/g, '')) || 0;
             var orderId = "SDC-" + Math.floor(10000000 + Math.random() * 90000000);
@@ -2214,7 +2247,6 @@
             document.getElementById("pdfStaffName").innerText = loggedInUsername || "Online System";
             document.getElementById("pdfPaymentDetails").innerText = (currentSessionType === "Walk-in Customer") ? "Cash / Counter Paid" : "Pending Verification";
 
-            // 💥 Online Customer-க்கு 1-Page Customer Copy மட்டும், POS Counter-க்கு 3-Pages Set
             setTimeout(function() {
                 var element;
                 var pdfFileName;
@@ -2308,7 +2340,6 @@
             });
         }
 
-        // 🟢 Role Restrictions Engine
         function showAdminView(role, username) {
             userRole = role;
             loggedInUsername = username;
@@ -2326,6 +2357,12 @@
 
             var settingsToolBtn = document.getElementById("btnAdminSettingsTool");
             if(settingsToolBtn) settingsToolBtn.style.display = (role === "ADMIN") ? "inline-block" : "none";
+
+            // YouTube input inside product modal visible only for Admin
+            var ytFieldContainer = document.getElementById("adminYoutubeFieldContainer");
+            if (ytFieldContainer) {
+                ytFieldContainer.style.display = (role === "ADMIN") ? "block" : "none";
+            }
 
             var tabStock = document.getElementById("tabBtnStock");
             if(tabStock) tabStock.style.display = (role === "ADMIN" || role === "ACCOUNTS") ? "inline-block" : "none";
