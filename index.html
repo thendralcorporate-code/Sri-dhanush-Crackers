@@ -52,7 +52,7 @@
         .out-of-stock-badge { background: #e53e3e; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
         .in-stock-badge { background: #22c55e; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
 
-        #hiddenBillWrap { position: fixed; top: 0; left: -9999px; width: 750px; background: white; z-index: -1; }
+        #hiddenBillWrap { position: absolute; top: 0; left: 0; width: 750px; background: white; z-index: -9999; opacity: 0; pointer-events: none; }
         .admin-tab-btn { font-weight: bold; font-size: 13px; border-radius: 6px; }
         .cursor-pointer { cursor: pointer; }
         .chart-container { position: relative; height: 240px; width: 100%; }
@@ -1311,14 +1311,18 @@
 
             var element = document.getElementById('printableBill');
             var opt = {
-                margin:       0.2,
-                filename:     'Sri_Dhanush_Crackers_' + orderId + '_3_Copy_Set.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, logging: false, useCORS: true },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(element).save();
-        }
+    margin:       0.2,
+    filename:     pdfFileName,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { 
+        scale: 1.5, 
+        logging: false, 
+        useCORS: true,
+        allowTaint: true,
+        windowWidth: 800
+    },
+    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+};
 
         function openPaymentVerifyModal(orderId) {
             document.getElementById("pay_order_id").value = orderId;
