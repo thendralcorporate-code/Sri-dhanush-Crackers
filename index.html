@@ -2084,15 +2084,29 @@
             document.getElementById("pdfStaffName").innerText = loggedInUsername || "Online System";
             document.getElementById("pdfPaymentDetails").innerText = (currentSessionType === "Walk-in Customer") ? "Cash / Counter Paid" : "Pending Verification";
 
+            // 💥 Online Customer-க்கு 1-Page Customer Copy மட்டும், POS Counter-க்கு 3-Pages Set
             setTimeout(function() {
-                var element = document.getElementById('printableBill');
+                var element;
+                var pdfFileName;
+
+                if (currentSessionType === "Walk-in Customer") {
+                    // POS Mode: 3 Pages Complete Bill
+                    element = document.getElementById('printableBill');
+                    pdfFileName = 'Sri_Dhanush_Crackers_' + orderId + '_Complete_3_Copy_Set.pdf';
+                } else {
+                    // Online Customer Mode: Only 1st Page (Customer Estimate Copy)
+                    element = document.querySelector('#printableBill > div:first-child');
+                    pdfFileName = 'Sri_Dhanush_Crackers_' + orderId + '_Estimate.pdf';
+                }
+
                 var opt = {
                     margin:       0.2,
-                    filename:     'Sri_Dhanush_Crackers_' + orderId + '_Complete_Order.pdf',
+                    filename:     pdfFileName,
                     image:        { type: 'jpeg', quality: 0.98 },
                     html2canvas:  { scale: 2, logging: false, useCORS: true },
                     jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
                 };
+                
                 html2pdf().set(opt).from(element).save();
             }, 600);
 
