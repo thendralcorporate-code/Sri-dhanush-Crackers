@@ -42,6 +42,7 @@ export default async function handler(req, res) {
           per_unit: item.per_unit || item.per || 'pkt',
           rate: parseFloat(item.rate) || 0,
           stock_qty: parseInt(item.stock_qty) || 0,
+          youtube_url: item.youtube_url ? String(item.youtube_url).trim() : '',
           status: item.status || (parseInt(item.stock_qty) > 0 ? 'In Stock' : 'Out of Stock')
         };
 
@@ -67,12 +68,16 @@ export default async function handler(req, res) {
 
           let finalStock = parseInt(row.stock_qty || row.stock) || 0;
           let finalRate = parseFloat(row.rate) || 0;
+          let finalYoutube = row.youtube_url || row.youtube || '';
 
           if (existing) {
             // Old Stock + New Stock Rule
             finalStock = (parseInt(existing.stock_qty) || 0) + finalStock;
             if (!row.rate || parseFloat(row.rate) <= 0) {
               finalRate = parseFloat(existing.rate) || 0;
+            }
+            if (!finalYoutube) {
+              finalYoutube = existing.youtube_url || '';
             }
           }
 
@@ -84,6 +89,7 @@ export default async function handler(req, res) {
             per_unit: row.per_unit || row.per || (existing ? existing.per_unit : 'pkt'),
             rate: finalRate,
             stock_qty: finalStock,
+            youtube_url: String(finalYoutube).trim(),
             status: finalStock > 0 ? 'In Stock' : 'Out of Stock'
           });
         }
