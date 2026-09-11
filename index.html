@@ -222,18 +222,46 @@
         </div>
     </div>
 
-    <!-- Upload LR Copy Modal -->
+    <!-- Upload LR Copy Modal (Camera & File PDF/Image Support) -->
     <div class="modal fade" id="lrUploadModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3 text-dark">
-                <h6 class="fw-bold text-success border-bottom pb-2 mb-2"><i class="fas fa-upload me-1"></i>Upload Transport LR Copy</h6>
+                <h6 class="fw-bold text-success border-bottom pb-2 mb-2"><i class="fas fa-camera me-1"></i>Upload Transport LR Copy / Slip</h6>
                 <input type="hidden" id="lr_target_order_id">
-                <label class="form-label small fw-bold">LR Slip URL / Image Link:</label>
-                <input type="text" id="lr_copy_url_input" class="form-control form-control-sm mb-2" placeholder="e.g. https://...image.jpg">
-                <small class="text-muted d-block mb-3">அல்லது LR எண்களை உள்ளிடவும்.</small>
-                <div class="d-flex gap-2">
+                
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">1. கேமரா / கோப்பு வழியே தேர்வு செய்யவும் (File/PDF/Camera):</label>
+                    <input type="file" id="lr_file_input" class="form-control form-control-sm mb-2" accept="image/*,application/pdf" capture="environment" onchange="previewSelectedLRFile(event)">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">2. அல்லது LR Slip URL / நம்பரை உள்ளிடவும்:</label>
+                    <input type="text" id="lr_copy_url_input" class="form-control form-control-sm" placeholder="e.g. https://... image or LR-12345">
+                </div>
+
+                <!-- Preview Area -->
+                <div id="lr_preview_area" class="text-center my-2 p-2 border rounded bg-light" style="display:none; max-height:220px; overflow:hidden;"></div>
+
+                <div class="d-flex gap-2 mt-3">
                     <button class="btn btn-secondary btn-sm w-50" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-success btn-sm w-50 fw-bold" onclick="submitLRUpload()">Save LR Slip 💾</button>
+                    <button class="btn btn-success btn-sm w-50 fw-bold" onclick="submitLRUpload()">Save LR Slip & Despatch 🚀</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LR View / Review Modal -->
+    <div class="modal fade" id="lrViewModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-3 text-dark text-center">
+                <h6 class="fw-bold text-primary border-bottom pb-2 mb-2"><i class="fas fa-file-invoice me-1"></i>Uploaded LR Slip Review</h6>
+                <input type="hidden" id="view_lr_target_order_id">
+                
+                <div id="lr_full_preview_content" class="my-3" style="max-height: 400px; overflow-y: auto;"></div>
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-warning btn-sm w-50 fw-bold" onclick="triggerEditLRFromView()">✏️ Change / Upload New LR</button>
+                    <button class="btn btn-secondary btn-sm w-50" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -775,6 +803,7 @@
     <script>
         const API_BASE = "/api";
         let rawProducts = [], selectedQty = {}, currentLang = "both", userRole = "GUEST", loggedInUsername = "GUEST", targetShopWhatsApp = "919080329266", adminOrdersList = [], currentSessionType = "Online Customer", userBusinessInterest = "NO";
+        let tempBase64LR = "";
 
         if (!localStorage.getItem("POS_PASSKEY")) {
             localStorage.setItem("POS_PASSKEY", "9999");
@@ -834,7 +863,9 @@
                 if (order.lr_copy_url && order.lr_copy_url.trim() !== '') {
                     document.getElementById("trkLrBox").style.display = "block";
                     let lrUrl = order.lr_copy_url.trim();
-                    if (lrUrl.startsWith('http')) {
+                    if (lrUrl.startsWith('data:application/pdf')) {
+                        document.getElementById("trkLrContent").innerHTML = `<iframe src="${lrUrl}" width="100%" height="300px"></iframe>`;
+                    } else if (lrUrl.startsWith('data:image') || lrUrl.startsWith('http')) {
                         document.getElementById("trkLrContent").innerHTML = `<a href="${lrUrl}" target="_blank"><img src="${lrUrl}" class="img-fluid rounded border shadow-sm" style="max-height:300px;"></a>`;
                     } else {
                         document.getElementById("trkLrContent").innerHTML = `<div class="p-2 bg-white fw-bold text-dark border rounded">${lrUrl}</div>`;
@@ -1026,7 +1057,7 @@
             .catch(err => alert("❌ பிழை: " + err));
         }
 
-        // 🟢 Table Renderer - With Status Wise Filter Dropdown & Completed Parcel Received Auto Grey-out
+        // 🟢 Table Renderer - With Status Wise Filter Dropdown & LR Review Options
         function renderAdminOrders() {
             var searchTxt = (document.getElementById("adminOrderSearch").value || "").trim().toLowerCase();
             var statusFilter = document.getElementById("adminStatusFilterSelect") ? document.getElementById("adminStatusFilterSelect").value : "ALL";
@@ -1045,7 +1076,6 @@
                 if (oType === "Walk-in Customer" && userRole === "TELECALLER") return false;
                 if (userRole === "TELECALLER" && allocated !== currentLoggedUser) return false;
 
-                // Status Wise Dropdown Filter Bucket Logic
                 if (statusFilter === "PENDING_PAYMENT" && payStatus === "YES") return false;
                 if (statusFilter !== "ALL" && statusFilter !== "PENDING_PAYMENT" && oStatus !== statusFilter) return false;
 
@@ -1119,7 +1149,10 @@
                             ? `<span class="badge bg-secondary p-2"><i class="fas fa-lock me-1"></i>${isCompletedParcel ? 'Completed' : 'Locked'}</span>` 
                             : `<button class="btn btn-sm btn-outline-dark fw-bold me-1 py-0" onclick="viewOrderItems('${oId}')">👁️ View</button>
                                <button class="btn btn-sm btn-outline-primary fw-bold me-1 py-0" onclick="printSingleAdminOrderPDF('${oId}')">🖨️ Print Set</button>
-                               <button class="btn btn-sm btn-outline-success fw-bold me-1 py-0" onclick="openLRUploadModal('${oId}', '${oLrUrl}')">📸 ${oLrUrl ? 'Edit LR' : '+ LR'}</button>`
+                               ${oLrUrl 
+                                  ? `<button class="btn btn-sm btn-success fw-bold me-1 py-0" onclick="openLRViewReviewModal('${oId}', '${oLrUrl}')">📸 LR Slip</button>` 
+                                  : `<button class="btn btn-sm btn-outline-success fw-bold me-1 py-0" onclick="openLRUploadModal('${oId}', '${oLrUrl}')">📸 + LR</button>`
+                               }`
                         }
                         ${((userRole === "ADMIN" || userRole === "ACCOUNTS") && !isPaid) 
                             ? `<button class="btn btn-sm btn-danger fw-bold me-1 py-0" onclick="openPaymentVerifyModal('${oId}')">💳 Confirm</button>` 
@@ -1134,8 +1167,16 @@
             tbody.innerHTML = html || "<tr><td colspan='8' class='text-center text-muted p-3'>ஆர்டர்கள் எதுவும் இல்லை!</td></tr>";
         }
 
-        // 🟢 Confirmation Prompt Before Status Change
+        // 🟢 Status Change Prompt - Auto Opens LR Upload Modal when 'Despatched' Selected
         function confirmAndChangeOrderStatus(orderId, newStatus, oldStatus) {
+            if (newStatus === "Despatched") {
+                let order = adminOrdersList.find(o => String(o.id || o.order_id) === String(orderId));
+                let curLr = order ? (order.lr_copy_url || '') : '';
+                alert("🚚 Despatched நிலைக்கு மாற்ற LR Copy அப்லோட் செய்ய வேண்டும்!");
+                openLRUploadModal(orderId, curLr);
+                return;
+            }
+
             if (confirm(`⚠️ Order ID: ${orderId}-ன் நிலையை "${newStatus}" என மாற்ற விரும்புகிறீர்களா?`)) {
                 fetch(`${API_BASE}/orders`, {
                     method: "POST",
@@ -1153,20 +1194,58 @@
             }
         }
 
-        // 🟢 Open LR Upload Modal
+        // 🟢 Open LR Upload Modal (Camera / Image / PDF)
         function openLRUploadModal(orderId, currentUrl) {
+            tempBase64LR = "";
             document.getElementById("lr_target_order_id").value = orderId;
-            document.getElementById("lr_copy_url_input").value = (currentUrl && currentUrl !== 'null') ? currentUrl : '';
+            document.getElementById("lr_file_input").value = "";
+            document.getElementById("lr_copy_url_input").value = (currentUrl && currentUrl !== 'null' && !currentUrl.startsWith('data:')) ? currentUrl : '';
+            
+            let prevArea = document.getElementById("lr_preview_area");
+            if (currentUrl && currentUrl.trim() !== '' && currentUrl !== 'null') {
+                prevArea.style.display = "block";
+                if (currentUrl.startsWith('data:application/pdf')) {
+                    prevArea.innerHTML = `<span class="badge bg-danger">PDF File Uploaded</span>`;
+                } else if (currentUrl.startsWith('data:image') || currentUrl.startsWith('http')) {
+                    prevArea.innerHTML = `<img src="${currentUrl}" style="max-height:180px;" class="img-fluid rounded border">`;
+                } else {
+                    prevArea.innerHTML = `<b>${currentUrl}</b>`;
+                }
+            } else {
+                prevArea.style.display = "none";
+            }
+
             new bootstrap.Modal(document.getElementById("lrUploadModal")).show();
         }
 
-        // 🟢 Submit LR Upload
+        // 📸 Handle File Select / Camera Capture Event
+        function previewSelectedLRFile(event) {
+            let file = event.target.files[0];
+            if (!file) return;
+
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                tempBase64LR = e.target.result;
+                let prevArea = document.getElementById("lr_preview_area");
+                prevArea.style.display = "block";
+
+                if (file.type.includes('pdf')) {
+                    prevArea.innerHTML = `<div class="p-3 bg-white text-danger fw-bold border rounded"><i class="fas fa-file-pdf fs-3 me-2"></i>PDF Selected: ${file.name}</div>`;
+                } else {
+                    prevArea.innerHTML = `<img src="${tempBase64LR}" style="max-height:180px;" class="img-fluid rounded border">`;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 🟢 Submit LR Upload & Force Mark 'Despatched'
         function submitLRUpload() {
             var orderId = document.getElementById("lr_target_order_id").value;
-            var lrUrl = document.getElementById("lr_copy_url_input").value.trim();
+            var textUrl = document.getElementById("lr_copy_url_input").value.trim();
+            var finalLR = tempBase64LR || textUrl;
 
-            if (!orderId || !lrUrl) {
-                alert("⚠️ தயவுசெய்து LR Slip Image URL / நம்பரை உள்ளிடவும்!");
+            if (!orderId || !finalLR) {
+                alert("⚠️ தயவுசெய்து கேமரா/கோப்பு வழியாகவோ அல்லது URL வழியாகவோ LR Slip-ஐ உள்ளிடவும்!");
                 return;
             }
 
@@ -1177,7 +1256,7 @@
                     action: "update_order_status", 
                     order_id: orderId, 
                     order_status: "Despatched", 
-                    lr_copy_url: lrUrl 
+                    lr_copy_url: finalLR 
                 })
             })
             .then(r => r.json())
@@ -1191,6 +1270,36 @@
                 loadAdminOrders();
             })
             .catch(err => alert("❌ பிழை: " + err));
+        }
+
+        // 🟢 Open LR View / Review Modal
+        function openLRViewReviewModal(orderId, lrUrl) {
+            document.getElementById("view_lr_target_order_id").value = orderId;
+            let previewContent = document.getElementById("lr_full_preview_content");
+
+            if (lrUrl.startsWith('data:application/pdf')) {
+                previewContent.innerHTML = `<iframe src="${lrUrl}" width="100%" height="350px"></iframe>`;
+            } else if (lrUrl.startsWith('data:image') || lrUrl.startsWith('http')) {
+                previewContent.innerHTML = `<a href="${lrUrl}" target="_blank"><img src="${lrUrl}" class="img-fluid rounded border shadow-sm" style="max-height:350px;"></a>`;
+            } else {
+                previewContent.innerHTML = `<div class="p-3 bg-light fw-bold text-dark border rounded fs-5">${lrUrl}</div>`;
+            }
+
+            new bootstrap.Modal(document.getElementById("lrViewModal")).show();
+        }
+
+        // Trigger Change LR from View Modal
+        function triggerEditLRFromView() {
+            var orderId = document.getElementById("view_lr_target_order_id").value;
+            var vElem = document.getElementById("lrViewModal");
+            if (vElem) {
+                var vInst = bootstrap.Modal.getInstance(vElem);
+                if (vInst) vInst.hide();
+            }
+
+            let order = adminOrdersList.find(o => String(o.id || o.order_id) === String(orderId));
+            let curLr = order ? (order.lr_copy_url || '') : '';
+            openLRUploadModal(orderId, curLr);
         }
 
         // 🟢 Delete Order Function for Admin Only
@@ -2092,7 +2201,6 @@
             document.getElementById("pdfStaffName").innerText = loggedInUsername || "Online System";
             document.getElementById("pdfPaymentDetails").innerText = (currentSessionType === "Walk-in Customer") ? "Cash / Counter Paid" : "Pending Verification";
 
-            // 💥 Online Customer-க்கு 1-Page Customer Copy மட்டும், POS Counter-க்கு 3-Pages Set
             setTimeout(function() {
                 var element;
                 var pdfFileName;
