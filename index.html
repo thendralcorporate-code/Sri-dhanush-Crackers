@@ -293,7 +293,7 @@
         </div>
     </div>
 
-    <!-- Reassign Staff Modal -->
+    <!-- Reassign Staff Modal (Updated with Suganya) -->
     <div class="modal fade" id="reassignStaffModalElem" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content p-3 text-dark text-center">
@@ -303,6 +303,7 @@
                 <select id="reassign_staff_select" class="form-select form-select-sm mb-3 text-center fw-bold">
                     <option value="Priya">Priya</option>
                     <option value="Vimala">Vimala</option>
+                    <option value="Suganya">Suganya</option>
                     <option value="Admin">Admin</option>
                     <option value="Unassigned">Unassigned</option>
                 </select>
@@ -1617,7 +1618,7 @@
                     tam_name: item.tam,
                     per_unit: item.per,
                     rate: item.rate,
-                    stock_qty: item.stock,
+                    stock_qty: newQty,
                     youtube_url: item.youtube_url || '',
                     status: newStatus
                 }
@@ -2358,7 +2359,7 @@
             var settingsToolBtn = document.getElementById("btnAdminSettingsTool");
             if(settingsToolBtn) settingsToolBtn.style.display = (role === "ADMIN") ? "inline-block" : "none";
 
-            // YouTube input inside product modal visible only for Admin
+            // YouTube input inside product modal visible ONLY for Admin
             var ytFieldContainer = document.getElementById("adminYoutubeFieldContainer");
             if (ytFieldContainer) {
                 ytFieldContainer.style.display = (role === "ADMIN") ? "block" : "none";
