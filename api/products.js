@@ -11,10 +11,17 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: { persistSession: false }
+    });
 
     if (req.method === 'GET') {
-      const { data, error } = await supabase.from('products').select('*').order('id', { ascending: true });
+      // 136 பொருள்களை வேகமாக பெற select query optimize செய்யப்பட்டுள்ளது
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, category, eng_name, tam_name, price, piece_per_box, image_url, is_active')
+        .order('id', { ascending: true });
+
       if (error) return res.status(500).json({ error: error.message });
       return res.status(200).json(data || []);
     } else {
