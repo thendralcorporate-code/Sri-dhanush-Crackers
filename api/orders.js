@@ -1,5 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
+const SUPABASE_URL = 'https://uviquxhywthznpnqmnx.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aXF1eGh5eXd0aHpucG5xbW54Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODk1MjU0MCwiZXhwIjoyMTA0NTI4NTQwfQ.-8lymr2NrPGjk5qEZ6QBkUMJrsUWHUDY52lZyzif358';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -7,29 +12,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // 1. URL Safety Check: Auto-adds https:// and fallbacks if missing
-  let rawUrl = process.env.SUPABASE_URL || 'uviquxhywthznpnqmnx.supabase.co';
-  rawUrl = rawUrl.trim().replace(/\/$/, '');
-  if (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
-    rawUrl = 'https://' + rawUrl;
-  }
-  const supabaseUrl = rawUrl;
-
-  // 2. Key Safety Check: Checks all possible environment variable key names
-  const supabaseKey = (
-    process.env.SUPABASE_SERVICE_ROLE_KEY || 
-    process.env.SUPABASE_KEY || 
-    process.env.SUPABASE_ANON_KEY || 
-    ''
-  ).trim();
-
-  if (!supabaseUrl || !supabaseKey) {
-    return res.status(500).json({ error: "Supabase Keys missing in Vercel" });
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
-  // 1. Delete Order Action (Admin Only)
+  // 1. Delete Order Action
   if (req.method === 'POST' && req.body && req.body.action === 'delete_order') {
     try {
       const targetId = String(req.body.order_id || '').trim();
