@@ -13,10 +13,28 @@
         .card-custom { border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-top: 20px; }
         .table-dark-custom { background-color: #1a252f; color: white; }
 
+        /* Traditional Bill Box Styling */
+        .bill-box {
+            border: 2px solid #000;
+            padding: 20px;
+            background: #fff;
+            color: #000;
+        }
+        .bill-header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .bill-table th, .bill-table td {
+            border: 1px solid #000 !important;
+            padding: 6px;
+        }
+
         @media print {
             body * { visibility: hidden; }
-            #printableModal, #printableModal * { visibility: visible; }
-            #printableModal { position: absolute; left: 0; top: 0; width: 100%; }
+            #printableBill, #printableBill * { visibility: visible; }
+            #printableBill { position: absolute; left: 0; top: 0; width: 100%; }
             .no-print { display: none !important; }
         }
     </style>
@@ -62,20 +80,20 @@
         </div>
     </div>
 
-    <!-- Order View & Print Modal -->
+    <!-- Order Bill Modal -->
     <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg" id="printableModal">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">SRI DHANUSH CRACKERS - Order Invoice</h5>
-                    <button type="button" class="btn-close btn-close-white no-print" data-bs-dismiss="modal"></button>
+                <div class="modal-header bg-dark text-white no-print">
+                    <h5 class="modal-title">Order Invoice Preview</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4" id="modalDetails">
-                    <!-- Dynamic Details Will Load Here -->
+                <div class="modal-body p-3" id="printableBill">
+                    <!-- Dynamic Bill Format Will Load Here -->
                 </div>
                 <div class="modal-footer no-print">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-success" onclick="window.print()">🖨️ Print / Download PDF</button>
+                    <button type="button" class="btn btn-success fw-bold" onclick="window.print()">🖨️ Print / Save PDF</button>
                 </div>
             </div>
         </div>
@@ -138,7 +156,7 @@
                                 </span>
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-primary" onclick="viewOrder('${order.id}')">👁️ View / PDF</button>
+                                <button class="btn btn-sm btn-primary fw-bold" onclick="viewOrder('${order.id}')">🧾 View Bill</button>
                             </td>
                         </tr>
                     `;
@@ -167,20 +185,25 @@
                 try { rawItems = JSON.parse(rawItems); } catch(e) { rawItems = []; }
             }
 
+            let calculatedTotal = 0;
+
             if (Array.isArray(rawItems) && rawItems.length > 0) {
                 rawItems.forEach((item, index) => {
-                    const name = item.tam_name || item.eng_name || item.name || 'Item ' + (index+1);
-                    const qty = item.quantity || item.qty || 1;
-                    const price = item.price || 0;
+                    const name = item.tam_name || item.eng_name || item.name || 'Crackers Item ' + (index+1);
+                    const qty = Number(item.quantity || item.qty || item.count || 1);
+                    
+                    // Supabase-ல் rate, price, அல்லது unit_price என எந்த ஃபீல்டில் இருந்தாலும் எடுத்துக்கொள்ளும்
+                    const price = Number(item.price || item.rate || item.unit_price || item.amount || 0);
                     const total = qty * price;
+                    calculatedTotal += total;
 
                     itemsList += `
                         <tr>
-                            <td>${index + 1}</td>
+                            <td class="text-center">${index + 1}</td>
                             <td>${name}</td>
-                            <td>${qty}</td>
-                            <td>₹${price}</td>
-                            <td>₹${total}</td>
+                            <td class="text-center">${qty}</td>
+                            <td class="text-end">₹${price.toFixed(2)}</td>
+                            <td class="text-end fw-bold">₹${total.toFixed(2)}</td>
                         </tr>
                     `;
                 });
@@ -188,42 +211,59 @@
                 itemsList = `<tr><td colspan="5" class="text-center text-muted">பொருள்கள் விவரம் தனியாகக் கிடைக்கவில்லை</td></tr>`;
             }
 
-            const modalHtml = `
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <h6><strong>Order ID:</strong> ${order.id}</h6>
-                        <p class="mb-1"><strong>Customer:</strong> ${order.customer_name || 'N/A'}</p>
-                        <p class="mb-1"><strong>Mobile:</strong> ${order.mobile || 'N/A'}</p>
-                        <p class="mb-1"><strong>Address:</strong> ${order.address || ''}, ${order.district || ''}</p>
+            const finalAmount = order.total_amount || calculatedTotal || 0;
+
+            const billHtml = `
+                <div class="bill-box">
+                    <div class="bill-header">
+                        <h3 class="fw-bold mb-0 text-uppercase">SRI DHANUSH CRACKERS</h3>
+                        <p class="mb-0 small">Sivakasi Main Road, Sivakasi - 626123</p>
+                        <p class="mb-0 small">Ph: +91 9790277113 | Email: sridhanushcrackers@gmail.com</p>
+                        <h5 class="mt-2 text-decoration-underline fw-bold">ESTIMATE / ORDER INVOICE</h5>
                     </div>
-                    <div class="col-6 text-end">
-                        <p class="mb-1"><strong>Date:</strong> ${order.created_at ? new Date(order.created_at).toLocaleString('en-IN') : 'N/A'}</p>
-                        <p class="mb-1"><strong>Status:</strong> <span class="badge bg-warning text-dark">${order.order_status || 'Booked'}</span></p>
-                        <p class="mb-1"><strong>Payment:</strong> <span class="badge ${order.payment_status === 'YES' ? 'bg-success' : 'bg-danger'}">${order.payment_status === 'YES' ? 'PAID' : 'PENDING'}</span></p>
+
+                    <div class="row mb-3 small">
+                        <div class="col-7">
+                            <p class="mb-1"><strong>Customer Name:</strong> ${order.customer_name || 'N/A'}</p>
+                            <p class="mb-1"><strong>Mobile No:</strong> ${order.mobile || 'N/A'}</p>
+                            <p class="mb-1"><strong>Delivery Address:</strong> ${order.address || ''}, ${order.district || ''}</p>
+                        </div>
+                        <div class="col-5 text-end">
+                            <p class="mb-1"><strong>Order No:</strong> ${order.id}</p>
+                            <p class="mb-1"><strong>Date:</strong> ${order.created_at ? new Date(order.created_at).toLocaleDateString('en-IN') : 'N/A'}</p>
+                            <p class="mb-1"><strong>Payment Status:</strong> ${order.payment_status === 'YES' ? 'PAID' : 'PENDING'}</p>
+                        </div>
                     </div>
-                </div>
-                <hr>
-                <h6 class="fw-bold mb-3">Ordered Products List:</h6>
-                <table class="table table-bordered text-center align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>#</th>
-                            <th>Product Name</th>
-                            <th>Qty</th>
-                            <th>Price</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${itemsList}
-                    </tbody>
-                </table>
-                <div class="text-end mt-3">
-                    <h4><strong>Total Amount: ₹${order.total_amount || 0}</strong></h4>
+
+                    <table class="table bill-table align-middle small mb-2">
+                        <thead>
+                            <tr class="table-light text-center">
+                                <th style="width: 5%;">S.No</th>
+                                <th style="width: 55%;">Product Description</th>
+                                <th style="width: 10%;">Qty</th>
+                                <th style="width: 15%;">Rate</th>
+                                <th style="width: 15%;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsList}
+                        </tbody>
+                    </table>
+
+                    <div class="row mt-3 align-items-center">
+                        <div class="col-7">
+                            <p class="small mb-0"><strong>Note:</strong> Thank you for your order with Sri Dhanush Crackers! Wishing you a Happy & Safe Diwali.</p>
+                        </div>
+                        <div class="col-5">
+                            <div class="border border-dark p-2 text-end">
+                                <h5 class="mb-0 fw-bold">Net Total: ₹${Number(finalAmount).toFixed(2)}</h5>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
 
-            document.getElementById('modalDetails').innerHTML = modalHtml;
+            document.getElementById('printableBill').innerHTML = billHtml;
             const modal = new bootstrap.Modal(document.getElementById('orderModal'));
             modal.show();
         }
