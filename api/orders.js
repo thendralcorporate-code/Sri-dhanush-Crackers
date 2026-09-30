@@ -7,8 +7,21 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  let supabaseUrl = (process.env.SUPABASE_URL || '').trim().replace(/\/$/, '');
-  const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  // 1. URL Safety Check: Auto-adds https:// and fallbacks if missing
+  let rawUrl = process.env.SUPABASE_URL || 'uviquxhywthznpnqmnx.supabase.co';
+  rawUrl = rawUrl.trim().replace(/\/$/, '');
+  if (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
+    rawUrl = 'https://' + rawUrl;
+  }
+  const supabaseUrl = rawUrl;
+
+  // 2. Key Safety Check: Checks all possible environment variable key names
+  const supabaseKey = (
+    process.env.SUPABASE_SERVICE_ROLE_KEY || 
+    process.env.SUPABASE_KEY || 
+    process.env.SUPABASE_ANON_KEY || 
+    ''
+  ).trim();
 
   if (!supabaseUrl || !supabaseKey) {
     return res.status(500).json({ error: "Supabase Keys missing in Vercel" });
