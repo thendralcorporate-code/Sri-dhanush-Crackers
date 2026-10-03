@@ -31,11 +31,42 @@
             padding: 6px;
         }
 
+        /* Full Multi-page PDF Print CSS Fix */
         @media print {
-            body * { visibility: hidden; }
-            #printableBill, #printableBill * { visibility: visible; }
-            #printableBill { position: absolute; left: 0; top: 0; width: 100%; }
-            .no-print { display: none !important; }
+            body {
+                background: #fff !important;
+                color: #000 !important;
+            }
+            body * {
+                visibility: hidden;
+            }
+            #orderModal, #orderModal *, #printableBill, #printableBill * {
+                visibility: visible;
+            }
+            #orderModal {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            .modal-dialog {
+                max-width: 100% !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .modal-content {
+                border: none !important;
+                box-shadow: none !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .bill-table tr {
+                page-break-inside: avoid;
+            }
         }
     </style>
 </head>
@@ -71,7 +102,7 @@
                         <tr>
                             <td colspan="8" class="text-center py-4">
                                 <div class="spinner-border text-primary" role="status"></div>
-                                <p class="mt-2 mb-0">ஆர்டர்கள் லோட் ஆகிறது...</p>
+                                <p class="mt-2 mb-0">آرடர்கள் லோட் ஆகிறது...</p>
                             </td>
                         </tr>
                     </tbody>
@@ -192,7 +223,6 @@
                     const name = item.tam_name || item.eng_name || item.name || 'Crackers Item ' + (index+1);
                     const qty = Number(item.quantity || item.qty || item.count || 1);
                     
-                    // Supabase-ல் rate, price, அல்லது unit_price என எந்த ஃபீல்டில் இருந்தாலும் எடுத்துக்கொள்ளும்
                     const price = Number(item.price || item.rate || item.unit_price || item.amount || 0);
                     const total = qty * price;
                     calculatedTotal += total;
